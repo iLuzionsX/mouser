@@ -51,7 +51,7 @@ pub(crate) fn needs_extended(native: NativeKey) -> bool {
 const KEYS: &[(u8, u32, u32)] = &[
     // Letters.
     (0x04, 0x41, 0x00), // A
-    (0x05, 0x42, 0x0B), // S
+    (0x05, 0x42, 0x0B), // B
     (0x06, 0x43, 0x08), // C
     (0x07, 0x44, 0x02), // D
     (0x08, 0x45, 0x0E), // E
@@ -66,15 +66,15 @@ const KEYS: &[(u8, u32, u32)] = &[
     (0x11, 0x4E, 0x2D), // N
     (0x12, 0x4F, 0x1F), // O
     (0x13, 0x50, 0x23), // P
-    (0x14, 0x51, 0x10), // Q
+    (0x14, 0x51, 0x0C), // Q
     (0x15, 0x52, 0x0F), // R
     (0x16, 0x53, 0x01), // S
     (0x17, 0x54, 0x11), // T
     (0x18, 0x55, 0x20), // U
-    (0x19, 0x56, 0x1D), // V
-    (0x1A, 0x57, 0x1A), // W
-    (0x1B, 0x58, 0x1B), // X
-    (0x1C, 0x59, 0x1C), // Y
+    (0x19, 0x56, 0x09), // V
+    (0x1A, 0x57, 0x0D), // W
+    (0x1B, 0x58, 0x07), // X
+    (0x1C, 0x59, 0x10), // Y
     (0x1D, 0x5A, 0x06), // Z
     // Number row.
     (0x1E, 0x31, 0x12), // 1
@@ -94,7 +94,7 @@ const KEYS: &[(u8, u32, u32)] = &[
     (0x2B, 0x09, 0x30), // Tab
     (0x2C, 0x20, 0x31), // Space
     // Punctuation.
-    (0x2D, 0xBD, 0x1B), // -
+    (0x2D, 0xBD, 0x1B), // - (ANSI_MINUS)
     (0x2E, 0xBB, 0x18), // =
     (0x2F, 0xDB, 0x21), // [
     (0x30, 0xDD, 0x1E), // ]
@@ -218,6 +218,105 @@ mod tests {
             let hid_key = HidKey(*hid);
             let native = to_native(hid_key).expect("should map to a native key");
             assert_eq!(from_native(native), Some(hid_key), "{hid:#04x}");
+        }
+    }
+
+    /// The table is hand-written and both platform columns are dense, so two
+    /// keys landing on the same native code is easy to do and produces a
+    /// round trip that silently resolves to the wrong key.
+    ///
+    /// This checks both columns on every platform, not just the one being
+    /// compiled for: the Windows column is verified while building for macOS
+    /// and vice versa, which is how a wrong entry gets caught at all on a
+    /// machine that can only build one of them.
+    #[test]
+    fn native_codes_are_unique_per_platform() {
+        let columns: [(u32, &str); 2] = [(1, "windows virtual key"), (2, "macos keycode")];
+        for (column, label) in columns {
+            let mut seen = std::collections::HashMap::new();
+            for row in KEYS {
+                let (hid, windows, macos) = *row;
+                let native = if column == 1 { windows } else { macos };
+                if let Some(previous) = seen.insert(native, hid) {
+                    panic!(
+                        "{label} {native:#04x} is used by both HID {previous:#04x} \
+                         and {hid:#04x}; the second one loses"
+                    );
+                }
+            }
+        }
+    }
+
+    /// Spot-check the macOS column against the documented keycodes.
+    ///
+    /// `KeyCode` in `core-graphics` is a transcription of Apple's own table, so
+    /// asserting against it turns "did I remember this correctly" into a
+    /// compile-checked fact. Only runs on macOS, where the dependency exists.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_column_matches_the_apple_keycodes() {
+        use core_graphics::event::KeyCode;
+
+        // (hid, apple constant, what it is). `CGKeyCode` is a `u16`.
+        let expected: &[(u8, u16, &str)] = &[
+            (0x04, KeyCode::ANSI_A, "A"),
+            (0x05, KeyCode::ANSI_B, "B"),
+            (0x06, KeyCode::ANSI_C, "C"),
+            (0x07, KeyCode::ANSI_D, "D"),
+            (0x08, KeyCode::ANSI_E, "E"),
+            (0x09, KeyCode::ANSI_F, "F"),
+            (0x0A, KeyCode::ANSI_G, "G"),
+            (0x0B, KeyCode::ANSI_H, "H"),
+            (0x0C, KeyCode::ANSI_I, "I"),
+            (0x0D, KeyCode::ANSI_J, "J"),
+            (0x0E, KeyCode::ANSI_K, "K"),
+            (0x0F, KeyCode::ANSI_L, "L"),
+            (0x10, KeyCode::ANSI_M, "M"),
+            (0x11, KeyCode::ANSI_N, "N"),
+            (0x12, KeyCode::ANSI_O, "O"),
+            (0x13, KeyCode::ANSI_P, "P"),
+            (0x14, KeyCode::ANSI_Q, "Q"),
+            (0x15, KeyCode::ANSI_R, "R"),
+            (0x16, KeyCode::ANSI_S, "S"),
+            (0x17, KeyCode::ANSI_T, "T"),
+            (0x18, KeyCode::ANSI_U, "U"),
+            (0x19, KeyCode::ANSI_V, "V"),
+            (0x1A, KeyCode::ANSI_W, "W"),
+            (0x1B, KeyCode::ANSI_X, "X"),
+            (0x1C, KeyCode::ANSI_Y, "Y"),
+            (0x1D, KeyCode::ANSI_Z, "Z"),
+            (0x28, KeyCode::RETURN, "Return"),
+            (0x29, KeyCode::ESCAPE, "Escape"),
+            (0x2A, KeyCode::DELETE, "Backspace"),
+            (0x2B, KeyCode::TAB, "Tab"),
+            (0x2C, KeyCode::SPACE, "Space"),
+            (0x39, KeyCode::CAPS_LOCK, "CapsLock"),
+            (0x4A, KeyCode::HOME, "Home"),
+            (0x4B, KeyCode::PAGE_UP, "PageUp"),
+            (0x4C, KeyCode::FORWARD_DELETE, "Delete"),
+            (0x4D, KeyCode::END, "End"),
+            (0x4E, KeyCode::PAGE_DOWN, "PageDown"),
+            (0x4F, KeyCode::RIGHT_ARROW, "Right"),
+            (0x50, KeyCode::LEFT_ARROW, "Left"),
+            (0x51, KeyCode::DOWN_ARROW, "Down"),
+            (0x52, KeyCode::UP_ARROW, "Up"),
+            (0xE0, KeyCode::CONTROL, "LeftControl"),
+            (0xE1, KeyCode::SHIFT, "LeftShift"),
+            (0xE2, KeyCode::OPTION, "LeftAlt"),
+            (0xE3, KeyCode::COMMAND, "LeftCommand"),
+            (0xE4, KeyCode::RIGHT_CONTROL, "RightControl"),
+            (0xE5, KeyCode::RIGHT_SHIFT, "RightShift"),
+            (0xE6, KeyCode::RIGHT_OPTION, "RightAlt"),
+            (0xE7, KeyCode::RIGHT_COMMAND, "RightCommand"),
+        ];
+
+        for (hid, apple, name) in expected {
+            let actual = to_native(HidKey(*hid)).expect("key should be mapped");
+            assert_eq!(
+                actual,
+                u32::from(*apple),
+                "{name}: table says {actual:#04x}, Apple says {apple:#04x}"
+            );
         }
     }
 
