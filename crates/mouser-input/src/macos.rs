@@ -22,20 +22,20 @@ use std::sync::mpsc::{Sender, channel};
 use std::thread::JoinHandle;
 
 use core_foundation::runloop::CFRunLoop;
+use core_graphics::base::CGFloat;
 use core_graphics::display::CGDisplay;
 use core_graphics::event::{
-    CGEvent, CGEventField, CGEventFlags, CGEventTap, CGEventTapLocation, CGEventTapOptions,
-    CGEventTapPlacement, CGEventTapProxy, CGEventType, CGMouseButton, CallbackResult, EventField,
-    ScrollEventUnit,
+    CGEvent, CGEventField, CGEventTap, CGEventTapLocation, CGEventTapOptions, CGEventTapPlacement,
+    CGEventTapProxy, CGEventType, CGMouseButton, CallbackResult, EventField, ScrollEventUnit,
 };
 use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
-use core_graphics::geometry::{CGFloat, CGPoint};
+use core_graphics::geometry::CGPoint;
 use mouser_core::layout::Rect;
 use mouser_core::protocol::{Button, HidKey, InputEvent, Modifiers};
 
 use crate::events::CapturedEvent;
 use crate::keymap;
-use crate::{InputError, ScreenInfo};
+use crate::{InputBackend, InputError, ScreenInfo};
 
 /// Value written to `kCGEventSourceUserData` on every event we create.
 ///
@@ -144,6 +144,15 @@ fn callback(
     }
 }
 
+/// The integer value of a `CGEventType`.
+///
+/// `CGEventType` is a plain `#[repr(u32)]` enum with no `PartialEq`, so two
+/// variants cannot be compared directly. Matching on the discriminant keeps
+/// that out of the translator's arms.
+fn event_code(ty: CGEventType) -> u32 {
+    ty as u32
+}
+
 /// The virtual keycode carried by a keyboard event.
 fn keycode(event: &CGEvent) -> u32 {
     event.get_integer_value_field(FIELD_KEYCODE) as u32
@@ -190,8 +199,8 @@ fn translate(event_type: CGEventType, event: &CGEvent) -> Option<CapturedEvent> 
             // because the two screens may differ in size.
             let point = event.location();
             CapturedEvent::Move {
-                x: point.x as f64,
-                y: point.y as f64,
+                x: point.x,
+                y: point.y,
                 dx: event.get_integer_value_field(EventField::MOUSE_EVENT_DELTA_X) as f64,
                 dy: event.get_integer_value_field(EventField::MOUSE_EVENT_DELTA_Y) as f64,
             }
@@ -218,7 +227,7 @@ fn translate(event_type: CGEventType, event: &CGEvent) -> Option<CapturedEvent> 
             };
             CapturedEvent::Button {
                 button,
-                pressed: event_type == CGEventType::OtherMouseDown,
+                pressed: event_code(event_type) == event_code(CGEventType::OtherMouseDown),
             }
         }
         CGEventType::ScrollWheel => {
@@ -335,10 +344,10 @@ impl crate::InputBackend for MacosBackend {
         let bounds = CGDisplay::main().bounds();
         ScreenInfo {
             bounds: Rect::new(
-                bounds.origin.x as f64,
-                bounds.origin.y as f64,
-                bounds.size.width as f64,
-                bounds.size.height as f64,
+                bounds.origin.x,
+                bounds.origin.y,
+                bounds.size.width,
+                bounds.size.height,
             ),
         }
     }
@@ -346,7 +355,7 @@ impl crate::InputBackend for MacosBackend {
     fn cursor_position(&self) -> Option<(f64, f64)> {
         let event = CGEvent::new(event_source().ok()?).ok()?;
         let point = event.location();
-        Some((point.x as f64, point.y as f64))
+        Some((point.x, point.y))
     }
 
     fn hide_cursor(&self) -> Result<(), InputError> {
@@ -445,8 +454,8 @@ mod tests {
         // "synthetic" is already true for ordinary events, which would make
         // the marker meaningless.
         assert_ne!(INJECT_TAG, 0);
-        let bytes = INJECT_TAG.to_be_bytes();
-        assert_eq!(&bytes, b"mouser");
+        // Big-endian, so the most significant bytes read as the word first.
+        assert_eq!(&INJECT_TAG.to_be_bytes()[2..], b"mouser");
     }
 
     #[test]
@@ -475,7 +484,8 @@ mod tests {
         // A type the translator handles but the tap never asks for would be
         // silently dropped at runtime, which is invisible until a user
         // reports a key that "does nothing".
-        let asked = events_of_interest();
+        // Compared as discriminants because `CGEventType` has no `PartialEq`.
+        let asked: Vec<u32> = events_of_interest().into_iter().map(event_code).collect();
         for needed in [
             CGEventType::LeftMouseDown,
             CGEventType::LeftMouseUp,
@@ -489,7 +499,7 @@ mod tests {
             CGEventType::ScrollWheel,
         ] {
             assert!(
-                asked.contains(&needed),
+                asked.contains(&event_code(needed)),
                 "tap does not subscribe to {needed:?}"
             );
         }

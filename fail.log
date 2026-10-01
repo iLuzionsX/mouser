@@ -1,0 +1,1340 @@
+﻿macos-latest (aarch64-apple-darwin)	Check	∩╗┐2026-10-01T21:03:27.2669590Z ##[group]Run cargo check --workspace --all-targets --target aarch64-apple-darwin
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.2670120Z ^[[36;1mcargo check --workspace --all-targets --target aarch64-apple-darwin^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.2705610Z shell: /bin/bash -e {0}
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.2705800Z env:
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.2705950Z   CARGO_TERM_COLOR: always
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.2706110Z   RUSTFLAGS: -D warnings
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.2706330Z   CARGO_HOME: /Users/runner/.cargo
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.2706510Z   CARGO_INCREMENTAL: 0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.2706660Z   CACHE_ON_FAILURE: false
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.2706820Z ##[endgroup]
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.3999000Z ^[[1m^[[92m    Updating^[[0m crates.io index
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:27.9814830Z ^[[1m^[[92m Downloading^[[0m crates ...
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.0360530Z ^[[1m^[[92m  Downloaded^[[0m base64 v0.22.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.0467640Z ^[[1m^[[92m  Downloaded^[[0m dirs-sys v0.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.0488700Z ^[[1m^[[92m  Downloaded^[[0m serde v1.0.229
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.0554830Z ^[[1m^[[92m  Downloaded^[[0m serde_derive v1.0.229
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.0657800Z ^[[1m^[[92m  Downloaded^[[0m time-macros v0.2.25
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.0687760Z ^[[1m^[[92m  Downloaded^[[0m cpufeatures v0.2.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.0715470Z ^[[1m^[[92m  Downloaded^[[0m darling_core v0.21.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.0847990Z ^[[1m^[[92m  Downloaded^[[0m time v0.3.45
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1167810Z ^[[1m^[[92m  Downloaded^[[0m yoke-derive v0.8.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1188980Z ^[[1m^[[92m  Downloaded^[[0m serde_with_macros v3.17.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1216370Z ^[[1m^[[92m  Downloaded^[[0m sha2 v0.10.9
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1270510Z ^[[1m^[[92m  Downloaded^[[0m clap_lex v1.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1294280Z ^[[1m^[[92m  Downloaded^[[0m displaydoc v0.2.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1337690Z ^[[1m^[[92m  Downloaded^[[0m form_urlencoded v1.2.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1378210Z ^[[1m^[[92m  Downloaded^[[0m serde_core v1.0.229
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1409980Z ^[[1m^[[92m  Downloaded^[[0m adler2 v2.0.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1441650Z ^[[1m^[[92m  Downloaded^[[0m serde-untagged v0.1.9
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1470580Z ^[[1m^[[92m  Downloaded^[[0m serde_json v1.0.151
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1629910Z ^[[1m^[[92m  Downloaded^[[0m serde_spanned v1.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1653980Z ^[[1m^[[92m  Downloaded^[[0m url v2.5.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1706110Z ^[[1m^[[92m  Downloaded^[[0m semver v1.0.28
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.1788000Z ^[[1m^[[92m  Downloaded^[[0m serde_with v3.17.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2061480Z ^[[1m^[[92m  Downloaded^[[0m serialize-to-javascript v0.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2076640Z ^[[1m^[[92m  Downloaded^[[0m core-graphics-types v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2092670Z ^[[1m^[[92m  Downloaded^[[0m serialize-to-javascript-impl v0.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2103000Z ^[[1m^[[92m  Downloaded^[[0m serde_derive_internals v0.29.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2126520Z ^[[1m^[[92m  Downloaded^[[0m crypto-common v0.1.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2140630Z ^[[1m^[[92m  Downloaded^[[0m ctor-proc-macro v0.0.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2152970Z ^[[1m^[[92m  Downloaded^[[0m digest v0.11.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2488580Z ^[[1m^[[92m  Downloaded^[[0m dtoa-short v0.3.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2497730Z ^[[1m^[[92m  Downloaded^[[0m thiserror v2.0.21
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2629240Z ^[[1m^[[92m  Downloaded^[[0m toml_datetime v0.7.5+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2661090Z ^[[1m^[[92m  Downloaded^[[0m tracing-attributes v0.1.31
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2713030Z ^[[1m^[[92m  Downloaded^[[0m unic-common v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2725520Z ^[[1m^[[92m  Downloaded^[[0m unic-ucd-version v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.2742730Z ^[[1m^[[92m  Downloaded^[[0m utf8parse v0.2.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3064440Z ^[[1m^[[92m  Downloaded^[[0m zerotrie v0.2.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3132740Z ^[[1m^[[92m  Downloaded^[[0m zerovec v0.11.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3233200Z ^[[1m^[[92m  Downloaded^[[0m hashbrown v0.17.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3318510Z ^[[1m^[[92m  Downloaded^[[0m aead v0.5.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3335930Z ^[[1m^[[92m  Downloaded^[[0m bitflags v1.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3386980Z ^[[1m^[[92m  Downloaded^[[0m cipher v0.4.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3420900Z ^[[1m^[[92m  Downloaded^[[0m const-oid v0.10.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3455300Z ^[[1m^[[92m  Downloaded^[[0m directories v6.0.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3477740Z ^[[1m^[[92m  Downloaded^[[0m fastrand v2.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3498260Z ^[[1m^[[92m  Downloaded^[[0m servo_arc v0.4.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3509910Z ^[[1m^[[92m  Downloaded^[[0m sha2 v0.11.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3575870Z ^[[1m^[[92m  Downloaded^[[0m sharded-slab v0.1.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3626270Z ^[[1m^[[92m  Downloaded^[[0m signal-hook-registry v1.4.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3642970Z ^[[1m^[[92m  Downloaded^[[0m simd-adler32 v0.3.10
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3678330Z ^[[1m^[[92m  Downloaded^[[0m socket2 v0.6.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3709320Z ^[[1m^[[92m  Downloaded^[[0m stable_deref_trait v1.2.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3726580Z ^[[1m^[[92m  Downloaded^[[0m subtle v2.6.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.3751180Z ^[[1m^[[92m  Downloaded^[[0m syn v2.0.119
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4033760Z ^[[1m^[[92m  Downloaded^[[0m synstructure v0.14.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4042770Z ^[[1m^[[92m  Downloaded^[[0m tauri-runtime v2.11.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4076090Z ^[[1m^[[92m  Downloaded^[[0m toml v1.1.6+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4150850Z ^[[1m^[[92m  Downloaded^[[0m toml_datetime v1.1.1+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4167740Z ^[[1m^[[92m  Downloaded^[[0m tray-icon v0.24.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4203020Z ^[[1m^[[92m  Downloaded^[[0m typeid v1.0.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4227520Z ^[[1m^[[92m  Downloaded^[[0m unic-char-range v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4250100Z ^[[1m^[[92m  Downloaded^[[0m urlpattern v0.3.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4278970Z ^[[1m^[[92m  Downloaded^[[0m objc2 v0.6.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4458450Z ^[[1m^[[92m  Downloaded^[[0m html5ever v0.38.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4530730Z ^[[1m^[[92m  Downloaded^[[0m serde_repr v0.1.21
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4571200Z ^[[1m^[[92m  Downloaded^[[0m siphasher v1.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4601150Z ^[[1m^[[92m  Downloaded^[[0m tauri-build v2.6.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4625270Z ^[[1m^[[92m  Downloaded^[[0m crypto-common v0.2.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4641860Z ^[[1m^[[92m  Downloaded^[[0m tauri-macros v2.6.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4668640Z ^[[1m^[[92m  Downloaded^[[0m web_atoms v0.2.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4687310Z ^[[1m^[[92m  Downloaded^[[0m chacha20 v0.9.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4714300Z ^[[1m^[[92m  Downloaded^[[0m smallvec v1.16.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4732060Z ^[[1m^[[92m  Downloaded^[[0m tauri-utils v2.9.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4791630Z ^[[1m^[[92m  Downloaded^[[0m cpufeatures v0.3.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4818680Z ^[[1m^[[92m  Downloaded^[[0m thread_local v1.1.10
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4839930Z ^[[1m^[[92m  Downloaded^[[0m ident_case v1.0.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4852760Z ^[[1m^[[92m  Downloaded^[[0m cobs v0.3.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4874950Z ^[[1m^[[92m  Downloaded^[[0m ctr v0.9.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4905620Z ^[[1m^[[92m  Downloaded^[[0m dtor-proc-macro v0.0.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4917390Z ^[[1m^[[92m  Downloaded^[[0m shlex v2.0.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4943940Z ^[[1m^[[92m  Downloaded^[[0m anstream v1.0.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.4994850Z ^[[1m^[[92m  Downloaded^[[0m blake2 v0.10.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5040790Z ^[[1m^[[92m  Downloaded^[[0m core-foundation v0.10.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5089770Z ^[[1m^[[92m  Downloaded^[[0m dispatch2 v0.3.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5136250Z ^[[1m^[[92m  Downloaded^[[0m tokio-macros v2.7.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5154280Z ^[[1m^[[92m  Downloaded^[[0m ghash v0.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5174690Z ^[[1m^[[92m  Downloaded^[[0m keyboard-types v0.7.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5205940Z ^[[1m^[[92m  Downloaded^[[0m bytes v1.12.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5267430Z ^[[1m^[[92m  Downloaded^[[0m cargo_metadata v0.19.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5296600Z ^[[1m^[[92m  Downloaded^[[0m core-graphics v0.25.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5333070Z ^[[1m^[[92m  Downloaded^[[0m foreign-types v0.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5345810Z ^[[1m^[[92m  Downloaded^[[0m schemars_derive v0.8.22
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5369460Z ^[[1m^[[92m  Downloaded^[[0m clap v4.6.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5542020Z ^[[1m^[[92m  Downloaded^[[0m embed_plist v1.2.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5558200Z ^[[1m^[[92m  Downloaded^[[0m flate2 v1.1.10
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5644310Z ^[[1m^[[92m  Downloaded^[[0m byteorder v1.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5666470Z ^[[1m^[[92m  Downloaded^[[0m dtor v0.3.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5681170Z ^[[1m^[[92m  Downloaded^[[0m thiserror-impl v1.0.69
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5700970Z ^[[1m^[[92m  Downloaded^[[0m toml_parser v1.1.3+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5733990Z ^[[1m^[[92m  Downloaded^[[0m unic-char-property v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5754770Z ^[[1m^[[92m  Downloaded^[[0m unic-ucd-ident v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5784590Z ^[[1m^[[92m  Downloaded^[[0m version_check v0.9.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5804370Z ^[[1m^[[92m  Downloaded^[[0m zerofrom v0.1.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5821690Z ^[[1m^[[92m  Downloaded^[[0m objc2-encode v4.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5845650Z ^[[1m^[[92m  Downloaded^[[0m heck v0.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5866690Z ^[[1m^[[92m  Downloaded^[[0m idna_adapter v1.2.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5902760Z ^[[1m^[[92m  Downloaded^[[0m aes v0.8.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5938200Z ^[[1m^[[92m  Downloaded^[[0m embedded-io v0.6.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5957480Z ^[[1m^[[92m  Downloaded^[[0m string_cache v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.5984970Z ^[[1m^[[92m  Downloaded^[[0m thiserror-impl v2.0.21
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6013620Z ^[[1m^[[92m  Downloaded^[[0m time-core v0.1.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6029410Z ^[[1m^[[92m  Downloaded^[[0m universal-hash v0.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6041550Z ^[[1m^[[92m  Downloaded^[[0m untrusted v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6085030Z ^[[1m^[[92m  Downloaded^[[0m utf8_iter v1.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6188270Z ^[[1m^[[92m  Downloaded^[[0m alloc-no-stdlib v2.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6249340Z ^[[1m^[[92m  Downloaded^[[0m digest v0.10.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6249860Z ^[[1m^[[92m  Downloaded^[[0m thiserror v1.0.69
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6416300Z ^[[1m^[[92m  Downloaded^[[0m writeable v0.6.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6448120Z ^[[1m^[[92m  Downloaded^[[0m zeroize v1.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6479060Z ^[[1m^[[92m  Downloaded^[[0m zerovec-derive v0.11.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6516770Z ^[[1m^[[92m  Downloaded^[[0m cargo_toml v0.22.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6534530Z ^[[1m^[[92m  Downloaded^[[0m swift-rs v1.0.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6567300Z ^[[1m^[[92m  Downloaded^[[0m tracing-core v0.1.36
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6617900Z ^[[1m^[[92m  Downloaded^[[0m unicode-ident v1.0.26
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6668170Z ^[[1m^[[92m  Downloaded^[[0m getrandom v0.4.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6741060Z ^[[1m^[[92m  Downloaded^[[0m icu_properties_data v2.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6930060Z ^[[1m^[[92m  Downloaded^[[0m opaque-debug v0.3.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6942510Z ^[[1m^[[92m  Downloaded^[[0m tinystr v0.8.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6977210Z ^[[1m^[[92m  Downloaded^[[0m mime v0.3.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.6998880Z ^[[1m^[[92m  Downloaded^[[0m percent-encoding v2.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7013290Z ^[[1m^[[92m  Downloaded^[[0m tendril v0.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7048410Z ^[[1m^[[92m  Downloaded^[[0m hybrid-array v0.4.15
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7090950Z ^[[1m^[[92m  Downloaded^[[0m anyhow v1.0.104
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7193640Z ^[[1m^[[92m  Downloaded^[[0m toml v0.9.12+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7250770Z ^[[1m^[[92m  Downloaded^[[0m zerofrom-derive v0.1.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7266070Z ^[[1m^[[92m  Downloaded^[[0m string_cache_codegen v0.6.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7277530Z ^[[1m^[[92m  Downloaded^[[0m strsim v0.11.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7300480Z ^[[1m^[[92m  Downloaded^[[0m tauri-runtime-wry v2.11.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7356670Z ^[[1m^[[92m  Downloaded^[[0m toml_writer v1.1.2+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7385680Z ^[[1m^[[92m  Downloaded^[[0m walkdir v2.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7416360Z ^[[1m^[[92m  Downloaded^[[0m memchr v2.8.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7537920Z ^[[1m^[[92m  Downloaded^[[0m pin-project-lite v0.2.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7646760Z ^[[1m^[[92m  Downloaded^[[0m ref-cast-impl v1.0.27
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7665550Z ^[[1m^[[92m  Downloaded^[[0m markup5ever v0.38.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7683460Z ^[[1m^[[92m  Downloaded^[[0m matchers v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7699500Z ^[[1m^[[92m  Downloaded^[[0m getrandom v0.2.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7745370Z ^[[1m^[[92m  Downloaded^[[0m ico v0.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7797340Z ^[[1m^[[92m  Downloaded^[[0m parking_lot_core v0.9.12
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7831820Z ^[[1m^[[92m  Downloaded^[[0m precomputed-hash v0.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7840910Z ^[[1m^[[92m  Downloaded^[[0m parking_lot v0.12.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.7883280Z ^[[1m^[[92m  Downloaded^[[0m brotli v8.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8081570Z ^[[1m^[[92m  Downloaded^[[0m crossbeam-utils v0.8.23
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8131550Z ^[[1m^[[92m  Downloaded^[[0m embedded-io v0.4.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8159720Z ^[[1m^[[92m  Downloaded^[[0m errno v0.3.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8184400Z ^[[1m^[[92m  Downloaded^[[0m syn v3.0.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8358550Z ^[[1m^[[92m  Downloaded^[[0m tauri-codegen v2.6.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8381310Z ^[[1m^[[92m  Downloaded^[[0m tauri-winres v0.3.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8406190Z ^[[1m^[[92m  Downloaded^[[0m typenum v1.20.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8459570Z ^[[1m^[[92m  Downloaded^[[0m unicode-segmentation v1.13.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8500970Z ^[[1m^[[92m  Downloaded^[[0m yoke v0.8.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8528960Z ^[[1m^[[92m  Downloaded^[[0m icu_provider v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8565000Z ^[[1m^[[92m  Downloaded^[[0m plist v1.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8610240Z ^[[1m^[[92m  Downloaded^[[0m proc-macro2 v1.0.107
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8656540Z ^[[1m^[[92m  Downloaded^[[0m schemars v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8916650Z ^[[1m^[[92m  Downloaded^[[0m infer v0.19.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8949490Z ^[[1m^[[92m  Downloaded^[[0m jsonptr v0.6.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.8993310Z ^[[1m^[[92m  Downloaded^[[0m litemap v0.8.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9033020Z ^[[1m^[[92m  Downloaded^[[0m glob v0.3.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9057870Z ^[[1m^[[92m  Downloaded^[[0m iana-time-zone v0.1.65
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9104370Z ^[[1m^[[92m  Downloaded^[[0m is_terminal_polyfill v1.70.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9119500Z ^[[1m^[[92m  Downloaded^[[0m quote v1.0.47
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9167890Z ^[[1m^[[92m  Downloaded^[[0m phf v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9188490Z ^[[1m^[[92m  Downloaded^[[0m rustc_version v0.4.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9208960Z ^[[1m^[[92m  Downloaded^[[0m objc2-exception-helper v0.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9223930Z ^[[1m^[[92m  Downloaded^[[0m objc2-io-surface v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9254610Z ^[[1m^[[92m  Downloaded^[[0m phf_generator v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9272850Z ^[[1m^[[92m  Downloaded^[[0m anstyle-query v1.1.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9289160Z ^[[1m^[[92m  Downloaded^[[0m bit-vec v0.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9313560Z ^[[1m^[[92m  Downloaded^[[0m block2 v0.6.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9339550Z ^[[1m^[[92m  Downloaded^[[0m cfb v0.7.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9407440Z ^[[1m^[[92m  Downloaded^[[0m cfg-if v1.0.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9428350Z ^[[1m^[[92m  Downloaded^[[0m core-foundation-sys v0.8.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9482540Z ^[[1m^[[92m  Downloaded^[[0m dirs v6.0.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9506890Z ^[[1m^[[92m  Downloaded^[[0m dtoa v1.0.11
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9529830Z ^[[1m^[[92m  Downloaded^[[0m tracing-log v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9551090Z ^[[1m^[[92m  Downloaded^[[0m winnow v0.7.15
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9709620Z ^[[1m^[[92m  Downloaded^[[0m schemars v0.8.22
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:28.9984410Z ^[[1m^[[92m  Downloaded^[[0m icu_normalizer_data v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0016920Z ^[[1m^[[92m  Downloaded^[[0m log v0.4.34
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0065580Z ^[[1m^[[92m  Downloaded^[[0m hex v0.4.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0086910Z ^[[1m^[[92m  Downloaded^[[0m icu_normalizer v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0430560Z ^[[1m^[[92m  Downloaded^[[0m inout v0.1.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0447030Z ^[[1m^[[92m  Downloaded^[[0m itoa v1.0.18
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0469360Z ^[[1m^[[92m  Downloaded^[[0m raw-window-handle v0.6.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0501970Z ^[[1m^[[92m  Downloaded^[[0m num-traits v0.2.19
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0545600Z ^[[1m^[[92m  Downloaded^[[0m rustc-hash v2.1.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0565550Z ^[[1m^[[92m  Downloaded^[[0m phf_codegen v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0578940Z ^[[1m^[[92m  Downloaded^[[0m phf_macros v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0592080Z ^[[1m^[[92m  Downloaded^[[0m potential_utf v0.1.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0615860Z ^[[1m^[[92m  Downloaded^[[0m postcard v1.1.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0646860Z ^[[1m^[[92m  Downloaded^[[0m aho-corasick v1.1.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0729430Z ^[[1m^[[92m  Downloaded^[[0m alloc-stdlib v0.2.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0747340Z ^[[1m^[[92m  Downloaded^[[0m cargo-platform v0.1.9
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.0771020Z ^[[1m^[[92m  Downloaded^[[0m derive_more v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1024880Z ^[[1m^[[92m  Downloaded^[[0m embed-resource v3.0.11
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1058380Z ^[[1m^[[92m  Downloaded^[[0m find-msvc-tools v0.1.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1086210Z ^[[1m^[[92m  Downloaded^[[0m tracing-subscriber v0.3.23
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1243830Z ^[[1m^[[92m  Downloaded^[[0m uuid v1.26.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1290290Z ^[[1m^[[92m  Downloaded^[[0m winnow v1.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1452910Z ^[[1m^[[92m  Downloaded^[[0m http v1.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1513390Z ^[[1m^[[92m  Downloaded^[[0m icu_properties v2.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1546280Z ^[[1m^[[92m  Downloaded^[[0m hashbrown v0.12.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1599860Z ^[[1m^[[92m  Downloaded^[[0m heapless v0.7.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1731730Z ^[[1m^[[92m  Downloaded^[[0m indexmap v1.9.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1819490Z ^[[1m^[[92m  Downloaded^[[0m json-patch v3.0.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1875370Z ^[[1m^[[92m  Downloaded^[[0m num-conv v0.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1906020Z ^[[1m^[[92m  Downloaded^[[0m ref-cast v1.0.27
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.1968440Z ^[[1m^[[92m  Downloaded^[[0m miniz_oxide v0.8.9
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2007440Z ^[[1m^[[92m  Downloaded^[[0m icu_locale_core v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2148370Z ^[[1m^[[92m  Downloaded^[[0m poly1305 v0.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2199410Z ^[[1m^[[92m  Downloaded^[[0m deranged v0.5.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2212990Z ^[[1m^[[92m  Downloaded^[[0m wry v0.55.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2346010Z ^[[1m^[[92m  Downloaded^[[0m regex v1.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2446570Z ^[[1m^[[92m  Downloaded^[[0m muda v0.19.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2509210Z ^[[1m^[[92m  Downloaded^[[0m cssparser-macros v0.6.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2528380Z ^[[1m^[[92m  Downloaded^[[0m zlib-rs v0.6.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2608510Z ^[[1m^[[92m  Downloaded^[[0m mio v1.2.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2713500Z ^[[1m^[[92m  Downloaded^[[0m idna v1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2761400Z ^[[1m^[[92m  Downloaded^[[0m new_debug_unreachable v1.0.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2777860Z ^[[1m^[[92m  Downloaded^[[0m png v0.18.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2844250Z ^[[1m^[[92m  Downloaded^[[0m polyval v0.6.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.2871100Z ^[[1m^[[92m  Downloaded^[[0m tauri v2.11.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.3111580Z ^[[1m^[[92m  Downloaded^[[0m autocfg v1.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.3143830Z ^[[1m^[[92m  Downloaded^[[0m fdeflate v0.3.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.3167090Z ^[[1m^[[92m  Downloaded^[[0m foldhash v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.3185860Z ^[[1m^[[92m  Downloaded^[[0m tao v0.35.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.3365640Z ^[[1m^[[92m  Downloaded^[[0m selectors v0.36.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.3398320Z ^[[1m^[[92m  Downloaded^[[0m lock_api v0.4.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.3416120Z ^[[1m^[[92m  Downloaded^[[0m generic-array v0.14.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.3439320Z ^[[1m^[[92m  Downloaded^[[0m ring v0.17.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4088340Z ^[[1m^[[92m  Downloaded^[[0m option-ext v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4106970Z ^[[1m^[[92m  Downloaded^[[0m powerfmt v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4125670Z ^[[1m^[[92m  Downloaded^[[0m quick-xml v0.38.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4212320Z ^[[1m^[[92m  Downloaded^[[0m colorchoice v1.0.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4224980Z ^[[1m^[[92m  Downloaded^[[0m phf_shared v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4240030Z ^[[1m^[[92m  Downloaded^[[0m same-file v1.0.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4262540Z ^[[1m^[[92m  Downloaded^[[0m miniz_oxide v0.9.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4300660Z ^[[1m^[[92m  Downloaded^[[0m icu_collections v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4400310Z ^[[1m^[[92m  Downloaded^[[0m indexmap v2.14.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4473970Z ^[[1m^[[92m  Downloaded^[[0m bit-set v0.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4495960Z ^[[1m^[[92m  Downloaded^[[0m objc2-core-graphics v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4584510Z ^[[1m^[[92m  Downloaded^[[0m objc2-web-kit v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.4878790Z ^[[1m^[[92m  Downloaded^[[0m tracing v0.1.44
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.5882250Z ^[[1m^[[92m  Downloaded^[[0m objc2-app-kit v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.6337920Z ^[[1m^[[92m  Downloaded^[[0m regex-automata v0.4.18
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.6582100Z ^[[1m^[[92m  Downloaded^[[0m snow v0.10.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.6731030Z ^[[1m^[[92m  Downloaded^[[0m dom_query v0.27.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.6816390Z ^[[1m^[[92m  Downloaded^[[0m tokio v1.53.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8084270Z ^[[1m^[[92m  Downloaded^[[0m window-vibrancy v0.6.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8185520Z ^[[1m^[[92m  Downloaded^[[0m crc32fast v1.5.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8223100Z ^[[1m^[[92m  Downloaded^[[0m cc v1.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8269890Z ^[[1m^[[92m  Downloaded^[[0m camino v1.2.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8294070Z ^[[1m^[[92m  Downloaded^[[0m foreign-types-macros v0.2.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8306870Z ^[[1m^[[92m  Downloaded^[[0m block-buffer v0.10.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8330330Z ^[[1m^[[92m  Downloaded^[[0m brotli-decompressor v5.0.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8438820Z ^[[1m^[[92m  Downloaded^[[0m anstyle v1.0.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8460490Z ^[[1m^[[92m  Downloaded^[[0m chacha20poly1305 v0.10.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8481300Z ^[[1m^[[92m  Downloaded^[[0m cssparser v0.36.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8515910Z ^[[1m^[[92m  Downloaded^[[0m dunce v1.0.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8528170Z ^[[1m^[[92m  Downloaded^[[0m curve25519-dalek v4.1.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8651110Z ^[[1m^[[92m  Downloaded^[[0m equivalent v1.0.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8666110Z ^[[1m^[[92m  Downloaded^[[0m bitflags v2.13.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8750040Z ^[[1m^[[92m  Downloaded^[[0m ctor v0.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8766330Z ^[[1m^[[92m  Downloaded^[[0m chrono v0.4.45
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8867350Z ^[[1m^[[92m  Downloaded^[[0m scopeguard v1.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8883720Z ^[[1m^[[92m  Downloaded^[[0m hash32 v0.2.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.8905500Z ^[[1m^[[92m  Downloaded^[[0m objc2-core-foundation v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.9129510Z ^[[1m^[[92m  Downloaded^[[0m cookie v0.18.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.9170830Z ^[[1m^[[92m  Downloaded^[[0m objc2-foundation v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.9524140Z ^[[1m^[[92m  Downloaded^[[0m getrandom v0.3.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.9585410Z ^[[1m^[[92m  Downloaded^[[0m schemars v1.2.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.9907040Z ^[[1m^[[92m  Downloaded^[[0m png v0.17.16
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:29.9968320Z ^[[1m^[[92m  Downloaded^[[0m libc v0.2.189
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1014420Z ^[[1m^[[92m  Downloaded^[[0m regex-syntax v0.8.11
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1112710Z ^[[1m^[[92m  Downloaded^[[0m dyn-clone v1.0.20
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1141430Z ^[[1m^[[92m  Downloaded^[[0m erased-serde v0.4.10
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1184130Z ^[[1m^[[92m  Downloaded^[[0m base64 v0.21.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1258060Z ^[[1m^[[92m  Downloaded^[[0m darling v0.21.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1369530Z ^[[1m^[[92m  Downloaded^[[0m crossbeam-channel v0.5.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1435650Z ^[[1m^[[92m  Downloaded^[[0m dpi v0.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1451670Z ^[[1m^[[92m  Downloaded^[[0m darling_macro v0.21.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1463030Z ^[[1m^[[92m  Downloaded^[[0m derive_more-impl v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1561480Z ^[[1m^[[92m  Downloaded^[[0m anstyle-parse v1.0.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1587530Z ^[[1m^[[92m  Downloaded^[[0m block-buffer v0.12.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1608990Z ^[[1m^[[92m  Downloaded^[[0m clap_derive v4.6.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1641690Z ^[[1m^[[92m  Downloaded^[[0m aes-gcm v0.10.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1678730Z ^[[1m^[[92m  Downloaded^[[0m fnv v1.0.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1693130Z ^[[1m^[[92m  Downloaded^[[0m lazy_static v1.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1721320Z ^[[1m^[[92m  Downloaded^[[0m once_cell v1.21.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1765940Z ^[[1m^[[92m  Downloaded^[[0m nu-ansi-term v0.50.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1802690Z ^[[1m^[[92m  Downloaded^[[0m clap_builder v4.6.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1908380Z ^[[1m^[[92m  Downloaded^[[0m foreign-types-shared v0.3.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.1917890Z ^[[1m^[[92m  Downloaded^[[0m zmij v1.0.23
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.2932130Z ^[[1m^[[92m   Compiling^[[0m proc-macro2 v1.0.107
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.2950120Z ^[[1m^[[92m   Compiling^[[0m quote v1.0.47
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.2950640Z ^[[1m^[[92m   Compiling^[[0m unicode-ident v1.0.26
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:30.7284950Z ^[[1m^[[92m   Compiling^[[0m libc v0.2.189
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:33.9734610Z ^[[1m^[[92m   Compiling^[[0m serde_core v1.0.229
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:35.1433800Z ^[[1m^[[92m   Compiling^[[0m syn v3.0.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:35.7071410Z ^[[1m^[[92m   Compiling^[[0m syn v2.0.119
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:36.0470990Z ^[[1m^[[92m   Compiling^[[0m version_check v0.9.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:36.6898860Z ^[[1m^[[92m   Compiling^[[0m zmij v1.0.23
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:36.8538200Z ^[[1m^[[92m   Compiling^[[0m find-msvc-tools v0.1.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:36.9984690Z ^[[1m^[[92m   Compiling^[[0m shlex v2.0.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:37.0952590Z ^[[1m^[[92m   Compiling^[[0m cc v1.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:38.4278630Z ^[[1m^[[92m   Compiling^[[0m synstructure v0.14.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:38.9336190Z ^[[1m^[[92m   Compiling^[[0m generic-array v0.14.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:39.0377760Z ^[[1m^[[92m    Checking^[[0m typenum v1.20.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:39.3561700Z ^[[1m^[[92m   Compiling^[[0m serde_derive v1.0.229
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:39.5660210Z ^[[1m^[[92m   Compiling^[[0m zerofrom-derive v0.1.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:39.6026970Z ^[[1m^[[92m   Compiling^[[0m yoke-derive v0.8.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:40.6196570Z ^[[1m^[[92m   Compiling^[[0m zerovec-derive v0.11.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:40.7244580Z ^[[1m^[[92m   Compiling^[[0m displaydoc v0.2.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.3135420Z ^[[1m^[[92m   Compiling^[[0m siphasher v1.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.4124360Z ^[[1m^[[92m   Compiling^[[0m semver v1.0.28
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.4496960Z ^[[1m^[[92m   Compiling^[[0m phf_shared v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.5824180Z ^[[1m^[[92m   Compiling^[[0m icu_normalizer_data v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.6151520Z ^[[1m^[[92m   Compiling^[[0m icu_properties_data v2.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.7498490Z ^[[1m^[[92m    Checking^[[0m cfg-if v1.0.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.7747140Z ^[[1m^[[92m    Checking^[[0m stable_deref_trait v1.2.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.7778630Z ^[[1m^[[92m   Compiling^[[0m fastrand v2.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.7829080Z ^[[1m^[[92m   Compiling^[[0m thiserror v2.0.21
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.8576830Z ^[[1m^[[92m   Compiling^[[0m phf_generator v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:41.9937860Z ^[[1m^[[92m   Compiling^[[0m thiserror-impl v2.0.21
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:42.0057330Z ^[[1m^[[92m   Compiling^[[0m memchr v2.8.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:42.2532300Z ^[[1m^[[92m   Compiling^[[0m serde v1.0.229
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:42.3739950Z ^[[1m^[[92m   Compiling^[[0m rustc_version v0.4.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:42.4948530Z ^[[1m^[[92m   Compiling^[[0m zerofrom v0.1.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:42.6058640Z ^[[1m^[[92m   Compiling^[[0m smallvec v1.16.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:42.7356090Z ^[[1m^[[92m   Compiling^[[0m yoke v0.8.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:42.8420460Z ^[[1m^[[92m   Compiling^[[0m parking_lot_core v0.9.12
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:43.0150990Z ^[[1m^[[92m   Compiling^[[0m itoa v1.0.18
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:43.1476210Z ^[[1m^[[92m   Compiling^[[0m zerovec v0.11.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:43.4143010Z ^[[1m^[[92m   Compiling^[[0m phf_macros v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:43.5630480Z ^[[1m^[[92m   Compiling^[[0m typeid v1.0.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:43.6634800Z ^[[1m^[[92m   Compiling^[[0m fnv v1.0.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:43.7255100Z ^[[1m^[[92m   Compiling^[[0m time-core v0.1.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:43.8698600Z ^[[1m^[[92m   Compiling^[[0m num-conv v0.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:43.9206810Z ^[[1m^[[92m   Compiling^[[0m tinystr v0.8.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:43.9493280Z ^[[1m^[[92m   Compiling^[[0m phf_codegen v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.0482120Z ^[[1m^[[92m    Checking^[[0m bitflags v2.13.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.0741390Z ^[[1m^[[92m   Compiling^[[0m ident_case v1.0.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.0842670Z ^[[1m^[[92m   Compiling^[[0m serde_json v1.0.151
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.1314590Z ^[[1m^[[92m   Compiling^[[0m writeable v0.6.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.1938970Z ^[[1m^[[92m   Compiling^[[0m strsim v0.11.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.2142470Z ^[[1m^[[92m   Compiling^[[0m litemap v0.8.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.2817390Z ^[[1m^[[92m   Compiling^[[0m erased-serde v0.4.10
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.3228340Z ^[[1m^[[92m   Compiling^[[0m anyhow v1.0.104
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.4700340Z ^[[1m^[[92m   Compiling^[[0m thiserror v1.0.69
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.4771080Z ^[[1m^[[92m   Compiling^[[0m icu_locale_core v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:44.5441120Z ^[[1m^[[92m   Compiling^[[0m darling_core v0.21.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:45.1533740Z ^[[1m^[[92m    Checking^[[0m crypto-common v0.1.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:45.1871860Z ^[[1m^[[92m   Compiling^[[0m potential_utf v0.1.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:45.1990960Z ^[[1m^[[92m   Compiling^[[0m zerotrie v0.2.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:45.2673830Z ^[[1m^[[92m   Compiling^[[0m objc2-exception-helper v0.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:45.4992540Z ^[[1m^[[92m   Compiling^[[0m icu_provider v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:45.7221600Z ^[[1m^[[92m   Compiling^[[0m icu_collections v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:47.2734900Z ^[[1m^[[92m   Compiling^[[0m darling_macro v0.21.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:47.4359120Z ^[[1m^[[92m   Compiling^[[0m thiserror-impl v1.0.69
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:47.5870350Z ^[[1m^[[92m   Compiling^[[0m scopeguard v1.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:47.6313760Z ^[[1m^[[92m   Compiling^[[0m new_debug_unreachable v1.0.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:47.6713930Z ^[[1m^[[92m   Compiling^[[0m lock_api v0.4.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:47.8324940Z ^[[1m^[[92m   Compiling^[[0m darling v0.21.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.1692470Z ^[[1m^[[92m   Compiling^[[0m phf v0.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.3570020Z ^[[1m^[[92m   Compiling^[[0m string_cache_codegen v0.6.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.5120130Z ^[[1m^[[92m    Checking^[[0m once_cell v1.21.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.6021320Z ^[[1m^[[92m   Compiling^[[0m objc2 v0.6.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.6833820Z ^[[1m^[[92m    Checking^[[0m byteorder v1.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.7472000Z ^[[1m^[[92m   Compiling^[[0m winnow v1.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.7560150Z ^[[1m^[[92m   Compiling^[[0m precomputed-hash v0.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.7899030Z ^[[1m^[[92m   Compiling^[[0m getrandom v0.4.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.7983430Z ^[[1m^[[92m   Compiling^[[0m web_atoms v0.2.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:48.9605000Z ^[[1m^[[92m   Compiling^[[0m toml_parser v1.1.3+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:49.2024030Z ^[[1m^[[92m   Compiling^[[0m parking_lot v0.12.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:49.2185220Z ^[[1m^[[92m   Compiling^[[0m icu_properties v2.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:49.6008570Z ^[[1m^[[92m   Compiling^[[0m icu_normalizer v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:49.6211850Z ^[[1m^[[92m   Compiling^[[0m serde_with_macros v3.17.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:50.2692570Z ^[[1m^[[92m   Compiling^[[0m serde_spanned v1.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:50.3204270Z ^[[1m^[[92m   Compiling^[[0m toml_writer v1.1.2+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:50.4314570Z ^[[1m^[[92m    Checking^[[0m objc2-encode v4.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:50.5368570Z ^[[1m^[[92m   Compiling^[[0m ctor-proc-macro v0.0.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:50.7013980Z ^[[1m^[[92m   Compiling^[[0m idna_adapter v1.2.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:50.7544090Z ^[[1m^[[92m   Compiling^[[0m string_cache v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.1811800Z ^[[1m^[[92m   Compiling^[[0m utf8_iter v1.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.2417370Z ^[[1m^[[92m   Compiling^[[0m log v0.4.34
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.2560930Z ^[[1m^[[92m    Checking^[[0m subtle v2.6.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.2963920Z ^[[1m^[[92m   Compiling^[[0m percent-encoding v2.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.3189150Z ^[[1m^[[92m   Compiling^[[0m autocfg v1.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.3380240Z ^[[1m^[[92m   Compiling^[[0m dtoa v1.0.11
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.3898550Z ^[[1m^[[92m   Compiling^[[0m crc32fast v1.5.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.4040740Z ^[[1m^[[92m   Compiling^[[0m dtoa-short v0.3.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.4581490Z ^[[1m^[[92m   Compiling^[[0m form_urlencoded v1.2.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.5526200Z ^[[1m^[[92m   Compiling^[[0m idna v1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.6221000Z ^[[1m^[[92m   Compiling^[[0m indexmap v1.9.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.7236800Z ^[[1m^[[92m   Compiling^[[0m uuid v1.26.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:51.9641370Z ^[[1m^[[92m   Compiling^[[0m tendril v0.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.0357190Z ^[[1m^[[92m   Compiling^[[0m selectors v0.36.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.1383570Z ^[[1m^[[92m   Compiling^[[0m aho-corasick v1.1.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.1891020Z ^[[1m^[[92m   Compiling^[[0m cssparser-macros v0.6.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.2865650Z ^[[1m^[[92m   Compiling^[[0m derive_more-impl v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.4307990Z ^[[1m^[[92m   Compiling^[[0m toml_datetime v1.1.1+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.5884840Z ^[[1m^[[92m   Compiling^[[0m unic-char-range v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.6544670Z ^[[1m^[[92m   Compiling^[[0m alloc-no-stdlib v2.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.7062210Z ^[[1m^[[92m    Checking^[[0m option-ext v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.7412220Z ^[[1m^[[92m   Compiling^[[0m regex-syntax v0.8.11
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:52.9688520Z ^[[1m^[[92m   Compiling^[[0m camino v1.2.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.3022990Z ^[[1m^[[92m   Compiling^[[0m unic-common v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.3425790Z ^[[1m^[[92m   Compiling^[[0m powerfmt v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.3744240Z ^[[1m^[[92m   Compiling^[[0m unic-ucd-version v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.4388780Z ^[[1m^[[92m   Compiling^[[0m deranged v0.5.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.4472350Z ^[[1m^[[92m   Compiling^[[0m derive_more v2.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.4939390Z ^[[1m^[[92m    Checking^[[0m dirs-sys v0.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.5445730Z ^[[1m^[[92m   Compiling^[[0m alloc-stdlib v0.2.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.5866900Z ^[[1m^[[92m   Compiling^[[0m unic-char-property v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.6294470Z ^[[1m^[[92m   Compiling^[[0m toml v1.1.6+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:53.9983250Z ^[[1m^[[92m   Compiling^[[0m regex-automata v0.4.18
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:54.5998050Z ^[[1m^[[92m   Compiling^[[0m cssparser v0.36.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:54.8371150Z ^[[1m^[[92m   Compiling^[[0m markup5ever v0.38.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:55.0247150Z ^[[1m^[[92m   Compiling^[[0m url v2.5.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:55.1724310Z ^[[1m^[[92m   Compiling^[[0m swift-rs v1.0.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:55.6702370Z ^[[1m^[[92m   Compiling^[[0m servo_arc v0.4.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:55.7024760Z ^[[1m^[[92m   Compiling^[[0m serde_derive_internals v0.29.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:55.8543920Z ^[[1m^[[92m   Compiling^[[0m rustc-hash v2.1.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:55.8976760Z ^[[1m^[[92m   Compiling^[[0m schemars v0.8.22
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:56.0102700Z ^[[1m^[[92m   Compiling^[[0m hashbrown v0.12.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:56.2751970Z ^[[1m^[[92m   Compiling^[[0m equivalent v1.0.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:56.3112160Z ^[[1m^[[92m   Compiling^[[0m bit-vec v0.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:56.4375660Z ^[[1m^[[92m   Compiling^[[0m hashbrown v0.17.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:56.4623360Z ^[[1m^[[92m   Compiling^[[0m schemars_derive v0.8.22
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:56.4812560Z ^[[1m^[[92m   Compiling^[[0m bit-set v0.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:56.7772490Z ^[[1m^[[92m   Compiling^[[0m indexmap v2.14.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:57.4883370Z ^[[1m^[[92m   Compiling^[[0m regex v1.13.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:57.6749890Z ^[[1m^[[92m   Compiling^[[0m html5ever v0.38.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:57.9633470Z ^[[1m^[[92m   Compiling^[[0m time v0.3.45
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:58.2156260Z ^[[1m^[[92m   Compiling^[[0m unic-ucd-ident v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:58.2378560Z ^[[1m^[[92m   Compiling^[[0m brotli-decompressor v5.0.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:58.5961790Z ^[[1m^[[92m   Compiling^[[0m cfb v0.7.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:58.9378820Z ^[[1m^[[92m    Checking^[[0m objc2-core-foundation v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.1089470Z ^[[1m^[[92m    Checking^[[0m block2 v0.6.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.1372040Z ^[[1m^[[92m   Compiling^[[0m jsonptr v0.6.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.2756850Z ^[[1m^[[92m   Compiling^[[0m cargo-platform v0.1.9
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.4014250Z ^[[1m^[[92m   Compiling^[[0m quick-xml v0.38.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.4125960Z ^[[1m^[[92m    Checking^[[0m hybrid-array v0.4.15
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.4987710Z ^[[1m^[[92m   Compiling^[[0m dyn-clone v1.0.20
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.5526220Z ^[[1m^[[92m   Compiling^[[0m base64 v0.22.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.7643860Z ^[[1m^[[92m   Compiling^[[0m foldhash v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.7785310Z ^[[1m^[[92m    Checking^[[0m pin-project-lite v0.2.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.8221530Z ^[[1m^[[92m   Compiling^[[0m same-file v1.0.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.8681440Z ^[[1m^[[92m   Compiling^[[0m dunce v1.0.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.8948790Z ^[[1m^[[92m   Compiling^[[0m base64 v0.21.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:03:59.9077410Z ^[[1m^[[92m   Compiling^[[0m bytes v1.12.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:00.0870960Z ^[[1m^[[92m   Compiling^[[0m walkdir v2.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:00.2910150Z ^[[1m^[[92m   Compiling^[[0m http v1.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:00.3122210Z ^[[1m^[[92m   Compiling^[[0m dom_query v0.27.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:00.4631500Z ^[[1m^[[92m   Compiling^[[0m plist v1.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:01.0263170Z ^[[1m^[[92m    Checking^[[0m objc2-foundation v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:01.4754780Z ^[[1m^[[92m   Compiling^[[0m cargo_metadata v0.19.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:02.1539170Z ^[[1m^[[92m   Compiling^[[0m json-patch v3.0.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:02.4334210Z ^[[1m^[[92m   Compiling^[[0m infer v0.19.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:02.5062130Z ^[[1m^[[92m   Compiling^[[0m brotli v8.0.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:02.7172340Z ^[[1m^[[92m   Compiling^[[0m urlpattern v0.3.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:03.3237480Z ^[[1m^[[92m   Compiling^[[0m serde-untagged v0.1.9
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:03.4131690Z ^[[1m^[[92m   Compiling^[[0m ctor v0.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:03.4474920Z ^[[1m^[[92m   Compiling^[[0m serde_with v3.17.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:03.4563900Z ^[[1m^[[92m    Checking^[[0m tracing-core v0.1.36
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:03.6245660Z ^[[1m^[[92m    Checking^[[0m inout v0.1.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:04.0738730Z ^[[1m^[[92m   Compiling^[[0m heapless v0.7.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:04.2536050Z ^[[1m^[[92m   Compiling^[[0m glob v0.3.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:04.5045780Z ^[[1m^[[92m    Checking^[[0m zeroize v1.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:04.5334300Z ^[[1m^[[92m   Compiling^[[0m heck v0.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:04.5689860Z ^[[1m^[[92m   Compiling^[[0m simd-adler32 v0.3.10
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:04.7180230Z ^[[1m^[[92m    Checking^[[0m cipher v0.4.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:04.8650590Z ^[[1m^[[92m   Compiling^[[0m tauri-utils v2.9.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:05.3762450Z ^[[1m^[[92m    Checking^[[0m objc2-app-kit v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:06.8713630Z ^[[1m^[[92m    Checking^[[0m crypto-common v0.2.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:07.2539510Z ^[[1m^[[92m    Checking^[[0m block-buffer v0.12.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:07.3063180Z ^[[1m^[[92m    Checking^[[0m universal-hash v0.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:07.3488520Z ^[[1m^[[92m    Checking^[[0m hash32 v0.2.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:07.4256120Z ^[[1m^[[92m   Compiling^[[0m time-macros v0.2.25
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:08.2716090Z ^[[1m^[[92m   Compiling^[[0m tracing-attributes v0.1.31
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:08.3551180Z ^[[1m^[[92m    Checking^[[0m cpufeatures v0.2.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:08.3955930Z ^[[1m^[[92m   Compiling^[[0m toml_datetime v0.7.5+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:08.5488160Z ^[[1m^[[92m    Checking^[[0m opaque-debug v0.3.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:09.0532300Z ^[[1m^[[92m   Compiling^[[0m adler2 v2.0.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:09.1221260Z ^[[1m^[[92m    Checking^[[0m core-foundation-sys v0.8.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:09.2312120Z ^[[1m^[[92m   Compiling^[[0m winnow v0.7.15
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:09.3970060Z ^[[1m^[[92m    Checking^[[0m const-oid v0.10.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:10.2442010Z ^[[1m^[[92m   Compiling^[[0m toml v0.9.12+spec-1.1.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:10.3648320Z ^[[1m^[[92m    Checking^[[0m digest v0.11.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:10.4352030Z ^[[1m^[[92m    Checking^[[0m tracing v0.1.44
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:10.5365710Z ^[[1m^[[92m    Checking^[[0m core-foundation v0.10.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:11.2601800Z ^[[1m^[[92m   Compiling^[[0m embed-resource v3.0.11
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:11.4409610Z ^[[1m^[[92m    Checking^[[0m cobs v0.3.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:11.5224330Z ^[[1m^[[92m   Compiling^[[0m foreign-types-macros v0.2.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:11.5441720Z ^[[1m^[[92m    Checking^[[0m cpufeatures v0.3.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:11.5794260Z ^[[1m^[[92m    Checking^[[0m foreign-types-shared v0.3.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:11.7076390Z ^[[1m^[[92m   Compiling^[[0m crossbeam-utils v0.8.23
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:12.0155020Z ^[[1m^[[92m    Checking^[[0m foreign-types v0.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:12.0767550Z ^[[1m^[[92m    Checking^[[0m sha2 v0.11.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:12.2140860Z ^[[1m^[[92m    Checking^[[0m postcard v1.1.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:12.3814190Z ^[[1m^[[92m   Compiling^[[0m tauri-winres v0.3.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:12.4617200Z ^[[1m^[[92m   Compiling^[[0m cargo_toml v0.22.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:12.6111460Z ^[[1m^[[92m    Checking^[[0m core-graphics-types v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:12.6504340Z ^[[1m^[[92m   Compiling^[[0m dirs v6.0.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:12.6982250Z ^[[1m^[[92m   Compiling^[[0m miniz_oxide v0.9.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:13.1205010Z ^[[1m^[[92m    Checking^[[0m directories v6.0.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:13.2274520Z ^[[1m^[[92m    Checking^[[0m block-buffer v0.10.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:13.2797830Z ^[[1m^[[92m    Checking^[[0m dpi v0.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:13.4455030Z ^[[1m^[[92m   Compiling^[[0m ring v0.17.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:13.8744830Z ^[[1m^[[92m   Compiling^[[0m cookie v0.18.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:14.7844940Z ^[[1m^[[92m   Compiling^[[0m getrandom v0.3.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:14.8533690Z ^[[1m^[[92m    Checking^[[0m raw-window-handle v0.6.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:15.6649450Z ^[[1m^[[92m    Checking^[[0m digest v0.10.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:15.9896100Z ^[[1m^[[92m   Compiling^[[0m tauri-build v2.6.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:16.3974530Z ^[[1m^[[92m   Compiling^[[0m flate2 v1.1.10
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:16.6820820Z ^[[1m^[[92m    Checking^[[0m core-graphics v0.25.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:17.3759540Z ^[[1m^[[92m   Compiling^[[0m miniz_oxide v0.8.9
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:17.3981520Z ^[[1m^[[92m    Checking^[[0m polyval v0.6.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:17.6447930Z ^[[1m^[[92m   Compiling^[[0m fdeflate v0.3.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:17.8734160Z ^[[1m^[[92m    Checking^[[0m aead v0.5.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:17.9855380Z ^[[1m^[[92m   Compiling^[[0m curve25519-dalek v4.1.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:18.0905500Z ^[[1m^[[92m    Checking^[[0m errno v0.3.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:18.2465200Z ^[[1m^[[92m   Compiling^[[0m bitflags v1.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:18.3025350Z ^[[1m^[[92m   Compiling^[[0m png v0.17.16
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:18.7622860Z ^[[1m^[[92m    Checking^[[0m signal-hook-registry v1.4.8
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:18.9018400Z ^[[1m^[[92m    Checking^[[0m crossbeam-channel v0.5.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:18.9778800Z ^[[1m^[[92m    Checking^[[0m ghash v0.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:19.4045790Z ^[[1m^[[92m    Checking^[[0m mouser-core v0.1.0 (/Users/runner/work/mouser/mouser/crates/mouser-core)
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:19.5619000Z ^[[1m^[[92m    Checking^[[0m poly1305 v0.8.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:19.6044880Z ^[[1m^[[92m    Checking^[[0m aes v0.8.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:19.6088760Z ^[[1m^[[92m    Checking^[[0m objc2-web-kit v0.3.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:19.7138940Z ^[[1m^[[92m    Checking^[[0m chacha20 v0.9.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:19.7682060Z ^[[1m^[[92m    Checking^[[0m ctr v0.9.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:20.0111640Z ^[[1m^[[92m   Compiling^[[0m snow v0.10.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:20.2482300Z ^[[1m^[[92m    Checking^[[0m getrandom v0.2.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:20.4385830Z ^[[1m^[[92m   Compiling^[[0m tokio-macros v2.7.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:20.9961970Z ^[[1m^[[92m    Checking^[[0m mio v1.2.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:21.2693260Z ^[[1m^[[92m    Checking^[[0m socket2 v0.6.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:21.3554510Z ^[[1m^[[92m    Checking^[[0m untrusted v0.9.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:21.4183250Z ^[[1m^[[92m   Compiling^[[0m wry v0.55.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:21.4710690Z ^[[1m^[[92m    Checking^[[0m utf8parse v0.2.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:21.4831450Z ^[[1m^[[92m   Compiling^[[0m tauri-runtime v2.11.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:21.6113370Z ^[[1m^[[92m    Checking^[[0m anstyle-parse v1.0.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:21.6982650Z ^[[1m^[[92m    Checking^[[0m tokio v1.53.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:22.3773840Z ^[[1m^[[92m   Compiling^[[0m sha2 v0.10.9
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:22.5650440Z ^[[1m^[[92m    Checking^[[0m aes-gcm v0.10.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:22.6373910Z ^[[1m^[[92m    Checking^[[0m chacha20poly1305 v0.10.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:23.0179820Z ^[[1m^[[92m   Compiling^[[0m ico v0.5.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:23.4251430Z ^[[1m^[[92m   Compiling^[[0m tauri v2.11.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:23.9726570Z ^[[1m^[[92m    Checking^[[0m blake2 v0.10.6
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.4805170Z ^[[1m^[[92m    Checking^[[0m dispatch2 v0.3.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.5877730Z ^[[1m^[[92m    Checking^[[0m colorchoice v1.0.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.6291160Z ^[[1m^[[92m   Compiling^[[0m tauri-runtime-wry v2.11.4
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.6939820Z ^[[1m^[[92m    Checking^[[0m unicode-segmentation v1.13.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.7512110Z ^[[1m^[[92m    Checking^[[0m is_terminal_polyfill v1.70.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.7819220Z ^[[1m^[[92m    Checking^[[0m anstyle v1.0.14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.8229410Z ^[[1m^[[92m    Checking^[[0m anstyle-query v1.1.5
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.8576220Z ^[[1m^[[92m    Checking^[[0m tao v0.35.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.8648510Z ^[[1m^[[92m    Checking^[[0m anstream v1.0.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:24.8943430Z ^[[1m^[[92m    Checking^[[0m keyboard-types v0.7.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:25.3386250Z ^[[1m^[[92m    Checking^[[0m png v0.18.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:25.5060220Z ^[[1m^[[92m   Compiling^[[0m tauri-codegen v2.6.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:25.6742710Z ^[[1m^[[92m   Compiling^[[0m serialize-to-javascript-impl v0.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:25.7167570Z ^[[1m^[[92m    Checking^[[0m clap_lex v1.1.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:25.8506930Z ^[[1m^[[92m    Checking^[[0m lazy_static v1.5.1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:25.8910560Z ^[[1m^[[92m    Checking^[[0m sharded-slab v0.1.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:25.9504540Z ^[[1m^[[92m    Checking^[[0m serialize-to-javascript v0.1.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:25.9946540Z ^[[1m^[[92m    Checking^[[0m clap_builder v4.6.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:26.1398860Z ^[[1m^[[92m    Checking^[[0m muda v0.19.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:26.6946780Z ^[[1m^[[92m   Compiling^[[0m mouser v0.1.0 (/Users/runner/work/mouser/mouser/src-tauri)
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:26.7624030Z ^[[1m^[[92m    Checking^[[0m window-vibrancy v0.6.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:26.8297010Z ^[[1m^[[92m    Checking^[[0m tracing-log v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:26.9327880Z ^[[1m^[[92m    Checking^[[0m matchers v0.2.0
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:26.9946400Z ^[[1m^[[92m   Compiling^[[0m clap_derive v4.6.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:27.1307350Z ^[[1m^[[92m    Checking^[[0m thread_local v1.1.10
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:27.2105450Z ^[[1m^[[92m   Compiling^[[0m tauri-macros v2.6.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:27.2172200Z ^[[1m^[[92m   Compiling^[[0m serde_repr v0.1.21
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:27.5192690Z ^[[1m^[[92m    Checking^[[0m mime v0.3.17
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:27.5965610Z ^[[1m^[[92m    Checking^[[0m embed_plist v1.2.2
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:27.6272060Z ^[[1m^[[92m    Checking^[[0m nu-ansi-term v0.50.3
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:27.7235510Z ^[[1m^[[92m    Checking^[[0m tracing-subscriber v0.3.23
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.4227310Z ^[[1m^[[92m    Checking^[[0m clap v4.6.7
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.5041860Z ^[[1m^[[92m    Checking^[[0m mouser-net v0.1.0 (/Users/runner/work/mouser/mouser/crates/mouser-net)
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.5983030Z ^[[1m^[[92m    Checking^[[0m mouser-input v0.1.0 (/Users/runner/work/mouser/mouser/crates/mouser-input)
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6518680Z ^[[1m^[[91merror[E0432]^[[0m^[[1m: unresolved import `core_graphics::geometry::CGFloat`^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6523830Z   ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:32:31
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6524290Z    ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6524900Z ^[[1m^[[94m32^[[0m ^[[1m^[[94m|^[[0m use core_graphics::geometry::{CGFloat, CGPoint};
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6530920Z    ^[[1m^[[94m|^[[0m                               ^[[1m^[[91m^^^^^^^^[[0m ^[[1m^[[91mno `CGFloat` in `geometry`^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6531560Z 
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6560950Z ^[[1m^[[91merror^[[0m^[[1m: unused import: `CGEventFlags`^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6561630Z   ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:27:28
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6562670Z    ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6563390Z ^[[1m^[[94m27^[[0m ^[[1m^[[94m|^[[0m     CGEvent, CGEventField, CGEventFlags, CGEventTap, CGEventTapLocation, CGEventTapOptions,
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6564080Z    ^[[1m^[[94m|^[[0m                            ^[[1m^[[91m^^^^^^^^^^^^^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6565300Z    ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6565810Z    ^[[1m^[[94m= ^[[0m^[[1mnote^[[0m: `-D unused-imports` implied by `-D warnings`
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6566420Z    ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: to override `-D warnings` add `#[allow(unused_imports)]`
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6566800Z 
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6798420Z ^[[1m^[[91merror[E0369]^[[0m^[[1m: binary operation `==` cannot be applied to type `CGEventType`^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6811160Z    ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:221:37
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6811650Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6813640Z ^[[1m^[[94m221^[[0m ^[[1m^[[94m|^[[0m                 pressed: event_type == CGEventType::OtherMouseDown,
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6817570Z     ^[[1m^[[94m|^[[0m                          ^[[1m^[[94m----------^[[0m ^[[1m^[[91m^^^[[0m ^[[1m^[[94m---------------------------^[[0m ^[[1m^[[94mCGEventType^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6818160Z     ^[[1m^[[94m|^[[0m                          ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6820860Z     ^[[1m^[[94m|^[[0m                          ^[[1m^[[94mCGEventType^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6821260Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6823020Z ^[[1m^[[92mnote^[[0m: `CGEventType` does not implement `PartialEq`
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6824530Z    ^[[1m^[[94m--> ^[[0m/Users/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/core-graphics-0.25.0/src/event.rs:201:1
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6825860Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6826710Z ^[[1m^[[94m201^[[0m ^[[1m^[[94m|^[[0m pub enum CGEventType {
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6827200Z     ^[[1m^[[94m|^[[0m ^[[1m^[[92m^^^^^^^^^^^^^^^^^^^^^[[0m ^[[1m^[[92m`CGEventType` is defined in another crate^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.6827550Z 
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7288330Z ^[[1m^[[91merror[E0599]^[[0m^[[1m: no method named `cursor_position` found for reference `&MacosBackend` in the current scope^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7359210Z    ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:371:27
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7359780Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7360280Z ^[[1m^[[94m371^[[0m ^[[1m^[[94m|^[[0m         let (x, y) = self.cursor_position().unwrap_or((0.0, 0.0));
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7360970Z     ^[[1m^[[94m|^[[0m                           ^[[1m^[[91m^^^^^^^^^^^^^^^^[[0m ^[[1m^[[91mmethod not found in `&MacosBackend`^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7361870Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7426600Z     ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: items from traits can only be used if the trait is in scope
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7427600Z ^[[1m^[[96mhelp^[[0m: trait `InputBackend` which provides `cursor_position` is implemented but not in scope; perhaps you want to import it
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7428520Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7429100Z ^[[1m^[[94m 19^[[0m ^[[92m+ use crate::InputBackend;^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7430650Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7434070Z 
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7448570Z ^[[1m^[[91merror[E0599]^[[0m^[[1m: no method named `cursor_position` found for reference `&MacosBackend` in the current scope^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7450020Z    ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:412:14
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7451050Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7452690Z ^[[1m^[[94m411^[[0m ^[[1m^[[94m|^[[0m           let point = self
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7457560Z     ^[[1m^[[94m|^[[0m ^[[1m^[[94m _____________________-^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7458550Z ^[[1m^[[94m412^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[94m|^[[0m             .cursor_position()
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7459630Z     ^[[1m^[[94m|^[[0m ^[[1m^[[94m|^[[0m             ^[[1m^[[94m-^[[0m^[[1m^[[91m^^^^^^^^^^^^^^^^[[0m ^[[1m^[[91mmethod not found in `&MacosBackend`^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7460640Z     ^[[1m^[[94m|^[[0m ^[[1m^[[94m|_____________|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7461010Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7461250Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7461920Z     ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: items from traits can only be used if the trait is in scope
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7462790Z ^[[1m^[[96mhelp^[[0m: trait `InputBackend` which provides `cursor_position` is implemented but not in scope; perhaps you want to import it
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7463410Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7463750Z ^[[1m^[[94m 19^[[0m ^[[92m+ use crate::InputBackend;^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7464120Z     ^[[1m^[[94m|^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7464300Z 
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7464540Z ^[[1mSome errors have detailed explanations: E0369, E0432, E0599.^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7465260Z ^[[1mFor more information about an error, try `rustc --explain E0369`.^[[0m
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7465870Z ^[[1m^[[91merror^[[0m: could not compile `mouser-input` (lib) due to 5 previous errors
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:28.7466410Z ^[[1m^[[33mwarning^[[0m: build failed, waiting for other jobs to finish...
+macos-latest (aarch64-apple-darwin)	Check	2026-10-01T21:04:31.8287560Z ##[error]Process completed with exit code 101.
+macos-latest (x86_64-apple-darwin)	Check	∩╗┐2026-10-01T21:03:38.9895970Z ##[group]Run cargo check --workspace --all-targets --target x86_64-apple-darwin
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:38.9896760Z ^[[36;1mcargo check --workspace --all-targets --target x86_64-apple-darwin^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:38.9990870Z shell: /bin/bash -e {0}
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:38.9991170Z env:
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:38.9991450Z   CARGO_TERM_COLOR: always
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:38.9991750Z   RUSTFLAGS: -D warnings
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:38.9992070Z   CARGO_HOME: /Users/runner/.cargo
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:38.9992350Z   CARGO_INCREMENTAL: 0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:38.9992590Z   CACHE_ON_FAILURE: false
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:38.9992810Z ##[endgroup]
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:39.3415040Z ^[[1m^[[92m    Updating^[[0m crates.io index
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.6841090Z ^[[1m^[[92m Downloading^[[0m crates ...
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.7673490Z ^[[1m^[[92m  Downloaded^[[0m anstream v1.0.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.7818840Z ^[[1m^[[92m  Downloaded^[[0m anstyle-parse v1.0.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.7935410Z ^[[1m^[[92m  Downloaded^[[0m blake2 v0.10.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8032530Z ^[[1m^[[92m  Downloaded^[[0m cfg-if v1.0.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8034540Z ^[[1m^[[92m  Downloaded^[[0m aes v0.8.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8153570Z ^[[1m^[[92m  Downloaded^[[0m block-buffer v0.12.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8154700Z ^[[1m^[[92m  Downloaded^[[0m block2 v0.6.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8258390Z ^[[1m^[[92m  Downloaded^[[0m byteorder v1.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8277680Z ^[[1m^[[92m  Downloaded^[[0m aead v0.5.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8378660Z ^[[1m^[[92m  Downloaded^[[0m aho-corasick v1.1.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8519350Z ^[[1m^[[92m  Downloaded^[[0m alloc-no-stdlib v2.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8577840Z ^[[1m^[[92m  Downloaded^[[0m anstyle v1.0.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8724450Z ^[[1m^[[92m  Downloaded^[[0m bitflags v1.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8812870Z ^[[1m^[[92m  Downloaded^[[0m camino v1.2.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8861600Z ^[[1m^[[92m  Downloaded^[[0m cargo-platform v0.1.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8867560Z ^[[1m^[[92m  Downloaded^[[0m serde_derive_internals v0.29.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.8987130Z ^[[1m^[[92m  Downloaded^[[0m serde_repr v0.1.21
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.9096790Z ^[[1m^[[92m  Downloaded^[[0m synstructure v0.14.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.9132320Z ^[[1m^[[92m  Downloaded^[[0m zerofrom v0.1.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.9235570Z ^[[1m^[[92m  Downloaded^[[0m adler2 v2.0.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.9338040Z ^[[1m^[[92m  Downloaded^[[0m aes-gcm v0.10.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.9439120Z ^[[1m^[[92m  Downloaded^[[0m anstyle-query v1.1.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.9483550Z ^[[1m^[[92m  Downloaded^[[0m bitflags v2.13.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.9693240Z ^[[1m^[[92m  Downloaded^[[0m block-buffer v0.10.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.9713900Z ^[[1m^[[92m  Downloaded^[[0m brotli-decompressor v5.0.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:40.9868370Z ^[[1m^[[92m  Downloaded^[[0m bytes v1.12.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0042200Z ^[[1m^[[92m  Downloaded^[[0m cargo_metadata v0.19.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0109720Z ^[[1m^[[92m  Downloaded^[[0m cargo_toml v0.22.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0166090Z ^[[1m^[[92m  Downloaded^[[0m cc v1.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0353120Z ^[[1m^[[92m  Downloaded^[[0m cfb v0.7.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0506420Z ^[[1m^[[92m  Downloaded^[[0m clap_lex v1.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0543210Z ^[[1m^[[92m  Downloaded^[[0m cobs v0.3.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0597130Z ^[[1m^[[92m  Downloaded^[[0m core-foundation v0.10.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0710680Z ^[[1m^[[92m  Downloaded^[[0m core-foundation-sys v0.8.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0818960Z ^[[1m^[[92m  Downloaded^[[0m core-graphics v0.25.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0912490Z ^[[1m^[[92m  Downloaded^[[0m core-graphics-types v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0928780Z ^[[1m^[[92m  Downloaded^[[0m crypto-common v0.1.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0965880Z ^[[1m^[[92m  Downloaded^[[0m cssparser-macros v0.6.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.0983300Z ^[[1m^[[92m  Downloaded^[[0m directories v6.0.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1047370Z ^[[1m^[[92m  Downloaded^[[0m dirs-sys v0.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1056200Z ^[[1m^[[92m  Downloaded^[[0m dtoa v1.0.11
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1093650Z ^[[1m^[[92m  Downloaded^[[0m dyn-clone v1.0.20
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1153290Z ^[[1m^[[92m  Downloaded^[[0m embed_plist v1.2.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1194860Z ^[[1m^[[92m  Downloaded^[[0m embedded-io v0.4.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1322070Z ^[[1m^[[92m  Downloaded^[[0m embedded-io v0.6.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1367860Z ^[[1m^[[92m  Downloaded^[[0m equivalent v1.0.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1411990Z ^[[1m^[[92m  Downloaded^[[0m erased-serde v0.4.10
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1502800Z ^[[1m^[[92m  Downloaded^[[0m find-msvc-tools v0.1.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1574130Z ^[[1m^[[92m  Downloaded^[[0m selectors v0.36.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1626610Z ^[[1m^[[92m  Downloaded^[[0m serde_derive v1.0.229
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1752670Z ^[[1m^[[92m  Downloaded^[[0m serde_with_macros v3.17.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1809790Z ^[[1m^[[92m  Downloaded^[[0m sha2 v0.10.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.1903370Z ^[[1m^[[92m  Downloaded^[[0m tauri-utils v2.9.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.2003400Z ^[[1m^[[92m  Downloaded^[[0m tracing-attributes v0.1.31
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.2164220Z ^[[1m^[[92m  Downloaded^[[0m uuid v1.26.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.2290800Z ^[[1m^[[92m  Downloaded^[[0m winnow v1.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.2703710Z ^[[1m^[[92m  Downloaded^[[0m alloc-stdlib v0.2.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.2756170Z ^[[1m^[[92m  Downloaded^[[0m chacha20 v0.9.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.2802820Z ^[[1m^[[92m  Downloaded^[[0m colorchoice v1.0.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.2849250Z ^[[1m^[[92m  Downloaded^[[0m cpufeatures v0.2.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.2879890Z ^[[1m^[[92m  Downloaded^[[0m cipher v0.4.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.2947560Z ^[[1m^[[92m  Downloaded^[[0m crossbeam-utils v0.8.23
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3024320Z ^[[1m^[[92m  Downloaded^[[0m ctor v0.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3051960Z ^[[1m^[[92m  Downloaded^[[0m ctr v0.9.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3120860Z ^[[1m^[[92m  Downloaded^[[0m darling_macro v0.21.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3150640Z ^[[1m^[[92m  Downloaded^[[0m foldhash v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3178290Z ^[[1m^[[92m  Downloaded^[[0m foreign-types v0.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3199880Z ^[[1m^[[92m  Downloaded^[[0m foreign-types-macros v0.2.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3227710Z ^[[1m^[[92m  Downloaded^[[0m num-traits v0.2.19
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3290360Z ^[[1m^[[92m  Downloaded^[[0m curve25519-dalek-derive v0.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3305260Z ^[[1m^[[92m  Downloaded^[[0m digest v0.10.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3386010Z ^[[1m^[[92m  Downloaded^[[0m dpi v0.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3415650Z ^[[1m^[[92m  Downloaded^[[0m fnv v1.0.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3445120Z ^[[1m^[[92m  Downloaded^[[0m cpufeatures v0.3.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3471610Z ^[[1m^[[92m  Downloaded^[[0m dirs v6.0.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3513030Z ^[[1m^[[92m  Downloaded^[[0m dtoa-short v0.3.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3537660Z ^[[1m^[[92m  Downloaded^[[0m dtor-proc-macro v0.0.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3557850Z ^[[1m^[[92m  Downloaded^[[0m errno v0.3.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3603570Z ^[[1m^[[92m  Downloaded^[[0m bit-set v0.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3635920Z ^[[1m^[[92m  Downloaded^[[0m ctor-proc-macro v0.0.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3655990Z ^[[1m^[[92m  Downloaded^[[0m dtor v0.3.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3680280Z ^[[1m^[[92m  Downloaded^[[0m dunce v1.0.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3709120Z ^[[1m^[[92m  Downloaded^[[0m embed-resource v3.0.11
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3753140Z ^[[1m^[[92m  Downloaded^[[0m fastrand v2.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3808770Z ^[[1m^[[92m  Downloaded^[[0m form_urlencoded v1.2.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3828070Z ^[[1m^[[92m  Downloaded^[[0m generic-array v0.14.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3864630Z ^[[1m^[[92m  Downloaded^[[0m inout v0.1.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3899750Z ^[[1m^[[92m  Downloaded^[[0m new_debug_unreachable v1.0.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3942280Z ^[[1m^[[92m  Downloaded^[[0m autocfg v1.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.3987160Z ^[[1m^[[92m  Downloaded^[[0m bit-vec v0.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4038260Z ^[[1m^[[92m  Downloaded^[[0m crc32fast v1.5.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4104190Z ^[[1m^[[92m  Downloaded^[[0m crypto-common v0.2.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4123390Z ^[[1m^[[92m  Downloaded^[[0m darling v0.21.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4399910Z ^[[1m^[[92m  Downloaded^[[0m deranged v0.5.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4454680Z ^[[1m^[[92m  Downloaded^[[0m is_terminal_polyfill v1.70.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4523500Z ^[[1m^[[92m  Downloaded^[[0m num-conv v0.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4540390Z ^[[1m^[[92m  Downloaded^[[0m precomputed-hash v0.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4570320Z ^[[1m^[[92m  Downloaded^[[0m anyhow v1.0.104
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4774990Z ^[[1m^[[92m  Downloaded^[[0m base64 v0.22.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.4948130Z ^[[1m^[[92m  Downloaded^[[0m clap_derive v4.6.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.5047380Z ^[[1m^[[92m  Downloaded^[[0m const-oid v0.10.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.5189680Z ^[[1m^[[92m  Downloaded^[[0m cookie v0.18.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.5326980Z ^[[1m^[[92m  Downloaded^[[0m cssparser v0.36.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.5384860Z ^[[1m^[[92m  Downloaded^[[0m darling_core v0.21.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.5569510Z ^[[1m^[[92m  Downloaded^[[0m digest v0.11.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.5682360Z ^[[1m^[[92m  Downloaded^[[0m dispatch2 v0.3.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.5761610Z ^[[1m^[[92m  Downloaded^[[0m displaydoc v0.2.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.5841600Z ^[[1m^[[92m  Downloaded^[[0m dom_query v0.27.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6030540Z ^[[1m^[[92m  Downloaded^[[0m fdeflate v0.3.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6104600Z ^[[1m^[[92m  Downloaded^[[0m flate2 v1.1.10
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6290380Z ^[[1m^[[92m  Downloaded^[[0m siphasher v1.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6345380Z ^[[1m^[[92m  Downloaded^[[0m toml v0.9.12+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6503440Z ^[[1m^[[92m  Downloaded^[[0m zmij v1.0.23
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6570650Z ^[[1m^[[92m  Downloaded^[[0m hybrid-array v0.4.15
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6666300Z ^[[1m^[[92m  Downloaded^[[0m iana-time-zone v0.1.65
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6807360Z ^[[1m^[[92m  Downloaded^[[0m infer v0.19.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6874840Z ^[[1m^[[92m  Downloaded^[[0m nu-ansi-term v0.50.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.6977750Z ^[[1m^[[92m  Downloaded^[[0m ref-cast-impl v1.0.27
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.7004610Z ^[[1m^[[92m  Downloaded^[[0m rustc-hash v2.1.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.7043020Z ^[[1m^[[92m  Downloaded^[[0m same-file v1.0.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.7072500Z ^[[1m^[[92m  Downloaded^[[0m ghash v0.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.7097280Z ^[[1m^[[92m  Downloaded^[[0m hash32 v0.2.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.7273610Z ^[[1m^[[92m  Downloaded^[[0m base64 v0.21.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.7552910Z ^[[1m^[[92m  Downloaded^[[0m chacha20poly1305 v0.10.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.7707750Z ^[[1m^[[92m  Downloaded^[[0m chrono v0.4.45
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.7826600Z ^[[1m^[[92m  Downloaded^[[0m clap v4.6.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.8118490Z ^[[1m^[[92m  Downloaded^[[0m crossbeam-channel v0.5.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.8229660Z ^[[1m^[[92m  Downloaded^[[0m derive_more v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.8806180Z ^[[1m^[[92m  Downloaded^[[0m derive_more-impl v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9073880Z ^[[1m^[[92m  Downloaded^[[0m foreign-types-shared v0.3.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9105780Z ^[[1m^[[92m  Downloaded^[[0m syn v3.0.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9393000Z ^[[1m^[[92m  Downloaded^[[0m tauri-codegen v2.6.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9481300Z ^[[1m^[[92m  Downloaded^[[0m time-macros v0.2.25
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9594040Z ^[[1m^[[92m  Downloaded^[[0m toml_datetime v0.7.5+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9624530Z ^[[1m^[[92m  Downloaded^[[0m toml_datetime v1.1.1+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9670190Z ^[[1m^[[92m  Downloaded^[[0m toml_parser v1.1.3+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9769930Z ^[[1m^[[92m  Downloaded^[[0m toml_writer v1.1.2+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9827160Z ^[[1m^[[92m  Downloaded^[[0m tracing-core v0.1.36
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9890140Z ^[[1m^[[92m  Downloaded^[[0m typeid v1.0.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:41.9940390Z ^[[1m^[[92m  Downloaded^[[0m unic-char-range v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.0009750Z ^[[1m^[[92m  Downloaded^[[0m walkdir v2.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.0071380Z ^[[1m^[[92m  Downloaded^[[0m writeable v0.6.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.0181730Z ^[[1m^[[92m  Downloaded^[[0m yoke v0.8.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.0227500Z ^[[1m^[[92m  Downloaded^[[0m schemars v1.2.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.0864180Z ^[[1m^[[92m  Downloaded^[[0m http v1.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1024690Z ^[[1m^[[92m  Downloaded^[[0m ico v0.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1091110Z ^[[1m^[[92m  Downloaded^[[0m muda v0.19.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1253720Z ^[[1m^[[92m  Downloaded^[[0m potential_utf v0.1.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1306400Z ^[[1m^[[92m  Downloaded^[[0m powerfmt v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1357710Z ^[[1m^[[92m  Downloaded^[[0m quote v1.0.47
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1438500Z ^[[1m^[[92m  Downloaded^[[0m raw-window-handle v0.6.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1509150Z ^[[1m^[[92m  Downloaded^[[0m ref-cast v1.0.27
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1584760Z ^[[1m^[[92m  Downloaded^[[0m rustc_version v0.4.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1606270Z ^[[1m^[[92m  Downloaded^[[0m schemars_derive v0.8.22
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1632550Z ^[[1m^[[92m  Downloaded^[[0m scopeguard v1.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1658700Z ^[[1m^[[92m  Downloaded^[[0m zerovec-derive v0.11.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1710190Z ^[[1m^[[92m  Downloaded^[[0m getrandom v0.2.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1760460Z ^[[1m^[[92m  Downloaded^[[0m getrandom v0.4.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1878680Z ^[[1m^[[92m  Downloaded^[[0m glob v0.3.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.1929120Z ^[[1m^[[92m  Downloaded^[[0m ident_case v1.0.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2002210Z ^[[1m^[[92m  Downloaded^[[0m idna_adapter v1.2.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2028970Z ^[[1m^[[92m  Downloaded^[[0m itoa v1.0.18
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2098380Z ^[[1m^[[92m  Downloaded^[[0m json-patch v3.0.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2187960Z ^[[1m^[[92m  Downloaded^[[0m poly1305 v0.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2248110Z ^[[1m^[[92m  Downloaded^[[0m polyval v0.6.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2300770Z ^[[1m^[[92m  Downloaded^[[0m option-ext v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2335090Z ^[[1m^[[92m  Downloaded^[[0m parking_lot_core v0.9.12
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2413900Z ^[[1m^[[92m  Downloaded^[[0m phf_shared v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2453060Z ^[[1m^[[92m  Downloaded^[[0m clap_builder v4.6.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2678310Z ^[[1m^[[92m  Downloaded^[[0m serde-untagged v0.1.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2747990Z ^[[1m^[[92m  Downloaded^[[0m serde_core v1.0.229
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2888700Z ^[[1m^[[92m  Downloaded^[[0m serde_spanned v1.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.2956500Z ^[[1m^[[92m  Downloaded^[[0m serde_with v3.17.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.3570980Z ^[[1m^[[92m  Downloaded^[[0m servo_arc v0.4.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.3588090Z ^[[1m^[[92m  Downloaded^[[0m sha2 v0.11.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.3734090Z ^[[1m^[[92m  Downloaded^[[0m shlex v2.0.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.3794310Z ^[[1m^[[92m  Downloaded^[[0m signal-hook-registry v1.4.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.3855200Z ^[[1m^[[92m  Downloaded^[[0m socket2 v0.6.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.3932400Z ^[[1m^[[92m  Downloaded^[[0m strsim v0.11.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.3963400Z ^[[1m^[[92m  Downloaded^[[0m swift-rs v1.0.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4126490Z ^[[1m^[[92m  Downloaded^[[0m tauri-macros v2.6.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4178780Z ^[[1m^[[92m  Downloaded^[[0m tauri-runtime v2.11.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4235410Z ^[[1m^[[92m  Downloaded^[[0m thiserror v2.0.21
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4578500Z ^[[1m^[[92m  Downloaded^[[0m thiserror-impl v1.0.69
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4617630Z ^[[1m^[[92m  Downloaded^[[0m thiserror-impl v2.0.21
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4686760Z ^[[1m^[[92m  Downloaded^[[0m thread_local v1.1.10
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4729410Z ^[[1m^[[92m  Downloaded^[[0m tinystr v0.8.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4795290Z ^[[1m^[[92m  Downloaded^[[0m tracing-log v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4859490Z ^[[1m^[[92m  Downloaded^[[0m unic-char-property v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4903280Z ^[[1m^[[92m  Downloaded^[[0m unic-ucd-version v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4937290Z ^[[1m^[[92m  Downloaded^[[0m utf8parse v0.2.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.4981560Z ^[[1m^[[92m  Downloaded^[[0m version_check v0.9.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.5016120Z ^[[1m^[[92m  Downloaded^[[0m zerotrie v0.2.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.5239680Z ^[[1m^[[92m  Downloaded^[[0m proc-macro2 v1.0.107
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.5332780Z ^[[1m^[[92m  Downloaded^[[0m schemars v0.8.22
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.5891900Z ^[[1m^[[92m  Downloaded^[[0m schemars v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.6303900Z ^[[1m^[[92m  Downloaded^[[0m getrandom v0.3.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.6395720Z ^[[1m^[[92m  Downloaded^[[0m icu_normalizer_data v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.6491050Z ^[[1m^[[92m  Downloaded^[[0m indexmap v1.9.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.6604990Z ^[[1m^[[92m  Downloaded^[[0m jsonptr v0.6.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.6698390Z ^[[1m^[[92m  Downloaded^[[0m percent-encoding v2.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.6737630Z ^[[1m^[[92m  Downloaded^[[0m phf v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.6788990Z ^[[1m^[[92m  Downloaded^[[0m phf_macros v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.6858360Z ^[[1m^[[92m  Downloaded^[[0m postcard v1.1.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.6967770Z ^[[1m^[[92m  Downloaded^[[0m lazy_static v1.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.7004130Z ^[[1m^[[92m  Downloaded^[[0m lock_api v0.4.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.7069030Z ^[[1m^[[92m  Downloaded^[[0m mime v0.3.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.7105020Z ^[[1m^[[92m  Downloaded^[[0m string_cache_codegen v0.6.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.7116140Z ^[[1m^[[92m  Downloaded^[[0m tauri-runtime-wry v2.11.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.7217130Z ^[[1m^[[92m  Downloaded^[[0m time v0.3.45
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.7739690Z ^[[1m^[[92m  Downloaded^[[0m tracing v0.1.44
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.8309850Z ^[[1m^[[92m  Downloaded^[[0m web_atoms v0.2.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.8350840Z ^[[1m^[[92m  Downloaded^[[0m hashbrown v0.12.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.8459880Z ^[[1m^[[92m  Downloaded^[[0m icu_properties v2.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.8540460Z ^[[1m^[[92m  Downloaded^[[0m icu_provider v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.8588460Z ^[[1m^[[92m  Downloaded^[[0m png v0.18.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.8671390Z ^[[1m^[[92m  Downloaded^[[0m parking_lot v0.12.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.8747060Z ^[[1m^[[92m  Downloaded^[[0m objc2-core-graphics v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.8945650Z ^[[1m^[[92m  Downloaded^[[0m pin-project-lite v0.2.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.9192250Z ^[[1m^[[92m  Downloaded^[[0m markup5ever v0.38.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.9212040Z ^[[1m^[[92m  Downloaded^[[0m matchers v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.9228390Z ^[[1m^[[92m  Downloaded^[[0m objc2-encode v4.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.9255090Z ^[[1m^[[92m  Downloaded^[[0m serialize-to-javascript v0.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.9287470Z ^[[1m^[[92m  Downloaded^[[0m smallvec v1.16.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.9322290Z ^[[1m^[[92m  Downloaded^[[0m tao v0.35.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.9735880Z ^[[1m^[[92m  Downloaded^[[0m tauri-build v2.6.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.9798410Z ^[[1m^[[92m  Downloaded^[[0m tauri-winres v0.3.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:42.9830010Z ^[[1m^[[92m  Downloaded^[[0m tokio v1.53.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.1600330Z ^[[1m^[[92m  Downloaded^[[0m unicode-ident v1.0.26
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.1660770Z ^[[1m^[[92m  Downloaded^[[0m unicode-segmentation v1.13.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.1778760Z ^[[1m^[[92m  Downloaded^[[0m untrusted v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.1828900Z ^[[1m^[[92m  Downloaded^[[0m url v2.5.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.1882830Z ^[[1m^[[92m  Downloaded^[[0m yoke-derive v0.8.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.1928640Z ^[[1m^[[92m  Downloaded^[[0m hex v0.4.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.1977450Z ^[[1m^[[92m  Downloaded^[[0m png v0.17.16
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2065260Z ^[[1m^[[92m  Downloaded^[[0m plist v1.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2160090Z ^[[1m^[[92m  Downloaded^[[0m log v0.4.34
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2254470Z ^[[1m^[[92m  Downloaded^[[0m objc2-exception-helper v0.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2281240Z ^[[1m^[[92m  Downloaded^[[0m opaque-debug v0.3.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2311410Z ^[[1m^[[92m  Downloaded^[[0m curve25519-dalek v4.1.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2546220Z ^[[1m^[[92m  Downloaded^[[0m serialize-to-javascript-impl v0.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2585570Z ^[[1m^[[92m  Downloaded^[[0m stable_deref_trait v1.2.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2627630Z ^[[1m^[[92m  Downloaded^[[0m tendril v0.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2679980Z ^[[1m^[[92m  Downloaded^[[0m tokio-macros v2.7.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2720700Z ^[[1m^[[92m  Downloaded^[[0m universal-hash v0.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2761170Z ^[[1m^[[92m  Downloaded^[[0m urlpattern v0.3.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.2852870Z ^[[1m^[[92m  Downloaded^[[0m winnow v0.7.15
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.3204470Z ^[[1m^[[92m  Downloaded^[[0m zerofrom-derive v0.1.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.3248840Z ^[[1m^[[92m  Downloaded^[[0m zlib-rs v0.6.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.3422410Z ^[[1m^[[92m  Downloaded^[[0m heck v0.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.3451860Z ^[[1m^[[92m  Downloaded^[[0m keyboard-types v0.7.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.3500160Z ^[[1m^[[92m  Downloaded^[[0m litemap v0.8.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.3598630Z ^[[1m^[[92m  Downloaded^[[0m memchr v2.8.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.3859070Z ^[[1m^[[92m  Downloaded^[[0m mio v1.2.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.4027390Z ^[[1m^[[92m  Downloaded^[[0m objc2-io-surface v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.4113600Z ^[[1m^[[92m  Downloaded^[[0m serde v1.0.229
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.4189770Z ^[[1m^[[92m  Downloaded^[[0m simd-adler32 v0.3.10
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.4269990Z ^[[1m^[[92m  Downloaded^[[0m thiserror v1.0.69
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.4541610Z ^[[1m^[[92m  Downloaded^[[0m time-core v0.1.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.4562700Z ^[[1m^[[92m  Downloaded^[[0m unic-common v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.4591550Z ^[[1m^[[92m  Downloaded^[[0m zeroize v1.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.4661230Z ^[[1m^[[92m  Downloaded^[[0m quick-xml v0.38.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.4858670Z ^[[1m^[[92m  Downloaded^[[0m icu_collections v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.5148270Z ^[[1m^[[92m  Downloaded^[[0m indexmap v2.14.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.5312220Z ^[[1m^[[92m  Downloaded^[[0m miniz_oxide v0.9.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.5398760Z ^[[1m^[[92m  Downloaded^[[0m phf_codegen v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.5429760Z ^[[1m^[[92m  Downloaded^[[0m phf_generator v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.5461600Z ^[[1m^[[92m  Downloaded^[[0m sharded-slab v0.1.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.5608980Z ^[[1m^[[92m  Downloaded^[[0m unic-ucd-ident v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.5655170Z ^[[1m^[[92m  Downloaded^[[0m utf8_iter v1.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.5690580Z ^[[1m^[[92m  Downloaded^[[0m regex v1.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.5948860Z ^[[1m^[[92m  Downloaded^[[0m icu_locale_core v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.6235790Z ^[[1m^[[92m  Downloaded^[[0m miniz_oxide v0.8.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.6415250Z ^[[1m^[[92m  Downloaded^[[0m brotli v8.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.7257780Z ^[[1m^[[92m  Downloaded^[[0m icu_properties_data v2.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.7559210Z ^[[1m^[[92m  Downloaded^[[0m idna v1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.7692690Z ^[[1m^[[92m  Downloaded^[[0m once_cell v1.21.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.7764040Z ^[[1m^[[92m  Downloaded^[[0m subtle v2.6.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.7785110Z ^[[1m^[[92m  Downloaded^[[0m toml v1.1.6+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.7976180Z ^[[1m^[[92m  Downloaded^[[0m typenum v1.20.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.8164510Z ^[[1m^[[92m  Downloaded^[[0m zerovec v0.11.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.8326200Z ^[[1m^[[92m  Downloaded^[[0m icu_normalizer v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.8412860Z ^[[1m^[[92m  Downloaded^[[0m semver v1.0.28
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.8499490Z ^[[1m^[[92m  Downloaded^[[0m spin v0.9.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.8530880Z ^[[1m^[[92m  Downloaded^[[0m heapless v0.7.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.8692300Z ^[[1m^[[92m  Downloaded^[[0m html5ever v0.38.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.8790720Z ^[[1m^[[92m  Downloaded^[[0m string_cache v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.8847080Z ^[[1m^[[92m  Downloaded^[[0m tracing-subscriber v0.3.23
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.9066650Z ^[[1m^[[92m  Downloaded^[[0m tray-icon v0.24.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.9136530Z ^[[1m^[[92m  Downloaded^[[0m wry v0.55.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.9354470Z ^[[1m^[[92m  Downloaded^[[0m serde_json v1.0.151
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:43.9647610Z ^[[1m^[[92m  Downloaded^[[0m tauri v2.11.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.0152930Z ^[[1m^[[92m  Downloaded^[[0m hashbrown v0.17.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.0762850Z ^[[1m^[[92m  Downloaded^[[0m objc2-core-foundation v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.0983460Z ^[[1m^[[92m  Downloaded^[[0m objc2-web-kit v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.1469390Z ^[[1m^[[92m  Downloaded^[[0m regex-syntax v0.8.11
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.1672820Z ^[[1m^[[92m  Downloaded^[[0m objc2 v0.6.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.1923350Z ^[[1m^[[92m  Downloaded^[[0m objc2-foundation v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.2532010Z ^[[1m^[[92m  Downloaded^[[0m syn v2.0.119
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.2867340Z ^[[1m^[[92m  Downloaded^[[0m regex-automata v0.4.18
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.3353910Z ^[[1m^[[92m  Downloaded^[[0m snow v0.10.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.3637940Z ^[[1m^[[92m  Downloaded^[[0m objc2-app-kit v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.4581790Z ^[[1m^[[92m  Downloaded^[[0m libc v0.2.189
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.5787850Z ^[[1m^[[92m  Downloaded^[[0m ring v0.17.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.7201440Z ^[[1m^[[92m  Downloaded^[[0m window-vibrancy v0.6.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.9685990Z ^[[1m^[[92m   Compiling^[[0m proc-macro2 v1.0.107
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.9687420Z ^[[1m^[[92m   Compiling^[[0m quote v1.0.47
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:44.9687980Z ^[[1m^[[92m   Compiling^[[0m unicode-ident v1.0.26
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:45.8826430Z ^[[1m^[[92m   Compiling^[[0m serde_core v1.0.229
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:51.0503490Z ^[[1m^[[92m   Compiling^[[0m libc v0.2.189
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:52.2708220Z ^[[1m^[[92m   Compiling^[[0m syn v3.0.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:52.6034510Z ^[[1m^[[92m   Compiling^[[0m syn v2.0.119
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:57.0470650Z ^[[1m^[[92m   Compiling^[[0m synstructure v0.14.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:57.9828860Z ^[[1m^[[92m   Compiling^[[0m version_check v0.9.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:58.3591400Z ^[[1m^[[92m   Compiling^[[0m zmij v1.0.23
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:58.6817550Z ^[[1m^[[92m   Compiling^[[0m find-msvc-tools v0.1.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:58.9203560Z ^[[1m^[[92m   Compiling^[[0m shlex v2.0.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:59.0638260Z ^[[1m^[[92m   Compiling^[[0m cc v1.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:59.4498740Z ^[[1m^[[92m   Compiling^[[0m serde_derive v1.0.229
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:03:59.7427530Z ^[[1m^[[92m   Compiling^[[0m zerofrom-derive v0.1.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:01.3204340Z ^[[1m^[[92m   Compiling^[[0m yoke-derive v0.8.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:01.6644620Z ^[[1m^[[92m   Compiling^[[0m zerovec-derive v0.11.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:02.4304610Z ^[[1m^[[92m   Compiling^[[0m displaydoc v0.2.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:02.4741300Z ^[[1m^[[92m   Compiling^[[0m generic-array v0.14.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:02.5992480Z ^[[1m^[[92m   Compiling^[[0m siphasher v1.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:02.7245080Z ^[[1m^[[92m    Checking^[[0m typenum v1.20.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:02.7686010Z ^[[1m^[[92m   Compiling^[[0m phf_shared v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:02.9380710Z ^[[1m^[[92m   Compiling^[[0m semver v1.0.28
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.1213220Z ^[[1m^[[92m    Checking^[[0m cfg-if v1.0.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.1481420Z ^[[1m^[[92m   Compiling^[[0m icu_normalizer_data v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.1518640Z ^[[1m^[[92m   Compiling^[[0m icu_properties_data v2.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.2890570Z ^[[1m^[[92m    Checking^[[0m stable_deref_trait v1.2.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.3138700Z ^[[1m^[[92m   Compiling^[[0m fastrand v2.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.3715350Z ^[[1m^[[92m   Compiling^[[0m thiserror v2.0.21
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.4098160Z ^[[1m^[[92m   Compiling^[[0m phf_generator v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.6730800Z ^[[1m^[[92m   Compiling^[[0m thiserror-impl v2.0.21
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.6845260Z ^[[1m^[[92m   Compiling^[[0m serde v1.0.229
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:03.9288000Z ^[[1m^[[92m   Compiling^[[0m memchr v2.8.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:04.1000950Z ^[[1m^[[92m   Compiling^[[0m rustc_version v0.4.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:04.3213560Z ^[[1m^[[92m   Compiling^[[0m zerofrom v0.1.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:04.3223120Z ^[[1m^[[92m   Compiling^[[0m smallvec v1.16.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:04.4502190Z ^[[1m^[[92m   Compiling^[[0m yoke v0.8.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:04.6371000Z ^[[1m^[[92m   Compiling^[[0m parking_lot_core v0.9.12
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:04.8425180Z ^[[1m^[[92m   Compiling^[[0m itoa v1.0.18
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:05.0172260Z ^[[1m^[[92m   Compiling^[[0m zerovec v0.11.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:05.3939080Z ^[[1m^[[92m   Compiling^[[0m phf_macros v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:05.5231880Z ^[[1m^[[92m   Compiling^[[0m fnv v1.0.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:05.5624110Z ^[[1m^[[92m   Compiling^[[0m typeid v1.0.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:05.7734900Z ^[[1m^[[92m   Compiling^[[0m time-core v0.1.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:05.8634370Z ^[[1m^[[92m   Compiling^[[0m num-conv v0.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:05.9359480Z ^[[1m^[[92m   Compiling^[[0m tinystr v0.8.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:05.9434110Z ^[[1m^[[92m   Compiling^[[0m phf_codegen v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.0552070Z ^[[1m^[[92m    Checking^[[0m bitflags v2.13.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.0856490Z ^[[1m^[[92m   Compiling^[[0m anyhow v1.0.104
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.1058350Z ^[[1m^[[92m   Compiling^[[0m ident_case v1.0.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.1526680Z ^[[1m^[[92m   Compiling^[[0m serde_json v1.0.151
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.1593980Z ^[[1m^[[92m   Compiling^[[0m writeable v0.6.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.2891250Z ^[[1m^[[92m   Compiling^[[0m strsim v0.11.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.2892120Z ^[[1m^[[92m   Compiling^[[0m erased-serde v0.4.10
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.3606570Z ^[[1m^[[92m   Compiling^[[0m litemap v0.8.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.4527520Z ^[[1m^[[92m   Compiling^[[0m thiserror v1.0.69
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.4821870Z ^[[1m^[[92m   Compiling^[[0m icu_locale_core v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:06.5539320Z ^[[1m^[[92m   Compiling^[[0m darling_core v0.21.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:07.1778150Z ^[[1m^[[92m    Checking^[[0m crypto-common v0.1.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:07.2219110Z ^[[1m^[[92m   Compiling^[[0m potential_utf v0.1.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:07.2477480Z ^[[1m^[[92m   Compiling^[[0m zerotrie v0.2.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:07.3060040Z ^[[1m^[[92m   Compiling^[[0m objc2-exception-helper v0.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:07.5586000Z ^[[1m^[[92m   Compiling^[[0m icu_provider v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:07.7837150Z ^[[1m^[[92m   Compiling^[[0m icu_collections v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:09.6734710Z ^[[1m^[[92m   Compiling^[[0m darling_macro v0.21.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:09.8069820Z ^[[1m^[[92m   Compiling^[[0m thiserror-impl v1.0.69
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:10.0337510Z ^[[1m^[[92m   Compiling^[[0m scopeguard v1.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:10.0807630Z ^[[1m^[[92m   Compiling^[[0m new_debug_unreachable v1.0.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:10.1171520Z ^[[1m^[[92m   Compiling^[[0m lock_api v0.4.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:10.3626800Z ^[[1m^[[92m   Compiling^[[0m darling v0.21.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:10.8175760Z ^[[1m^[[92m   Compiling^[[0m phf v0.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:11.0118960Z ^[[1m^[[92m   Compiling^[[0m string_cache_codegen v0.6.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:11.3547150Z ^[[1m^[[92m   Compiling^[[0m getrandom v0.4.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:11.3648710Z ^[[1m^[[92m   Compiling^[[0m objc2 v0.6.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:11.5664860Z ^[[1m^[[92m    Checking^[[0m once_cell v1.21.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:11.6085870Z ^[[1m^[[92m    Checking^[[0m byteorder v1.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:11.7069130Z ^[[1m^[[92m   Compiling^[[0m winnow v1.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:11.7627390Z ^[[1m^[[92m   Compiling^[[0m precomputed-hash v0.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:11.8061870Z ^[[1m^[[92m   Compiling^[[0m web_atoms v0.2.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:12.0461180Z ^[[1m^[[92m   Compiling^[[0m toml_parser v1.1.3+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:12.1473600Z ^[[1m^[[92m   Compiling^[[0m parking_lot v0.12.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:12.3849960Z ^[[1m^[[92m   Compiling^[[0m icu_properties v2.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:12.5307290Z ^[[1m^[[92m   Compiling^[[0m icu_normalizer v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:12.7150330Z ^[[1m^[[92m   Compiling^[[0m serde_with_macros v3.17.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:13.2616360Z ^[[1m^[[92m   Compiling^[[0m serde_spanned v1.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:13.3312130Z ^[[1m^[[92m   Compiling^[[0m ctor-proc-macro v0.0.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:13.7719840Z ^[[1m^[[92m   Compiling^[[0m toml_writer v1.1.2+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:13.8007570Z ^[[1m^[[92m    Checking^[[0m objc2-encode v4.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:13.9061430Z ^[[1m^[[92m   Compiling^[[0m idna_adapter v1.2.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:14.3330260Z ^[[1m^[[92m   Compiling^[[0m string_cache v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:14.8923270Z ^[[1m^[[92m   Compiling^[[0m crc32fast v1.5.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.0370160Z ^[[1m^[[92m   Compiling^[[0m utf8_iter v1.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.1398600Z ^[[1m^[[92m   Compiling^[[0m log v0.4.34
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.1513540Z ^[[1m^[[92m    Checking^[[0m subtle v2.6.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.1720690Z ^[[1m^[[92m   Compiling^[[0m percent-encoding v2.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.2484760Z ^[[1m^[[92m   Compiling^[[0m autocfg v1.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.2822640Z ^[[1m^[[92m   Compiling^[[0m dtoa v1.0.11
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.3007540Z ^[[1m^[[92m   Compiling^[[0m form_urlencoded v1.2.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.3935380Z ^[[1m^[[92m   Compiling^[[0m dtoa-short v0.3.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.4228290Z ^[[1m^[[92m   Compiling^[[0m idna v1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.7219480Z ^[[1m^[[92m   Compiling^[[0m indexmap v1.9.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:15.8722220Z ^[[1m^[[92m   Compiling^[[0m uuid v1.26.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:16.2215820Z ^[[1m^[[92m   Compiling^[[0m tendril v0.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:16.2667350Z ^[[1m^[[92m   Compiling^[[0m selectors v0.36.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:16.4998670Z ^[[1m^[[92m   Compiling^[[0m aho-corasick v1.1.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:16.6235720Z ^[[1m^[[92m   Compiling^[[0m cssparser-macros v0.6.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:16.6288670Z ^[[1m^[[92m   Compiling^[[0m derive_more-impl v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:16.9885890Z ^[[1m^[[92m   Compiling^[[0m toml_datetime v1.1.1+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:17.2921760Z ^[[1m^[[92m   Compiling^[[0m powerfmt v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:17.4680850Z ^[[1m^[[92m   Compiling^[[0m unic-char-range v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:17.5542840Z ^[[1m^[[92m   Compiling^[[0m alloc-no-stdlib v2.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:17.6637850Z ^[[1m^[[92m    Checking^[[0m cpufeatures v0.2.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:17.7292730Z ^[[1m^[[92m    Checking^[[0m option-ext v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:17.8031410Z ^[[1m^[[92m   Compiling^[[0m regex-syntax v0.8.11
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:17.8087250Z ^[[1m^[[92m   Compiling^[[0m camino v1.2.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:18.3472900Z ^[[1m^[[92m   Compiling^[[0m unic-common v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:18.4198960Z ^[[1m^[[92m   Compiling^[[0m unic-ucd-version v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:18.5194730Z ^[[1m^[[92m   Compiling^[[0m derive_more v2.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:18.6300660Z ^[[1m^[[92m    Checking^[[0m dirs-sys v0.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:18.7242990Z ^[[1m^[[92m   Compiling^[[0m alloc-stdlib v0.2.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:18.7885950Z ^[[1m^[[92m   Compiling^[[0m unic-char-property v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:18.8454140Z ^[[1m^[[92m   Compiling^[[0m deranged v0.5.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:18.9786000Z ^[[1m^[[92m   Compiling^[[0m toml v1.1.6+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:20.1652650Z ^[[1m^[[92m   Compiling^[[0m regex-automata v0.4.18
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:21.0285110Z ^[[1m^[[92m   Compiling^[[0m cssparser v0.36.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:21.8647770Z ^[[1m^[[92m   Compiling^[[0m markup5ever v0.38.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:22.1115430Z ^[[1m^[[92m   Compiling^[[0m url v2.5.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:22.2340590Z ^[[1m^[[92m   Compiling^[[0m swift-rs v1.0.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:23.4088550Z ^[[1m^[[92m   Compiling^[[0m servo_arc v0.4.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:23.4615540Z ^[[1m^[[92m   Compiling^[[0m serde_derive_internals v0.29.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:23.7790860Z ^[[1m^[[92m   Compiling^[[0m schemars v0.8.22
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:23.9983190Z ^[[1m^[[92m   Compiling^[[0m rustc-hash v2.1.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:24.0756070Z ^[[1m^[[92m   Compiling^[[0m hashbrown v0.12.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:24.6657140Z ^[[1m^[[92m   Compiling^[[0m equivalent v1.0.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:24.7506740Z ^[[1m^[[92m   Compiling^[[0m bit-vec v0.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:24.9994880Z ^[[1m^[[92m   Compiling^[[0m hashbrown v0.17.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:25.0314330Z ^[[1m^[[92m   Compiling^[[0m schemars_derive v0.8.22
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:25.5250040Z ^[[1m^[[92m   Compiling^[[0m bit-set v0.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:25.6615180Z ^[[1m^[[92m   Compiling^[[0m indexmap v2.14.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:27.1791870Z ^[[1m^[[92m   Compiling^[[0m regex v1.13.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:27.6282990Z ^[[1m^[[92m   Compiling^[[0m html5ever v0.38.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:28.4652250Z ^[[1m^[[92m   Compiling^[[0m time v0.3.45
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:28.9159920Z ^[[1m^[[92m   Compiling^[[0m unic-ucd-ident v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:29.1206510Z ^[[1m^[[92m   Compiling^[[0m brotli-decompressor v5.0.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:29.8190860Z ^[[1m^[[92m   Compiling^[[0m cfb v0.7.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:30.5446280Z ^[[1m^[[92m    Checking^[[0m objc2-core-foundation v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:30.7993300Z ^[[1m^[[92m    Checking^[[0m block2 v0.6.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:31.0763530Z ^[[1m^[[92m   Compiling^[[0m jsonptr v0.6.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:31.2222100Z ^[[1m^[[92m   Compiling^[[0m cargo-platform v0.1.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:31.5175730Z ^[[1m^[[92m   Compiling^[[0m quick-xml v0.38.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:31.7359890Z ^[[1m^[[92m    Checking^[[0m hybrid-array v0.4.15
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:31.8175380Z ^[[1m^[[92m   Compiling^[[0m bytes v1.12.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:32.3728330Z ^[[1m^[[92m   Compiling^[[0m dyn-clone v1.0.20
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:32.4819100Z ^[[1m^[[92m   Compiling^[[0m foldhash v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:32.5589180Z ^[[1m^[[92m   Compiling^[[0m base64 v0.22.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:32.6171840Z ^[[1m^[[92m    Checking^[[0m pin-project-lite v0.2.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:32.6846250Z ^[[1m^[[92m   Compiling^[[0m same-file v1.0.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:32.7152850Z ^[[1m^[[92m   Compiling^[[0m dunce v1.0.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:32.7843800Z ^[[1m^[[92m   Compiling^[[0m base64 v0.21.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:32.8291720Z ^[[1m^[[92m   Compiling^[[0m walkdir v2.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:32.9692180Z ^[[1m^[[92m   Compiling^[[0m plist v1.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:33.1638760Z ^[[1m^[[92m   Compiling^[[0m dom_query v0.27.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:34.1698600Z ^[[1m^[[92m   Compiling^[[0m http v1.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:35.5430320Z ^[[1m^[[92m    Checking^[[0m objc2-foundation v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:35.6774790Z ^[[1m^[[92m   Compiling^[[0m json-patch v3.0.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:36.1057050Z ^[[1m^[[92m   Compiling^[[0m cargo_metadata v0.19.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:36.8583180Z ^[[1m^[[92m   Compiling^[[0m infer v0.19.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:37.3287310Z ^[[1m^[[92m   Compiling^[[0m brotli v8.0.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:38.1882370Z ^[[1m^[[92m   Compiling^[[0m urlpattern v0.3.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:39.6006490Z ^[[1m^[[92m   Compiling^[[0m serde-untagged v0.1.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:40.3546650Z ^[[1m^[[92m   Compiling^[[0m serde_with v3.17.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:41.2376120Z ^[[1m^[[92m   Compiling^[[0m ctor v0.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:41.3564110Z ^[[1m^[[92m    Checking^[[0m tracing-core v0.1.36
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:41.9089930Z ^[[1m^[[92m    Checking^[[0m inout v0.1.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:42.0462460Z ^[[1m^[[92m   Compiling^[[0m heapless v0.7.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:42.4971720Z ^[[1m^[[92m   Compiling^[[0m glob v0.3.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:43.1831680Z ^[[1m^[[92m    Checking^[[0m zeroize v1.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:43.3093780Z ^[[1m^[[92m   Compiling^[[0m heck v0.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:43.5768930Z ^[[1m^[[92m   Compiling^[[0m simd-adler32 v0.3.10
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:44.2506930Z ^[[1m^[[92m   Compiling^[[0m tauri-utils v2.9.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:45.2069090Z ^[[1m^[[92m    Checking^[[0m cipher v0.4.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:45.7677020Z ^[[1m^[[92m    Checking^[[0m objc2-app-kit v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:47.7758340Z ^[[1m^[[92m    Checking^[[0m crypto-common v0.2.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:48.5090210Z ^[[1m^[[92m    Checking^[[0m block-buffer v0.12.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:48.6193780Z ^[[1m^[[92m    Checking^[[0m spin v0.9.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:48.7941300Z ^[[1m^[[92m    Checking^[[0m universal-hash v0.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:48.8908810Z ^[[1m^[[92m    Checking^[[0m hash32 v0.2.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:49.0285000Z ^[[1m^[[92m   Compiling^[[0m time-macros v0.2.25
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:50.9091300Z ^[[1m^[[92m   Compiling^[[0m tracing-attributes v0.1.31
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:51.5761280Z ^[[1m^[[92m   Compiling^[[0m toml_datetime v0.7.5+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:52.1575240Z ^[[1m^[[92m    Checking^[[0m opaque-debug v0.3.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:52.9101010Z ^[[1m^[[92m   Compiling^[[0m adler2 v2.0.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:52.9501270Z ^[[1m^[[92m    Checking^[[0m core-foundation-sys v0.8.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:53.0913140Z ^[[1m^[[92m    Checking^[[0m const-oid v0.10.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:53.1255790Z ^[[1m^[[92m   Compiling^[[0m winnow v0.7.15
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:53.2331870Z ^[[1m^[[92m    Checking^[[0m digest v0.11.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:53.3569250Z ^[[1m^[[92m    Checking^[[0m core-foundation v0.10.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:54.8078460Z ^[[1m^[[92m   Compiling^[[0m toml v0.9.12+spec-1.1.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:55.0108550Z ^[[1m^[[92m    Checking^[[0m tracing v0.1.44
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:56.6200750Z ^[[1m^[[92m   Compiling^[[0m embed-resource v3.0.11
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:56.8352330Z ^[[1m^[[92m    Checking^[[0m cobs v0.3.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:56.9233510Z ^[[1m^[[92m   Compiling^[[0m foreign-types-macros v0.2.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:57.0975550Z ^[[1m^[[92m   Compiling^[[0m crossbeam-utils v0.8.23
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:57.3865950Z ^[[1m^[[92m    Checking^[[0m foreign-types-shared v0.3.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:57.4395350Z ^[[1m^[[92m    Checking^[[0m cpufeatures v0.3.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:57.6549920Z ^[[1m^[[92m    Checking^[[0m foreign-types v0.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:57.6854480Z ^[[1m^[[92m    Checking^[[0m sha2 v0.11.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:57.8661330Z ^[[1m^[[92m    Checking^[[0m postcard v1.1.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:58.3365630Z ^[[1m^[[92m   Compiling^[[0m tauri-winres v0.3.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:58.4214660Z ^[[1m^[[92m   Compiling^[[0m dirs v6.0.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:58.4746650Z ^[[1m^[[92m   Compiling^[[0m cargo_toml v0.22.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:58.6527960Z ^[[1m^[[92m    Checking^[[0m core-graphics-types v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:58.7056670Z ^[[1m^[[92m   Compiling^[[0m miniz_oxide v0.9.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:59.4861900Z ^[[1m^[[92m    Checking^[[0m directories v6.0.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:59.6849430Z ^[[1m^[[92m    Checking^[[0m block-buffer v0.10.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:04:59.7568400Z ^[[1m^[[92m    Checking^[[0m dpi v0.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:00.1112710Z ^[[1m^[[92m   Compiling^[[0m ring v0.17.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:00.7425330Z ^[[1m^[[92m   Compiling^[[0m cookie v0.18.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:01.5675270Z ^[[1m^[[92m    Checking^[[0m raw-window-handle v0.6.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:01.7343220Z ^[[1m^[[92m   Compiling^[[0m getrandom v0.3.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:03.5252520Z ^[[1m^[[92m   Compiling^[[0m tauri-build v2.6.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:04.9792860Z ^[[1m^[[92m    Checking^[[0m digest v0.10.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:05.4256930Z ^[[1m^[[92m   Compiling^[[0m flate2 v1.1.10
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:05.5360980Z ^[[1m^[[92m    Checking^[[0m core-graphics v0.25.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:06.4233460Z ^[[1m^[[92m   Compiling^[[0m miniz_oxide v0.8.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:06.4313190Z ^[[1m^[[92m    Checking^[[0m polyval v0.6.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:06.7186330Z ^[[1m^[[92m   Compiling^[[0m fdeflate v0.3.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:06.9847470Z ^[[1m^[[92m    Checking^[[0m aead v0.5.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:07.0421430Z ^[[1m^[[92m   Compiling^[[0m curve25519-dalek v4.1.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:07.1392100Z ^[[1m^[[92m    Checking^[[0m errno v0.3.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:07.3873560Z ^[[1m^[[92m   Compiling^[[0m bitflags v1.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:07.4922380Z ^[[1m^[[92m   Compiling^[[0m png v0.17.16
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:08.2619550Z ^[[1m^[[92m    Checking^[[0m signal-hook-registry v1.4.8
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:08.5070130Z ^[[1m^[[92m    Checking^[[0m ghash v0.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:08.7327200Z ^[[1m^[[92m    Checking^[[0m crossbeam-channel v0.5.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:09.3965750Z ^[[1m^[[92m    Checking^[[0m mouser-core v0.1.0 (/Users/runner/work/mouser/mouser/crates/mouser-core)
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:09.6995140Z ^[[1m^[[92m    Checking^[[0m poly1305 v0.8.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:09.7741780Z ^[[1m^[[92m    Checking^[[0m objc2-web-kit v0.3.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:09.8858450Z ^[[1m^[[92m    Checking^[[0m ctr v0.9.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:10.0455190Z ^[[1m^[[92m    Checking^[[0m aes v0.8.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:10.4098200Z ^[[1m^[[92m    Checking^[[0m chacha20 v0.9.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:10.6082990Z ^[[1m^[[92m   Compiling^[[0m snow v0.10.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:10.8228880Z ^[[1m^[[92m    Checking^[[0m mio v1.2.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:10.9108290Z ^[[1m^[[92m    Checking^[[0m getrandom v0.2.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:10.9768010Z ^[[1m^[[92m    Checking^[[0m socket2 v0.6.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:11.0558530Z ^[[1m^[[92m   Compiling^[[0m curve25519-dalek-derive v0.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:11.1537280Z ^[[1m^[[92m   Compiling^[[0m tokio-macros v2.7.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:11.6963820Z ^[[1m^[[92m   Compiling^[[0m wry v0.55.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:11.9884070Z ^[[1m^[[92m    Checking^[[0m untrusted v0.9.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:12.0605400Z ^[[1m^[[92m   Compiling^[[0m tauri-runtime v2.11.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:12.3051080Z ^[[1m^[[92m    Checking^[[0m utf8parse v0.2.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:12.3862890Z ^[[1m^[[92m    Checking^[[0m anstyle-parse v1.0.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:12.4827150Z ^[[1m^[[92m    Checking^[[0m tokio v1.53.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:13.9734260Z ^[[1m^[[92m   Compiling^[[0m sha2 v0.10.9
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:14.2268270Z ^[[1m^[[92m    Checking^[[0m chacha20poly1305 v0.10.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:14.2968550Z ^[[1m^[[92m    Checking^[[0m aes-gcm v0.10.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:14.7505000Z ^[[1m^[[92m   Compiling^[[0m ico v0.5.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:15.4281330Z ^[[1m^[[92m   Compiling^[[0m tauri v2.11.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:16.3895250Z ^[[1m^[[92m    Checking^[[0m blake2 v0.10.6
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:16.7982400Z ^[[1m^[[92m    Checking^[[0m dispatch2 v0.3.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:17.0451110Z ^[[1m^[[92m    Checking^[[0m is_terminal_polyfill v1.70.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:17.1053600Z ^[[1m^[[92m    Checking^[[0m unicode-segmentation v1.13.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:17.2228570Z ^[[1m^[[92m    Checking^[[0m anstyle v1.0.14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:17.3068170Z ^[[1m^[[92m    Checking^[[0m anstyle-query v1.1.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:17.3331290Z ^[[1m^[[92m   Compiling^[[0m tauri-runtime-wry v2.11.4
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:17.3514020Z ^[[1m^[[92m    Checking^[[0m colorchoice v1.0.5
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:17.4011000Z ^[[1m^[[92m    Checking^[[0m keyboard-types v0.7.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:17.4038550Z ^[[1m^[[92m    Checking^[[0m anstream v1.0.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:17.5072710Z ^[[1m^[[92m    Checking^[[0m tao v0.35.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:18.0623950Z ^[[1m^[[92m    Checking^[[0m png v0.18.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:18.5762490Z ^[[1m^[[92m   Compiling^[[0m tauri-codegen v2.6.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:18.7423280Z ^[[1m^[[92m   Compiling^[[0m serialize-to-javascript-impl v0.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:18.7828180Z ^[[1m^[[92m    Checking^[[0m clap_lex v1.1.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:18.8793620Z ^[[1m^[[92m    Checking^[[0m lazy_static v1.5.1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:19.0159140Z ^[[1m^[[92m    Checking^[[0m serialize-to-javascript v0.1.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:19.0311760Z ^[[1m^[[92m    Checking^[[0m clap_builder v4.6.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:19.0674300Z ^[[1m^[[92m    Checking^[[0m sharded-slab v0.1.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:19.8617060Z ^[[1m^[[92m    Checking^[[0m muda v0.19.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:20.3036710Z ^[[1m^[[92m   Compiling^[[0m mouser v0.1.0 (/Users/runner/work/mouser/mouser/src-tauri)
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:20.3352110Z ^[[1m^[[92m    Checking^[[0m window-vibrancy v0.6.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:20.4506230Z ^[[1m^[[92m    Checking^[[0m tracing-log v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:20.5546790Z ^[[1m^[[92m    Checking^[[0m matchers v0.2.0
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:20.6643600Z ^[[1m^[[92m   Compiling^[[0m clap_derive v4.6.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:20.9282760Z ^[[1m^[[92m    Checking^[[0m thread_local v1.1.10
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:21.0651540Z ^[[1m^[[92m   Compiling^[[0m serde_repr v0.1.21
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:21.2214450Z ^[[1m^[[92m   Compiling^[[0m tauri-macros v2.6.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:21.4891830Z ^[[1m^[[92m    Checking^[[0m mime v0.3.17
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:21.6377860Z ^[[1m^[[92m    Checking^[[0m embed_plist v1.2.2
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:21.6960820Z ^[[1m^[[92m    Checking^[[0m nu-ansi-term v0.50.3
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:21.9981550Z ^[[1m^[[92m    Checking^[[0m tracing-subscriber v0.3.23
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.1523800Z ^[[1m^[[92m    Checking^[[0m clap v4.6.7
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.3571100Z ^[[1m^[[92m    Checking^[[0m mouser-net v0.1.0 (/Users/runner/work/mouser/mouser/crates/mouser-net)
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.5669880Z ^[[1m^[[92m    Checking^[[0m mouser-input v0.1.0 (/Users/runner/work/mouser/mouser/crates/mouser-input)
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6657620Z ^[[1m^[[91merror[E0432]^[[0m^[[1m: unresolved import `core_graphics::geometry::CGFloat`^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6730980Z   ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:32:31
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6832710Z    ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6839190Z ^[[1m^[[94m32^[[0m ^[[1m^[[94m|^[[0m use core_graphics::geometry::{CGFloat, CGPoint};
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6861530Z    ^[[1m^[[94m|^[[0m                               ^[[1m^[[91m^^^^^^^^[[0m ^[[1m^[[91mno `CGFloat` in `geometry`^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6875880Z 
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6876680Z ^[[1m^[[91merror^[[0m^[[1m: unused import: `CGEventFlags`^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6877310Z   ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:27:28
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6877740Z    ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6878960Z ^[[1m^[[94m27^[[0m ^[[1m^[[94m|^[[0m     CGEvent, CGEventField, CGEventFlags, CGEventTap, CGEventTapLocation, CGEventTapOptions,
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6880390Z    ^[[1m^[[94m|^[[0m                            ^[[1m^[[91m^^^^^^^^^^^^^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6882740Z    ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.6986990Z    ^[[1m^[[94m= ^[[0m^[[1mnote^[[0m: `-D unused-imports` implied by `-D warnings`
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7006900Z    ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: to override `-D warnings` add `#[allow(unused_imports)]`
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7009210Z 
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7095010Z ^[[1m^[[91merror[E0369]^[[0m^[[1m: binary operation `==` cannot be applied to type `CGEventType`^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7095920Z    ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:221:37
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7097560Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7098570Z ^[[1m^[[94m221^[[0m ^[[1m^[[94m|^[[0m                 pressed: event_type == CGEventType::OtherMouseDown,
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7100840Z     ^[[1m^[[94m|^[[0m                          ^[[1m^[[94m----------^[[0m ^[[1m^[[91m^^^[[0m ^[[1m^[[94m---------------------------^[[0m ^[[1m^[[94mCGEventType^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7103590Z     ^[[1m^[[94m|^[[0m                          ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7104270Z     ^[[1m^[[94m|^[[0m                          ^[[1m^[[94mCGEventType^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7104690Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7105270Z ^[[1m^[[92mnote^[[0m: `CGEventType` does not implement `PartialEq`
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7106090Z    ^[[1m^[[94m--> ^[[0m/Users/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/core-graphics-0.25.0/src/event.rs:201:1
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7108620Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7109820Z ^[[1m^[[94m201^[[0m ^[[1m^[[94m|^[[0m pub enum CGEventType {
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7111370Z     ^[[1m^[[94m|^[[0m ^[[1m^[[92m^^^^^^^^^^^^^^^^^^^^^[[0m ^[[1m^[[92m`CGEventType` is defined in another crate^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7111860Z 
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.7896340Z ^[[1m^[[91merror[E0599]^[[0m^[[1m: no method named `cursor_position` found for reference `&MacosBackend` in the current scope^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8107180Z    ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:371:27
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8158460Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8197370Z ^[[1m^[[94m371^[[0m ^[[1m^[[94m|^[[0m         let (x, y) = self.cursor_position().unwrap_or((0.0, 0.0));
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8201040Z     ^[[1m^[[94m|^[[0m                           ^[[1m^[[91m^^^^^^^^^^^^^^^^[[0m ^[[1m^[[91mmethod not found in `&MacosBackend`^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8202880Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8206380Z     ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: items from traits can only be used if the trait is in scope
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8208930Z ^[[1m^[[96mhelp^[[0m: trait `InputBackend` which provides `cursor_position` is implemented but not in scope; perhaps you want to import it
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8210560Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8211470Z ^[[1m^[[94m 19^[[0m ^[[92m+ use crate::InputBackend;^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8215480Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8217530Z 
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8219250Z ^[[1m^[[91merror[E0599]^[[0m^[[1m: no method named `cursor_position` found for reference `&MacosBackend` in the current scope^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8223550Z    ^[[1m^[[94m--> ^[[0mcrates/mouser-input/src/macos.rs:412:14
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8225490Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8226080Z ^[[1m^[[94m411^[[0m ^[[1m^[[94m|^[[0m           let point = self
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8227930Z     ^[[1m^[[94m|^[[0m ^[[1m^[[94m _____________________-^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8228700Z ^[[1m^[[94m412^[[0m ^[[1m^[[94m|^[[0m ^[[1m^[[94m|^[[0m             .cursor_position()
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8230070Z     ^[[1m^[[94m|^[[0m ^[[1m^[[94m|^[[0m             ^[[1m^[[94m-^[[0m^[[1m^[[91m^^^^^^^^^^^^^^^^[[0m ^[[1m^[[91mmethod not found in `&MacosBackend`^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8231050Z     ^[[1m^[[94m|^[[0m ^[[1m^[[94m|_____________|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8231830Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8235250Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8236680Z     ^[[1m^[[94m= ^[[0m^[[1mhelp^[[0m: items from traits can only be used if the trait is in scope
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8238860Z ^[[1m^[[96mhelp^[[0m: trait `InputBackend` which provides `cursor_position` is implemented but not in scope; perhaps you want to import it
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8240490Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8241710Z ^[[1m^[[94m 19^[[0m ^[[92m+ use crate::InputBackend;^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8242660Z     ^[[1m^[[94m|^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8243220Z 
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8244250Z ^[[1mSome errors have detailed explanations: E0369, E0432, E0599.^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8248440Z ^[[1mFor more information about an error, try `rustc --explain E0369`.^[[0m
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8250030Z ^[[1m^[[91merror^[[0m: could not compile `mouser-input` (lib) due to 5 previous errors
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:23.8253030Z ^[[1m^[[33mwarning^[[0m: build failed, waiting for other jobs to finish...
+macos-latest (x86_64-apple-darwin)	Check	2026-10-01T21:05:28.2640460Z ##[error]Process completed with exit code 101.
