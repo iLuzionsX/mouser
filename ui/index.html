@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mouser</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>mouser <span class="dim">v0.1.0</span></h1>
+        <span id="owner" class="badge" data-state="solo">solo -</span>
+      </header>
+      <p id="device" class="dim"></p>
+
+      <section class="panel" aria-label="connection">
+        <div class="row"><span class="key">role</span><span id="role"></span></div>
+        <div class="row"><span class="key">link</span><span id="link"></span></div>
+        <div class="row"><span class="key">peer</span><span id="peer"></span></div>
+        <div class="row"><span class="key">secret</span><span id="fingerprint"></span></div>
+        <div class="row" id="bind-row" hidden>
+          <span class="key">listening</span><span id="bind"></span>
+        </div>
+      </section>
+
+      <section aria-label="screen placement">
+        <p class="hint">other screen is</p>
+        <div class="edges" role="group" aria-label="Which side the other screen is on">
+          <button type="button" data-edge="left">&lt; left</button>
+          <button type="button" data-edge="right">right &gt;</button>
+          <button type="button" data-edge="top">^ above</button>
+          <button type="button" data-edge="bottom">v below</button>
+        </div>
+        <p class="hint">push the cursor past this edge to hand it over</p>
+      </section>
+
+      <section class="panel log" aria-label="activity" aria-live="polite">
+        <ol id="log"></ol>
+      </section>
+
+      <footer>
+        <div class="pair">
+          <label class="key" for="secret">secret</label>
+          <input
+            id="secret"
+            type="password"
+            placeholder="shared pairing secret"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button type="button" id="pair">pair</button>
+        </div>
+        <p class="hint">
+          Both machines need the same secret. Enter it on the other machine
+          too, then check the fingerprints match.
+        </p>
+        <button type="button" id="quit" class="danger">quit</button>
+      </footer>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,226 @@
+/* Terminal aesthetic, clickable throughout.
+ *
+ * Monospace, flat, no rounded cards: the window should read like a console
+ * that happens to have buttons. Contrast is kept high enough to stay legible
+ * while still feeling dim, because the pointer is often on the other screen
+ * while this is open.
+ */
+
+:root {
+  --bg: #0d0f12;
+  --bg-panel: #12151a;
+  --fg: #d0d4da;
+  --dim: #6a7080;
+  --accent: #7ae090;
+  --warn: #e0c070;
+  --err: #e07070;
+  --line: #232830;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 14px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  /* The window owns the pointer only while local; letting the webview select
+     text would fight the global capture. */
+  user-select: none;
+  cursor: default;
+}
+
+.dim {
+  color: var(--dim);
+}
+
+/* Header */
+
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+h1 .dim {
+  font-size: 11px;
+  font-weight: 400;
+}
+
+#device {
+  margin: 0 0 10px;
+  font-size: 11px;
+}
+
+.badge {
+  font-size: 11px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.badge[data-state="local"] {
+  color: var(--accent);
+}
+
+.badge[data-state="remote"] {
+  color: var(--warn);
+}
+
+/* Panels */
+
+.panel {
+  border: 1px solid var(--line);
+  background: var(--bg-panel);
+  padding: 9px 10px;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.key {
+  display: inline-block;
+  width: 78px;
+  flex: none;
+  color: var(--dim);
+}
+
+.hint {
+  margin: 4px 0;
+  color: var(--dim);
+  font-size: 11px;
+  user-select: text;
+}
+
+/* Edge picker: the primary control, so it gets the emphasis. */
+
+.edges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+button {
+  font: inherit;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  min-height: 24px;
+  cursor: pointer;
+}
+
+button:hover {
+  color: var(--fg);
+  border-color: var(--dim);
+}
+
+button:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+button.danger:hover {
+  color: var(--err);
+  border-color: var(--err);
+}
+
+/* Console */
+
+.log ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 168px;
+  overflow-y: auto;
+  /* Nearest edge scrolls, so the log can be read back without a scrollbar
+     sitting over the text. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+  user-select: text;
+}
+
+.log li {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.log li.warn {
+  color: var(--warn);
+}
+
+.log li.error {
+  color: var(--err);
+}
+
+/* Footer */
+
+footer {
+  margin-top: 10px;
+}
+
+.pair {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+input[type="password"] {
+  font: inherit;
+  flex: 1;
+  min-width: 0;
+  color: var(--fg);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+  min-height: 24px;
+  user-select: text;
+}
+
+input[type="password"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+#quit {
+  margin-top: 10px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .log li {
+    animation: fade-in 120ms ease-out;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

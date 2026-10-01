@@ -1,0 +1,23 @@
+[package]
+name = "mouser-net"
+description = "Encrypted, mutually authenticated transport for mouser."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+mouser-core.workspace = true
+
+anyhow.workspace = true
+postcard.workspace = true
+sha2.workspace = true
+snow.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

@@ -1,0 +1,41 @@
+[package]
+name = "mouser"
+description = "Share one mouse and keyboard across two computers."
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/iLuzionsX/mouser"
+authors = ["mouser contributors"]
+default-run = "mouser"
+
+[lib]
+# Tauri builds a library target so the mobile entry points can share code with
+# the desktop binary.
+name = "mouser_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "mouser"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+mouser-core.workspace = true
+mouser-input.workspace = true
+mouser-net.workspace = true
+
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+tauri.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[features]
+# Used by `tauri dev`; keeps devtools out of release builds.
+custom-protocol = ["tauri/custom-protocol"]

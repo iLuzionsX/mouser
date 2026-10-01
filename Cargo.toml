@@ -1,0 +1,46 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/mouser-core",
+    "crates/mouser-net",
+    "crates/mouser-input",
+    "src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/iLuzionsX/mouser"
+authors = ["mouser contributors"]
+
+[workspace.dependencies]
+mouser-core = { path = "crates/mouser-core", version = "0.1.0" }
+mouser-net = { path = "crates/mouser-net", version = "0.1.0" }
+mouser-input = { path = "crates/mouser-input", version = "0.1.0" }
+
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+postcard = { version = "1.1", features = ["use-std"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.11"
+snow = "0.10"
+tauri = { version = "2", features = [] }
+thiserror = "2.0"
+tokio = { version = "1", features = [
+    "io-util",
+    "macros",
+    "net",
+    "rt-multi-thread",
+    "sync",
+    "time",
+] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

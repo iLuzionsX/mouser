@@ -1,0 +1,30 @@
+[package]
+name = "mouser-input"
+description = "Platform input capture and injection for mouser (Windows and macOS)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+mouser-core.workspace = true
+
+thiserror.workspace = true
+tracing.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_System_Threading",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.10"
+# `highsierra` gates `CGEvent::new_scroll_event`, which is how scroll is
+# injected. Without it there is no scroll constructor at all.
+core-graphics = { version = "0.25", features = ["highsierra"] }
