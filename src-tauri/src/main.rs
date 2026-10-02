@@ -80,9 +80,9 @@ fn main() -> anyhow::Result<()> {
 
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::new(if cli.verbose {
-            "info,mouser=debug"
+            "info,mouser_lib=debug"
         } else {
-            "warn,mouser=info"
+            "warn,mouser_lib=info"
         }))
         .with_writer(std::io::stderr)
         .init();

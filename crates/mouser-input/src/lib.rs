@@ -87,10 +87,18 @@ pub trait InputBackend: Send + Sync {
     /// the local capture hook ignores it.
     fn warp_cursor(&self, x: f64, y: f64) -> Result<(), InputError>;
 
-    /// Hide the local cursor while the peer drives.
+    /// Hide the local cursor once control has moved to the peer.
+    ///
+    /// Used by the machine that just handed off: its pointer is parked at the
+    /// shared seam and the cursor being driven is the peer's. Backends keep
+    /// this idempotent and paired with [`InputBackend::show_cursor`]; on
+    /// Windows it is a counted no-op — the display count there only applies
+    /// over windows of the calling thread — so the parked pointer stays
+    /// visible at the seam, the usual software-KVM behavior.
     fn hide_cursor(&self) -> Result<(), InputError>;
 
-    /// Undo [`InputBackend::hide_cursor`].
+    /// Undo [`InputBackend::hide_cursor`], on every path that ends a session
+    /// or returns control.
     fn show_cursor(&self) -> Result<(), InputError>;
 }
 

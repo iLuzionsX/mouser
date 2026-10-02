@@ -58,13 +58,26 @@ const WHEEL_DELTA: i32 = 120;
 /// available, and must be non-zero to be distinguishable from "unset".
 const INJECT_TAG: usize = 0x6D6F_7573_6572;
 
-/// How many times to nudge `ShowCursor`, which uses a shared counter rather
-/// than a boolean.
-const SHOW_CURSOR_ATTEMPTS: usize = 16;
+/// How deep hide drives the calling thread's cursor display count.
+///
+/// The count is per thread, and it only applies while the cursor is over a
+/// window that belongs to that thread. Every thread mouser hides from owns
+/// no windows, so on Windows the pair is a counted no-op: the pointer parked
+/// at the shared seam stays visible, which is the usual software-KVM
+/// behavior. The count is still driven with headroom rather than one unit,
+/// so the pair stays correct the day a caller that owns windows uses it: a
+/// stray `ShowCursor(true)` from other code on that thread — a webview is
+/// plenty capable of it — must not be able to un-hide mid-handoff.
+const CURSOR_DEPTH: usize = 4;
 
 pub struct WindowsBackend {
     active: AtomicBool,
     hook_thread: Mutex<Option<HookThread>>,
+    /// Whether the cursor is hidden, so hide and show stay balanced.
+    ///
+    /// Like the macOS backend's flag: the display count must not skew, or a
+    /// later hide/show pair no longer matches up.
+    cursor_hidden: AtomicBool,
 }
 
 struct HookThread {
@@ -77,6 +90,7 @@ impl WindowsBackend {
         Self {
             active: AtomicBool::new(false),
             hook_thread: Mutex::new(None),
+            cursor_hidden: AtomicBool::new(false),
         }
     }
 
@@ -211,24 +225,22 @@ impl InputBackend for WindowsBackend {
     }
 
     fn hide_cursor(&self) -> Result<(), InputError> {
-        // ShowCursor adjusts a process-wide counter, so it must be driven to
-        // zero; other code may be incrementing it concurrently.
-        for _ in 0..SHOW_CURSOR_ATTEMPTS {
-            // SAFETY: no arguments, no shared memory.
-            if unsafe { ShowCursor(false) } < 0 {
-                break;
-            }
+        // Idempotent, like the macOS backend: the display count must stay
+        // balanced across however many state transitions ask for this.
+        if self.cursor_hidden.swap(true, Ordering::SeqCst) {
+            return Ok(());
         }
+        // SAFETY: ShowCursor takes no pointers and shares no state.
+        unsafe { drive_cursor(false) };
         Ok(())
     }
 
     fn show_cursor(&self) -> Result<(), InputError> {
-        for _ in 0..SHOW_CURSOR_ATTEMPTS {
-            // SAFETY: no arguments, no shared memory.
-            if unsafe { ShowCursor(true) } < 0 {
-                break;
-            }
+        if !self.cursor_hidden.swap(false, Ordering::SeqCst) {
+            return Ok(());
         }
+        // SAFETY: ShowCursor takes no pointers and shares no state.
+        unsafe { drive_cursor(true) };
         Ok(())
     }
 }
@@ -290,6 +302,24 @@ impl WindowsBackend {
             flags |= KEYEVENTF_KEYUP;
         }
         send(&[keyboard_input(VIRTUAL_KEY(native as u16), flags)])
+    }
+}
+
+/// Drive the calling thread's cursor display count `CURSOR_DEPTH` units.
+///
+/// Hides and shows run on whatever thread asks for them, so a pair may
+/// adjust two different counts; the idempotence flag in the backend is what
+/// keeps the pair logical rather than the count itself. The depth is more
+/// than one unit so a stray `ShowCursor(true)` from other code on a
+/// window-owning thread cannot reveal the pointer mid-handoff.
+///
+/// # Safety
+///
+/// `ShowCursor` takes no pointers and shares no state with the caller.
+unsafe fn drive_cursor(show: bool) {
+    for _ in 0..CURSOR_DEPTH {
+        // SAFETY: see the function documentation.
+        unsafe { ShowCursor(show) };
     }
 }
 

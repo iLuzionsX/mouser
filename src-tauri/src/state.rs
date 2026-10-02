@@ -1,9 +1,10 @@
 //! Shared state bridging input capture, the encrypted link, and the UI.
 //!
 //! The webview calls in through Tauri commands, the link runs on a tokio
-//! task, and input capture pushes events from the platform hook thread. All
-//! three meet here behind one mutex, which is deliberately simple: the state
-//! is tiny and every critical section is microseconds.
+//! task, and a dedicated pump thread drains input capture the moment each
+//! event leaves the platform hook. All of them meet here behind one mutex,
+//! which is deliberately simple: the state is tiny and every critical
+//! section is microseconds.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Receiver;
@@ -75,8 +76,8 @@ fn screen_of(backend: &Platform) -> Rect {
 /// edge, or `None` while it is already inland.
 ///
 /// Used only while this machine owns the hardware and the visible cursor is on
-/// the peer. Warping the invisible pointer to the middle keeps the OS able to
-/// report the next movement; a cursor left pinned against the edge reports
+/// the peer. Warping the invisible pointer a little inland keeps the OS able
+/// to report the next movement; a cursor left pinned against the edge reports
 /// nothing until it is dragged back.
 fn recenter_anchor(screen: &Rect, edge: Edge, x: f64, y: f64) -> Option<(f64, f64)> {
     let near_edge = match edge {
@@ -85,7 +86,12 @@ fn recenter_anchor(screen: &Rect, edge: Edge, x: f64, y: f64) -> Option<(f64, f6
         Edge::Top => y <= screen.top() + RECENTER_MARGIN,
         Edge::Bottom => y >= screen.bottom() - RECENTER_MARGIN,
     };
-    near_edge.then(|| screen.center())
+    near_edge.then(|| match edge {
+        Edge::Left => (screen.left() + RECENTER_JUMP, y),
+        Edge::Right => (screen.right() - RECENTER_JUMP, y),
+        Edge::Top => (x, screen.top() + RECENTER_JUMP),
+        Edge::Bottom => (x, screen.bottom() - RECENTER_JUMP),
+    })
 }
 
 /// Whether an injected move carries the mirrored cursor back through the seam
@@ -121,6 +127,18 @@ const HANDOFF_DEBOUNCE: Duration = Duration::from_millis(250);
 /// inland gives the next motion somewhere to go.
 const RECENTER_MARGIN: f64 = 1.0;
 
+/// How far inland the hidden pointer is pulled when it reaches the shared
+/// edge.
+///
+/// Small on purpose. Every pixel of the pull is motion that gets relayed to
+/// the peer, and the peer demands it back — past its own seam — before
+/// control returns. A pull measured in hundreds of pixels, like the
+/// screen-center warp this replaces, costs a whole screen of debt per push
+/// and can exceed what a return push can repay before the local pointer pins
+/// against the far edge, stranding control with the peer. A few pixels are
+/// still enough room for the OS to keep reporting outward motion.
+const RECENTER_JUMP: f64 = 8.0;
+
 /// How far back through the seam the mirrored cursor must travel before
 /// control is handed home.
 ///
@@ -132,6 +150,9 @@ const RETURN_MARGIN: f64 = 6.0;
 /// Scrollback length.
 const LOG_CAPACITY: usize = 250;
 
+/// Cloned handles share one state; the input pump thread holds a clone so it
+/// can process events the moment they are captured.
+#[derive(Clone)]
 pub struct AppState {
     inner: Arc<Mutex<Inner>>,
 }
@@ -140,9 +161,8 @@ struct Inner {
     config: Config,
     session: Session,
     backend: Platform,
-    events_rx: Receiver<CapturedEvent>,
     /// The peer is driving this machine: mirrored input arrives over the link
-    /// and the local cursor is hidden.
+    /// and drives the visible cursor.
     remote_active: AtomicBool,
     /// This machine owns the hardware but has handed the visible cursor to the
     /// peer. Captured input is forwarded, and the peer decides when it comes
@@ -212,7 +232,6 @@ impl AppState {
             bind_addr,
             secret_input: secret.to_string(),
             has_secret: !secret.is_empty(),
-            events_rx,
             remote_active: AtomicBool::new(false),
             forwarding: AtomicBool::new(false),
             return_edge: None,
@@ -237,9 +256,36 @@ impl AppState {
             None => tracing::info!("input capture running"),
         }
 
-        Ok(AppState {
+        let state = AppState {
             inner: Arc::new(Mutex::new(inner)),
-        })
+        };
+        state.spawn_input_pump(events_rx)?;
+        Ok(state)
+    }
+
+    /// Drain captured input on a dedicated thread.
+    ///
+    /// Input used to be pumped from the UI poll, which throttled motion to
+    /// the poll rate: a pointer update crossed the link only when the window
+    /// next asked for a snapshot, so the peer rendered a burst of deltas
+    /// every tick and the visible cursor was steppy and laggy. Events arrive
+    /// from the platform hook thread already; this thread forwards each one
+    /// the moment it is captured.
+    ///
+    /// The channel closes when capture stops, or never opens, which ends the
+    /// thread.
+    fn spawn_input_pump(&self, events_rx: Receiver<CapturedEvent>) -> anyhow::Result<()> {
+        let state = self.clone();
+        std::thread::Builder::new()
+            .name("mouser-input-pump".into())
+            .spawn(move || {
+                while let Ok(event) = events_rx.recv() {
+                    let mut guard = state.inner.lock().expect("state mutex poisoned");
+                    state.handle_event(&mut guard, event);
+                }
+            })
+            .map_err(|e| anyhow::anyhow!("could not start the input pump: {e}"))?;
+        Ok(())
     }
 
     pub fn handle(&self) -> AppHandle {
@@ -248,27 +294,22 @@ impl AppState {
         }
     }
 
-    /// Drain captured input and act on it.
-    ///
-    /// Called from the UI poll, so the rate at which input is processed is
-    /// tied to how often the frontend asks. That is a deliberate trade: a
-    /// dedicated thread would add latency and complexity for no visible gain
-    /// at pointer-move rates.
-    pub fn pump(&self) {
-        let mut guard = self.inner.lock().expect("state mutex poisoned");
-        // Drain rather than take one event: a burst of mouse movement is
-        // normally several messages deep by the time we get here, and
-        // processing the first while discarding the rest would drop deltas.
-        while let Ok(event) = guard.events_rx.try_recv() {
-            self.handle_event(&mut guard, event);
-        }
-    }
-
     fn handle_event(&self, guard: &mut Inner, event: CapturedEvent) {
         let screen = screen_of(&guard.backend);
 
         match event {
             CapturedEvent::Move { x, y, dx, dy } => {
+                // The peer drives this machine. Motion arrives over the link
+                // and is replayed there, and a hardware move must not
+                // disturb the mirrored position the return crossing is
+                // judged on — not even update it — so drop it before anything
+                // below touches that state. Injected motion never arrives
+                // here: the hook filters it, which is what keeps the replay
+                // from doubling.
+                if guard.remote_active.load(Ordering::Relaxed) {
+                    return;
+                }
+
                 // A recenter warps the pointer, but events captured before the
                 // warp are still queued and carry the pinned edge position.
                 // Drop those rather than relaying the jump to the middle; the
@@ -289,13 +330,6 @@ impl AppState {
                 } else {
                     (dx, dy)
                 };
-
-                if guard.remote_active.load(Ordering::Relaxed) {
-                    // The peer drives this machine. Motion arrives over the
-                    // link and is replayed there; a physical pointer move is a
-                    // local echo, so acting on it would double it.
-                    return;
-                }
 
                 if guard.forwarding.load(Ordering::Relaxed) {
                     // We own the hardware and the cursor is on the peer. Relay
@@ -413,7 +447,10 @@ impl AppState {
 
         // The visible cursor is now on the peer, so hide ours and keep
         // relaying. `remote_active` stays clear: that flag means the opposite,
-        // that this machine is the one being driven.
+        // that this machine is the one being driven. On Windows the hide is a
+        // counted no-op — its display count only applies over windows of the
+        // calling thread — so the parked pointer stays visible at the seam,
+        // the usual software-KVM behavior.
         let _ = guard.backend.hide_cursor();
         guard.status = "remote".into();
         log(
@@ -433,8 +470,9 @@ impl AppState {
     /// The OS pins the cursor once it reaches a screen edge, and outward mouse
     /// motion then no longer changes its position. Without this the peer gets
     /// one last delta and then nothing, so the cursor stalls the moment it
-    /// arrives. Moving the invisible pointer back toward the middle gives the
-    /// next movement somewhere to go.
+    /// arrives. Moving the invisible pointer a little inland of the seam gives
+    /// the next movement somewhere to go while keeping the debt the peer must
+    /// repay to hand control back down to a small push.
     ///
     /// The warp is posted through the backend's injection path, which both
     /// platforms tag as synthetic, so it is never captured and forwarded as if
@@ -565,6 +603,14 @@ impl AppState {
 
 /// Append a line to the bounded scrollback.
 fn log(guard: &mut Inner, level: Level, text: String) {
+    // Mirror to the console as well: the webview shows the same lines, but a
+    // run captured from a terminal (or a headless test harness) can only be
+    // read there.
+    match level {
+        Level::Info => tracing::info!("{text}"),
+        Level::Warn => tracing::warn!("{text}"),
+        Level::Error => tracing::error!("{text}"),
+    }
     let seq = guard.next_seq;
     guard.next_seq += 1;
     guard.log.push(LogLine { seq, level, text });
@@ -695,11 +741,19 @@ impl AppHandle {
                 let bridge = guard.bridge.clone();
                 drop(guard);
                 if let Some(bridge) = bridge {
-                    let result = bridge
-                        .lock()
-                        .map(|bridge| bridge.send(Message::ReleaseControl));
-                    if let Ok(Err(e)) = result {
-                        self.log(Level::Warn, format!("send dropped: {e}"));
+                    // A poisoned bridge lock is reported like a failed send
+                    // rather than silently swallowed: a release that never
+                    // leaves the machine strands control with the peer.
+                    let result =
+                        bridge.lock().map(|bridge| bridge.send(Message::ReleaseControl));
+                    match result {
+                        Ok(Ok(())) => {}
+                        Ok(Err(e)) => {
+                            self.log(Level::Warn, format!("send dropped: {e}"));
+                        }
+                        Err(poisoned) => {
+                            self.log(Level::Warn, format!("send dropped: {poisoned}"));
+                        }
                     }
                 }
                 return;
@@ -728,9 +782,17 @@ impl AppHandle {
         let (x, y) = bounds.point_at_fraction(entry, fraction);
         guard.last_cursor = (x, y);
         guard.return_edge = Some(entry);
+
+        // Move the pointer there as well, so the cursor the user watches and
+        // the position the return crossing is judged on are the same one.
+        // Without the warp the two sit apart by wherever the pointer happened
+        // to rest, and control comes back before the visible cursor reaches
+        // the seam.
+        let _ = guard.backend.warp_cursor(x, y);
         guard.await_recenter = None;
 
-        let _ = guard.backend.hide_cursor();
+        // The mirrored cursor is the one the user is now working with, so it
+        // stays visible; nothing here hides it.
         guard.status = "remote".into();
         log(
             &mut guard,
@@ -798,8 +860,16 @@ mod tests {
     use std::sync::mpsc::channel;
 
     /// Build an app state without starting capture, so a test can feed it
-    /// captured events directly.
-    fn state_at(edge: Edge) -> (AppState, std::sync::mpsc::Sender<CapturedEvent>) {
+    /// captured events directly. The receiver is handed back alongside the
+    /// sender: the real pump thread owns it, and the test drains it through
+    /// [`pump_all`] instead.
+    fn state_at(
+        edge: Edge,
+    ) -> (
+        AppState,
+        std::sync::mpsc::Sender<CapturedEvent>,
+        Receiver<CapturedEvent>,
+    ) {
         let (tx, rx) = channel();
         let config = Config {
             peer_edge: edge,
@@ -808,7 +878,6 @@ mod tests {
         let inner = Inner {
             session: Session::new(edge),
             backend: Platform::new(),
-            events_rx: rx,
             remote_active: AtomicBool::new(false),
             forwarding: AtomicBool::new(false),
             return_edge: None,
@@ -835,14 +904,23 @@ mod tests {
                 inner: Arc::new(Mutex::new(inner)),
             },
             tx,
+            rx,
         )
+    }
+
+    /// Process every queued event exactly the way the input pump thread does.
+    fn pump_all(state: &AppState, rx: &Receiver<CapturedEvent>) {
+        while let Ok(event) = rx.try_recv() {
+            let mut guard = state.inner.lock().expect("state mutex poisoned");
+            state.handle_event(&mut guard, event);
+        }
     }
 
     #[test]
     fn edge_hit_without_a_peer_does_not_hand_off() {
         // Regression: this used to fire while disconnected, which hid the
         // cursor and queued input for a peer that did not exist.
-        let (state, tx) = state_at(Edge::Right);
+        let (state, tx, rx) = state_at(Edge::Right);
 
         tx.send(CapturedEvent::Move {
             x: 1.0e9,
@@ -851,7 +929,7 @@ mod tests {
             dy: 0.0,
         })
         .expect("the state holds the receiver");
-        state.pump();
+        pump_all(&state, &rx);
 
         let snap = state.snapshot();
         assert!(!snap.remote_active, "must not hand off without a peer");
@@ -861,23 +939,40 @@ mod tests {
     #[test]
     fn pointer_is_recentered_only_near_the_shared_edge() {
         let screen = Rect::new(0.0, 0.0, 1000.0, 800.0);
-        // Pinned against the right edge: pull it back to the middle.
+        // Pinned against the right edge: pull it just inland, keeping the
+        // height it crossed at.
         assert_eq!(
             recenter_anchor(&screen, Edge::Right, 1000.0, 400.0),
-            Some((500.0, 400.0))
+            Some((1000.0 - RECENTER_JUMP, 400.0))
         );
         // A little inland: leave it alone, motion is still being reported.
         assert_eq!(recenter_anchor(&screen, Edge::Right, 900.0, 400.0), None);
         // The same on the other edges.
         assert_eq!(
             recenter_anchor(&screen, Edge::Left, 0.0, 400.0),
-            Some((500.0, 400.0))
+            Some((RECENTER_JUMP, 400.0))
         );
         assert_eq!(
             recenter_anchor(&screen, Edge::Bottom, 400.0, 800.0),
-            Some((500.0, 400.0))
+            Some((400.0, 800.0 - RECENTER_JUMP))
         );
         assert_eq!(recenter_anchor(&screen, Edge::Top, 400.0, 40.0), None);
+    }
+
+    #[test]
+    fn a_recenter_cycle_is_cheap_for_the_peer_to_give_back() {
+        // One full cycle of pushing past the shared edge costs the pull plus
+        // the return margin. The peer repays it with one small push, and a
+        // return push has a whole screen of room to travel, so control can
+        // never be stranded by the recentering itself.
+        let screen = Rect::new(0.0, 0.0, 1000.0, 800.0);
+        let cycle_debt = RECENTER_JUMP + RETURN_MARGIN;
+        let return_budget = screen.width - RECENTER_JUMP;
+        assert!(
+            cycle_debt < return_budget / 10.0,
+            "one push cycle costs {cycle_debt}px but a return push only has \
+             {return_budget}px of room; repeated pushes would strand control"
+        );
     }
 
     #[test]
@@ -891,5 +986,79 @@ mod tests {
         assert!(returns_home(&bounds, Edge::Right, x + 40.0, y, 40.0, 0.0));
         // Moving further in is never a return.
         assert!(!returns_home(&bounds, Edge::Right, x - 40.0, y, -40.0, 0.0));
+    }
+
+    #[test]
+    fn hardware_motion_while_driven_does_not_hijack_the_mirrored_cursor() {
+        // Regression: a hardware mouse event on the driven machine used to
+        // overwrite the mirrored cursor position before the driven-mode early
+        // return. The return crossing was then judged against wherever the
+        // local pointer happened to idle, so pushing back over the seam
+        // released nothing and control stayed with the peer.
+        let (state, tx, rx) = state_at(Edge::Left);
+        let (bridge, out_rx) = Bridge::channel();
+        state.install_bridge(Arc::new(Mutex::new(bridge)));
+        let handle = state.handle();
+
+        // Where the pointer started, so the test can put it back.
+        let home = state
+            .inner
+            .lock()
+            .expect("state mutex poisoned")
+            .backend
+            .cursor_position();
+
+        // The peer takes control through our left seam, landing the mirrored
+        // cursor at our right seam, and walks it inland.
+        handle.take_control(Edge::Left, 0.5);
+        handle.inject(InputEvent::Move { dx: -300, dy: 0 });
+        assert!(state.snapshot().remote_active);
+
+        // The local mouse twitches somewhere unrelated while the peer
+        // drives. It must neither hijack the mirrored position nor be
+        // relayed back to the peer.
+        tx.send(CapturedEvent::Move {
+            x: 513.0,
+            y: 1065.0,
+            dx: 2.0,
+            dy: 1.0,
+        })
+        .expect("the state holds the receiver");
+        pump_all(&state, &rx);
+        assert!(
+            out_rx.try_recv().is_err(),
+            "a driven machine must not relay its own hardware input"
+        );
+        assert!(
+            state.snapshot().remote_active,
+            "the twitch must not end the drive"
+        );
+
+        // Push the mirrored cursor back over the seam. The 300px of walk
+        // plus the return margin takes four 80px pushes; with the hijacked
+        // position of the old code the same pushes got nowhere near it.
+        let pushes = ((300.0 + RETURN_MARGIN + 1.0) / 80.0).ceil() as i32;
+        for _ in 1..pushes {
+            handle.inject(InputEvent::Move { dx: 80, dy: 0 });
+        }
+        assert!(
+            state.snapshot().remote_active,
+            "control must not return before the seam is crossed"
+        );
+        handle.inject(InputEvent::Move { dx: 80, dy: 0 });
+        assert!(
+            !state.snapshot().remote_active,
+            "pushing back over the seam must return control"
+        );
+        assert!(matches!(
+            out_rx.try_recv(),
+            Ok(Message::ReleaseControl))
+        );
+
+        // Put the pointer back where the test found it.
+        if let Some((x, y)) = home {
+            let mut guard = state.inner.lock().expect("state mutex poisoned");
+            let _ = guard.backend.warp_cursor(x, y);
+        }
     }
 }

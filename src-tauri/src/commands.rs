@@ -13,11 +13,13 @@ use crate::state::AppState;
 /// Managed handle so commands can take `State<AppState>`.
 pub type Shared = Arc<AppState>;
 
-/// Full state for the UI. Also pumps input, which is what ties the poll rate
-/// to how promptly a cursor crossing is noticed.
+/// Full state for the UI.
+///
+/// Input is processed on a dedicated thread the moment it is captured, so
+/// this poll only drives rendering; nothing about a cursor crossing waits
+/// for it.
 #[tauri::command]
 pub fn snapshot(state: State<'_, Shared>) -> crate::state::Snapshot {
-    state.pump();
     state.snapshot()
 }
 
