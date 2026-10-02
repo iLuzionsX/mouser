@@ -158,6 +158,29 @@ impl Rect {
         t.clamp(0.0, 1.0)
     }
 
+    /// Whether a cursor at `(x, y)` moving by `(dx, dy)` was pushed off
+    /// `edge`, and if so the fraction along that edge where it left.
+    ///
+    /// Unlike [`detect_crossing`] this needs no peer rectangle, because the
+    /// caller is testing its *own* screen. That matters in two places: while
+    /// the cursor is mirrored on the peer, and while the local screen refuses
+    /// to move a cursor that is already pinned to its edge. In both cases the
+    /// position sits exactly on the seam and only the direction of travel
+    /// tells whether that counts as leaving.
+    pub fn crossing(&self, edge: Edge, x: f64, y: f64, dx: f64, dy: f64) -> Option<f64> {
+        let (pushing, on_seam) = match edge {
+            Edge::Left => (-dx > 0.0, x <= self.left()),
+            Edge::Right => (dx > 0.0, x >= self.right()),
+            Edge::Top => (-dy > 0.0, y <= self.top()),
+            Edge::Bottom => (dy > 0.0, y >= self.bottom()),
+        };
+        if pushing && on_seam {
+            Some(self.fraction_at(edge, x, y))
+        } else {
+            None
+        }
+    }
+
     /// Union of the local and remote rects.
     pub fn union(&self, other: &Rect) -> Rect {
         let x = self.left().min(other.left());
@@ -244,33 +267,11 @@ pub fn detect_crossing(
         return Err(GeometryError::OverlappingScreens);
     }
 
-    // Direction of travel along the axis that crosses the seam.
-    let (pushing, overshoot) = match edge {
-        Edge::Left => (-dx > 0.0, x < local.left()),
-        Edge::Right => (dx > 0.0, x > local.right()),
-        Edge::Top => (-dy > 0.0, y < local.top()),
-        Edge::Bottom => (dy > 0.0, y > local.bottom()),
-    };
-
-    if !pushing {
-        return Ok(ScreenEdgeHit::None);
-    }
-
-    // On the seam, or already past it in virtual-desktop space.
-    let on_seam = match edge {
-        Edge::Left => x <= local.left(),
-        Edge::Right => x >= local.right(),
-        Edge::Top => y <= local.top(),
-        Edge::Bottom => y >= local.bottom(),
-    };
-
-    if on_seam || overshoot {
-        Ok(ScreenEdgeHit::Crossed {
-            edge,
-            fraction: local.fraction_at(edge, x, y),
-        })
-    } else {
-        Ok(ScreenEdgeHit::None)
+    // The geometry of the seam itself lives in `Rect::crossing`, which is
+    // also what the live cursor tracking uses.
+    match local.crossing(edge, x, y, dx, dy) {
+        Some(fraction) => Ok(ScreenEdgeHit::Crossed { edge, fraction }),
+        None => Ok(ScreenEdgeHit::None),
     }
 }
 
@@ -348,6 +349,39 @@ mod tests {
         let (x, y) = tall.point_at_fraction(Edge::Left, fraction);
         assert!((y - 360.0).abs() < 1e-9, "landed at {y}");
         assert_eq!(x, tall.left());
+    }
+
+    #[test]
+    fn crossing_works_against_this_screen_alone() {
+        // The live handoff path tests the local screen against itself. It used
+        // to go through `detect_crossing`, which rejects identical rects as
+        // overlapping, so a handoff could never fire. `crossing` has no peer
+        // to compare against and must report the seam.
+        let local = screen(0.0, 0.0);
+        assert_eq!(
+            local.crossing(Edge::Right, 1920.0, 540.0, 4.0, 0.0),
+            Some(0.5)
+        );
+        assert_eq!(local.crossing(Edge::Right, 1920.0, 540.0, -4.0, 0.0), None);
+        assert_eq!(local.crossing(Edge::Right, 960.0, 540.0, 4.0, 0.0), None);
+    }
+
+    #[test]
+    fn mirrored_cursor_returns_through_the_near_edge() {
+        // A peer entered at this screen's left edge, then the user keeps
+        // pushing left: the mirrored cursor sits on the seam with nowhere to
+        // go, and the direction alone must signal the return.
+        let local = screen(0.0, 0.0);
+        let (mut x, mut y) = (local.left(), 540.0);
+        // Move in a little, then back out.
+        for (dx, dy) in [(30.0, 12.0), (60.0, 0.0)] {
+            x += dx;
+            y += dy;
+            assert!(local.crossing(Edge::Left, x, y, dx, dy).is_none());
+        }
+        x += -95.0;
+        assert!(x < local.left());
+        assert!(local.crossing(Edge::Left, x, y, -95.0, 0.0).is_some());
     }
 
     #[test]

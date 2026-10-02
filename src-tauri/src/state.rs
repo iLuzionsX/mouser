@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use mouser_core::config::{Config, Role};
-use mouser_core::layout::{Edge, Rect, ScreenEdgeHit, detect_crossing};
+use mouser_core::layout::{Edge, Rect};
 use mouser_core::protocol::{InputEvent, Message, PeerHello};
 use mouser_core::session::{Session, SessionEvent};
 use mouser_input::events::CapturedEvent;
@@ -84,7 +84,18 @@ struct Inner {
     session: Session,
     backend: Platform,
     events_rx: Receiver<CapturedEvent>,
+    /// The peer is driving this machine: mirrored input arrives over the link
+    /// and the local cursor is hidden.
     remote_active: AtomicBool,
+    /// This machine owns the hardware but has handed the visible cursor to the
+    /// peer. Captured input is forwarded, and the peer decides when it comes
+    /// back.
+    forwarding: AtomicBool,
+    /// The edge the mirrored cursor entered through, while [`Self::remote_active`].
+    ///
+    /// The return crossing is tested against this rather than the saved config,
+    /// so a peer that announces a different edge than expected still behaves.
+    return_edge: Option<Edge>,
     last_cursor: (f64, f64),
     last_handoff: Option<Instant>,
     bridge: Option<Arc<Mutex<Bridge>>>,
@@ -129,6 +140,8 @@ impl AppState {
                 has_secret: !secret.is_empty(),
                 events_rx,
                 remote_active: AtomicBool::new(false),
+                forwarding: AtomicBool::new(false),
+                return_edge: None,
                 last_cursor: (0.0, 0.0),
                 last_handoff: None,
                 bridge: None,
@@ -182,38 +195,32 @@ impl AppState {
                 };
 
                 if guard.remote_active.load(Ordering::Relaxed) {
-                    // While the peer drives, our own pointer is an echo of
-                    // theirs. Crossing the far edge brings control home.
-                    let back = detect_crossing(
-                        &screen,
-                        &screen,
-                        guard.session.edge().opposite(),
-                        x,
-                        y,
-                        ex,
-                        ey,
-                    )
-                    .unwrap_or(ScreenEdgeHit::None);
-
-                    if back != ScreenEdgeHit::None {
-                        self.debounce(guard);
-                        self.take_local(guard, "cursor crossed back over the shared edge");
-                        return;
-                    }
-
-                    // Show the remote cursor on this screen.
-                    let _ = guard.backend.inject(&InputEvent::Move {
-                        dx: ex.round() as i32,
-                        dy: ey.round() as i32,
-                    });
+                    // The peer drives this machine. Motion arrives over the
+                    // link and is replayed there; a physical pointer move is a
+                    // local echo, so acting on it would double it.
                     return;
                 }
 
-                let hit = detect_crossing(&screen, &screen, guard.session.edge(), x, y, ex, ey);
-                let crossed = match hit {
-                    Ok(ScreenEdgeHit::Crossed { fraction, .. }) => Some(fraction),
-                    _ => None,
-                };
+                if guard.forwarding.load(Ordering::Relaxed) {
+                    // We own the hardware and the cursor is on the peer. Relay
+                    // the motion and leave the return decision to the peer,
+                    // which is the side that knows where the mirrored cursor
+                    // actually is.
+                    if ex != 0.0 || ey != 0.0 {
+                        self.send(
+                            guard,
+                            Message::Input(vec![InputEvent::Move {
+                                dx: ex.round() as i32,
+                                dy: ey.round() as i32,
+                            }]),
+                        );
+                    }
+                    return;
+                }
+
+                // The cursor is here. Hand it over if it was pushed off the
+                // shared edge; otherwise the event stays local.
+                let crossed = screen.crossing(guard.session.edge(), x, y, ex, ey);
 
                 guard.session.on_event(
                     SessionEvent::CursorMoved {
@@ -229,45 +236,40 @@ impl AppState {
                     if self.debounce(guard) {
                         self.handoff(guard, fraction, "pushed the cursor off the shared edge");
                     }
-                } else if ex != 0.0 || ey != 0.0 {
-                    // Mirror locally so the peer's cursor tracks this machine.
-                    self.send(
-                        guard,
-                        Message::Input(vec![InputEvent::Move {
-                            dx: ex.round() as i32,
-                            dy: ey.round() as i32,
-                        }]),
-                    );
                 }
             }
 
             CapturedEvent::Scroll { dx, dy } => {
-                self.send(
+                self.relay(
                     guard,
-                    Message::Input(vec![InputEvent::Scroll {
+                    InputEvent::Scroll {
                         dx: dx.round() as i32,
                         dy: dy.round() as i32,
-                    }]),
+                    },
                 );
             }
 
             CapturedEvent::Button { button, pressed } => {
-                let event = InputEvent::Button { button, pressed };
-                if guard.remote_active.load(Ordering::Relaxed) {
-                    let _ = guard.backend.inject(&event);
-                } else {
-                    self.send(guard, Message::Input(vec![event]));
-                }
+                self.relay(guard, InputEvent::Button { button, pressed });
             }
 
             CapturedEvent::Key { key, pressed, mods } => {
-                let event = InputEvent::Key { key, pressed, mods };
-                if guard.remote_active.load(Ordering::Relaxed) {
-                    let _ = guard.backend.inject(&event);
-                } else {
-                    self.send(guard, Message::Input(vec![event]));
-                }
+                self.relay(guard, InputEvent::Key { key, pressed, mods });
             }
+        }
+    }
+
+    /// Handle non-pointer input under the same ownership rules as a move.
+    ///
+    /// While this machine is driven the OS has already applied the physical
+    /// event, so replaying it would double it; while forwarding it goes to the
+    /// peer; otherwise it stays local.
+    fn relay(&self, guard: &mut Inner, event: InputEvent) {
+        if guard.remote_active.load(Ordering::Relaxed) {
+            return;
+        }
+        if guard.forwarding.load(Ordering::Relaxed) {
+            self.send(guard, Message::Input(vec![event]));
         }
     }
 
@@ -286,6 +288,9 @@ impl AppState {
     /// Give the cursor to the peer.
     fn handoff(&self, guard: &mut Inner, fraction: f64, reason: &str) {
         let edge = guard.session.edge();
+        if guard.forwarding.swap(true, Ordering::Relaxed) {
+            return;
+        }
 
         // Drive the state machine rather than assigning to it, so ownership
         // rules stay in one place.
@@ -299,7 +304,9 @@ impl AppState {
             |_, _, _, _, _| true,
         );
 
-        guard.remote_active.store(true, Ordering::Relaxed);
+        // The visible cursor is now on the peer, so hide ours and keep
+        // relaying. `remote_active` stays clear: that flag means the opposite,
+        // that this machine is the one being driven.
         let _ = guard.backend.hide_cursor();
         guard.status = "remote".into();
         log(
@@ -308,17 +315,6 @@ impl AppState {
             format!("-> peer: {reason} (edge {edge})"),
         );
         self.send(guard, Message::TakeControl { edge, fraction });
-    }
-
-    /// Take the cursor back on this machine.
-    fn take_local(&self, guard: &mut Inner, reason: &str) {
-        if !guard.remote_active.swap(false, Ordering::Relaxed) {
-            return;
-        }
-        let _ = guard.backend.show_cursor();
-        guard.status = "connected".into();
-        log(guard, Level::Info, format!("-> local: {reason}"));
-        self.send(guard, Message::ReleaseControl);
     }
 
     /// Queue a message, dropping it if the peer is not keeping up.
@@ -402,7 +398,8 @@ impl AppState {
             bind_addr: guard.bind_addr.clone(),
             peer_addr: guard.peer_addr.clone(),
             round_trip_ms: guard.round_trip_ms,
-            remote_active: guard.remote_active.load(Ordering::Relaxed),
+            remote_active: guard.remote_active.load(Ordering::Relaxed)
+                || guard.forwarding.load(Ordering::Relaxed),
             has_secret: guard.has_secret,
             screen_width: bounds.width.max(0.0) as u32,
             screen_height: bounds.height.max(0.0) as u32,
@@ -454,6 +451,8 @@ impl AppHandle {
         guard.round_trip_ms = None;
         guard.status = "connected".into();
         guard.remote_active.store(false, Ordering::Relaxed);
+        guard.forwarding.store(false, Ordering::Relaxed);
+        guard.return_edge = None;
         let _ = guard.backend.show_cursor();
         guard
             .session
@@ -474,6 +473,8 @@ impl AppHandle {
         guard.round_trip_ms = None;
         guard.status = "disconnected".into();
         guard.remote_active.store(false, Ordering::Relaxed);
+        guard.forwarding.store(false, Ordering::Relaxed);
+        guard.return_edge = None;
         let _ = guard.backend.show_cursor();
         guard
             .session
@@ -498,8 +499,70 @@ impl AppHandle {
     }
 
     /// Replay an event that arrived from the peer.
+    ///
+    /// Input only means anything while the peer drives this machine. While it
+    /// does, this is also where the mirrored cursor is tracked: the peer knows
+    /// where the cursor was handed over, but this side is the one that sees
+    /// the motion, so the decision that the cursor has been pushed back over
+    /// the near edge belongs here. When that happens control returns and the
+    /// crossing move itself is not replayed.
     pub fn inject(&self, event: InputEvent) {
         let mut guard = self.inner.lock().expect("state mutex poisoned");
+
+        if !guard.remote_active.load(Ordering::Relaxed) {
+            // A late batch after the handoff ended, or input from a peer that
+            // is not driving us. Replaying it would move our cursor for no
+            // reason, so drop it.
+            return;
+        }
+
+        if let InputEvent::Move { dx, dy } = event {
+            let bounds = screen_of(&guard.backend);
+            let (x, y) = guard.last_cursor;
+            let (nx, ny) = (x + dx as f64, y + dy as f64);
+            guard.last_cursor = (nx, ny);
+
+            let edge = guard.return_edge.unwrap_or(guard.session.edge());
+            if bounds
+                .crossing(edge, nx, ny, dx as f64, dy as f64)
+                .is_some()
+            {
+                guard.remote_active.store(false, Ordering::Relaxed);
+                guard.return_edge = None;
+                let _ = guard.backend.show_cursor();
+                guard.status = "connected".into();
+                // Drive the state machine here too, so ownership rules stay in
+                // one place. On this side it is normally still Local, in which
+                // case this is a no-op.
+                guard.session.on_event(
+                    SessionEvent::RemoteCursorMoved {
+                        x: nx,
+                        y: ny,
+                        dx: 0.0,
+                        dy: 0.0,
+                    },
+                    |_, _, _, _, _| false,
+                );
+                log(
+                    &mut guard,
+                    Level::Info,
+                    "-> local control (cursor pushed back over the edge)".into(),
+                );
+
+                let bridge = guard.bridge.clone();
+                drop(guard);
+                if let Some(bridge) = bridge {
+                    let result = bridge
+                        .lock()
+                        .map(|bridge| bridge.send(Message::ReleaseControl));
+                    if let Ok(Err(e)) = result {
+                        self.log(Level::Warn, format!("send dropped: {e}"));
+                    }
+                }
+                return;
+            }
+        }
+
         if let Err(e) = guard.backend.inject(&event) {
             log(&mut guard, Level::Warn, format!("inject failed: {e}"));
         }
@@ -508,15 +571,20 @@ impl AppHandle {
     /// The peer pushed the cursor over the shared edge.
     pub fn take_control(&self, edge: Edge, fraction: f64) {
         let mut guard = self.inner.lock().expect("state mutex poisoned");
+        guard.forwarding.store(false, Ordering::Relaxed);
         if guard.remote_active.swap(true, Ordering::Relaxed) {
             return;
         }
 
         // Land the mirrored cursor at the matching point so screens of
-        // different sizes or resolutions do not visibly jump.
+        // different sizes or resolutions do not visibly jump. The edge we
+        // entered through is the mirror of the one the peer announced, and is
+        // what a return crossing is tested against.
         let bounds = screen_of(&guard.backend);
-        let (x, y) = bounds.point_at_fraction(edge.opposite(), fraction);
+        let entry = edge.opposite();
+        let (x, y) = bounds.point_at_fraction(entry, fraction);
         guard.last_cursor = (x, y);
+        guard.return_edge = Some(entry);
 
         let _ = guard.backend.hide_cursor();
         guard.status = "remote".into();
@@ -530,11 +598,23 @@ impl AppHandle {
     /// The peer handed control back.
     pub fn release_control(&self) {
         let mut guard = self.inner.lock().expect("state mutex poisoned");
-        if !guard.remote_active.swap(false, Ordering::Relaxed) {
+        let remote = guard.remote_active.swap(false, Ordering::Relaxed);
+        let forwarding = guard.forwarding.swap(false, Ordering::Relaxed);
+        if !remote && !forwarding {
             return;
         }
+        guard.return_edge = None;
         let _ = guard.backend.show_cursor();
         guard.status = "connected".into();
+        guard.session.on_event(
+            SessionEvent::RemoteCursorMoved {
+                x: 0.0,
+                y: 0.0,
+                dx: 0.0,
+                dy: 0.0,
+            },
+            |_, _, _, _, _| false,
+        );
         log(
             &mut guard,
             Level::Info,

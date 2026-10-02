@@ -8,8 +8,9 @@ that edge. It appears on the other computer; push it back and it returns.
 Works on Windows and macOS, built with Rust and Tauri.
 
 > **Status: early.** The pieces are in place and tested, but the macOS backend
-> has not been run on real hardware yet, and there is no installer or
-> auto-discovery yet. See [Status](#status) for what is and is not finished.
+> has not been exercised end-to-end under real Accessibility permission yet,
+> and there is no installer or auto-discovery yet. See [Status](#status) for
+> what is and is not finished.
 
 ## How it works
 
@@ -160,16 +161,19 @@ Working and tested:
 - Wire protocol, with round-trip and size-bound tests
 - Noise handshake, encrypted framing, and refusal of wrong secrets
 - Link state machine and its ownership transitions
+- Edge handoff and return, including the mirrored-cursor return crossing
 - Windows capture and injection
+- macOS capture and injection, including drag events, modifier keys, tap
+  re-enabling, and unioned multi-display bounds
 - The UI
 
 Not finished:
 
-- **The macOS backend has never been run.** Every API it touches has been
-  checked against the `core-graphics` 0.25 and `core-foundation` 0.10 sources
-  and CI confirms it compiles, but no `CGEventTap` callback has ever fired.
-  Treat it as untested. See [Porting notes](#porting-notes) for the two known
-  gaps.
+- **The macOS backend has not been run end-to-end.** Every API it touches has
+  been checked against the `core-graphics` 0.25 and `core-foundation` 0.10
+  sources and CI confirms it compiles, and its translation logic is unit
+  tested, but a `CGEventTap` capture/inject round trip has not been observed
+  live. It needs one session under real Accessibility permission.
 - No installers or release packaging beyond `cargo tauri build`
 - No peer auto-discovery; addresses are typed or configured
 - No clipboard sharing
@@ -204,15 +208,15 @@ holding `CFRunLoop::run_current`; `stop_capture` stops that loop and joins the
 thread. `CFRunLoop` is `Send`, which is what makes stopping it from another
 thread possible.
 
-Two things the macOS backend does **not** do yet, both deliberate rather than
-overlooked:
+Two details are worth knowing:
 
-- A tap disabled by the system (timeout or user input) cannot be re-enabled
-  from inside the callback, since the callback is not handed the tap handle.
-  It is logged, and recovery is a restart.
-- `screen_info` reports the main display only. Multiple displays, and
-  macOS's bottom-left display origin versus `CGEvent`'s top-left, are not yet
-  reconciled.
+- A tap disabled by the system (timeout or user input) is re-enabled from
+  inside the callback. The callback is not handed the tap handle, so the
+  backend keeps its Mach port and calls `CGEventTapEnable` directly: without
+  this, one slow callback would silently stop capture until a restart.
+- `screen_info` unions every active display, not just the main one. macOS
+  reports `CGDisplayBounds` and `CGEventGetLocation` in the same top-left-origin
+  global frame, so no coordinate flip is needed between the two.
 
 ## Licence
 

@@ -87,9 +87,10 @@ impl Session {
 
     /// Feed an observed event and get back the action to take.
     ///
-    /// `detect_crossing` is injected so this stays free of geometry
-    /// specifics and easy to test; callers pass
-    /// [`crate::layout::detect_crossing`] in production.
+    /// The seam test is injected so this stays free of geometry specifics and
+    /// easy to test. Runtimes that detect the crossing themselves (the desktop
+    /// app uses [`crate::layout::Rect::crossing`]) pass a predicate that always
+    /// returns `false` and rely on the local/remote transitions instead.
     pub fn on_event<F>(&mut self, event: SessionEvent, mut detect_crossing: F) -> Transition
     where
         F: FnMut(Edge, f64, f64, f64, f64) -> bool,
