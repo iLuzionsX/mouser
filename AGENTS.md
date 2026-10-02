@@ -153,6 +153,11 @@ Windows quirks:
 - The seam-parked pointer stays visible on Windows by design: `ShowCursor`
   is a per-thread count mouser's windowless threads cannot move — every
   software KVM on Windows shows the parked cursor.
+- The UI's liveness depends on `additionalBrowserArgs` in
+  `src-tauri/tauri.conf.json` (backgrounding disabled + native occlusion
+  calculation off). If a rebuild ever drops them, a hidden or minimized
+  window can suspend the WebView2 renderer to 0 CPU and freeze the
+  display while the backend keeps working.
 - Desktop facts: 100% scale, single 3440x1440 monitor, seam at x=0.
 
 ## Handoff log (append-only)
@@ -207,3 +212,17 @@ Windows quirks:
   `additionalBrowserArgs` to `--disable-background-timer-throttling
   --disable-renderer-backgrounding --disable-backgrounding-occluded-windows`
   in tauri.conf.json so the renderer can never suspend.
+- **2026-10-02 ~14:16** — opencode on the Windows PC, user approved: set
+  `additionalBrowserArgs` on the main window in `src-tauri/tauri.conf.json`
+  to `--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,CalculateNativeWinOcclusion
+  --disable-background-timer-throttling --disable-renderer-backgrounding
+  --disable-backgrounding-occluded-windows` (wry's own defaults preserved
+  verbatim — setting this key replaces them wholesale). This closes the
+  14:10 renderer-suspension class at the engine level. Verified live:
+  client relaunched 14:14 (PID 28384, paired in 39 ms), renderer CPU
+  **31 ms/3 s while the window was held minimized** — the exact state
+  that previously dropped to 0 — and ~16 ms/4 s steady state after
+  restore, clock ticking. `cargo test --workspace` green (exit 0) before
+  launch, build dev. The key is WebView2-only; the Mac ignores it — no
+  host action needed beyond staying synced (its WKWebView suspension is
+  a separate mechanism if it ever bites).
