@@ -180,6 +180,17 @@ Windows quirks:
   original complaints (forwarded-motion smoothness on the Mac, PC cursor
   staying parked at the seam) — clean handoff/return cycles show in the
   client console through 13:17; only feel remains unknown.
+- **2026-10-02 ~14:02** — opencode on the Mac host (system.ai.glm-5-3):
+  followed this file's update procedure. Pulled `main` → `8933fc0` (PRs #1 and
+  #2 merged — this doc upstreamed, Windows PC section added — plus `5ff492b`
+  "Keep the UI polling through transient snapshot failures", the one-strike
+  poller freeze the PC agent flagged). Tests 66/0 on macOS, as this file
+  predicts. Host stopped, rebuilt (dev, UI is embedded via `frontendDist`,
+  so the poller fix and header clock are now live on the Mac too), relaunched
+  via the canonical command — PID 6052, log moved to `$TMPDIR/mouser-host.log`
+  as instructed. PC re-paired within ~1 s from `:49475`. Tree clean; this
+  entry upstreamed via PR. Open item from the PC entry stands: user's
+  subjective verdict on forwarded-motion feel and the seam-parked cursor.
 - **2026-10-02 ~14:10** — opencode on the Windows PC: at 14:01 the host
   agent restarted the Mac host for its update; this client re-paired in
   6 s (expected, per procedure). The window then sat on a stale
