@@ -76,8 +76,13 @@ Needs Rust 1.85 or newer.
 git clone https://github.com/iLuzionsX/mouser
 cd mouser
 
-# Icons are committed; regenerate after editing icon.svg with:
+# Icons are committed. `icon.svg` is the source: a squircle tile drawn on
+# transparency at 1024x1024, because macOS applies no masking of its own to a
+# bundled .icns and a square tile shows up as a sharp rectangle in the Dock.
+# Regenerate after editing it with:
 #   cargo tauri icon icon.svg
+# (or rasterize icon.svg to 1024/512/256/128/64/32/30/44/50/71/89/107/142/150/284/310
+#  px PNGs, assemble icon.icns with iconutil, and write icon.ico from the 256 px PNG.)
 
 cargo run            # run it
 cargo test           # run the tests

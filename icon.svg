@@ -1,16 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <title>mouser</title>
-  <rect width="512" height="512" fill="#0d0f12" />
-  <!-- A cursor arrow pointing into the right edge, where the other screen is. -->
-  <g fill="#7ae090">
-    <path d="M128 96 L128 344 L196 278 L240 386 L300 358 L256 254 L344 250 Z" />
-  </g>
-  <!-- Two bars marking the neighbouring screens either side of the seam. -->
-  <g fill="#3a4250">
-    <rect x="384" y="112" width="28" height="288" />
-    <rect x="432" y="112" width="28" height="288" />
-  </g>
-  <g fill="#7ae090">
-    <rect x="366" y="200" width="8" height="112" />
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a2029" />
+      <stop offset="1" stop-color="#0d0f12" />
+    </linearGradient>
+  </defs>
+  <!-- Full-bleed squircle tile on transparency. macOS applies no masking of
+       its own to a bundled .icns, so the rounded shape must be drawn here;
+       a square tile shows up as a sharp rectangle in the Dock. -->
+  <rect x="0" y="0" width="1024" height="1024" rx="228" fill="url(#tile)" />
+  <rect x="8" y="8" width="1008" height="1008" rx="220" fill="none" stroke="#ffffff" stroke-opacity="0.09" stroke-width="3" />
+  <!-- The cursor-and-seam mark from the old icon, scaled into the safe area. -->
+  <g transform="translate(-76,30) scale(2)">
+    <g fill="#7ae090">
+      <path d="M128 96 L128 344 L196 278 L240 386 L300 358 L256 254 L344 250 Z" />
+    </g>
+    <g fill="#3a4250">
+      <rect x="384" y="112" width="28" height="288" />
+      <rect x="432" y="112" width="28" height="288" />
+    </g>
+    <g fill="#7ae090">
+      <rect x="366" y="200" width="8" height="112" />
+    </g>
   </g>
 </svg>
