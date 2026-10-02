@@ -141,6 +141,16 @@ pub struct Channel {
     cipher_buf: Vec<u8>,
     /// Reused plaintext buffer.
     plain_buf: Vec<u8>,
+    /// Bytes received so far for the frame currently being reassembled.
+    ///
+    /// [`Channel::recv`] is raced against other branches in a
+    /// `tokio::select!`, which drops it at whatever await point is live. A
+    /// `read_exact` would silently discard the bytes it had already consumed,
+    /// desynchronizing the stream; keeping them here makes the read resumable.
+    read_buf: Vec<u8>,
+    /// Total size of the frame in progress (prefix plus payload) once the
+    /// length prefix has been read, or `None` while the prefix is arriving.
+    read_total: Option<usize>,
 }
 
 /// Perform the Noise handshake over an already-connected stream.
@@ -184,6 +194,8 @@ pub async fn handshake(
                 transport,
                 cipher_buf: vec![0u8; MAX_MESSAGE_BYTES + TAG_LEN],
                 plain_buf: vec![0u8; MAX_MESSAGE_BYTES + TAG_LEN],
+                read_buf: Vec::new(),
+                read_total: None,
             });
         }
 
@@ -286,17 +298,77 @@ impl Channel {
         write_frame(&mut self.stream, &self.cipher_buf[..len]).await
     }
 
+    /// Read more bytes into `read_buf` until it holds at least `want`, or the
+    /// peer stops sending.
+    ///
+    /// Cancel-safe: every byte that arrives is appended to `self.read_buf`
+    /// before the next await, so a dropped future resumes from where it left
+    /// off instead of losing data. `AsyncReadExt::read` is itself cancel-safe,
+    /// unlike `read_exact`.
+    async fn fill_read_buf(&mut self, want: usize) -> Result<(), TransportError> {
+        let mut scratch = [0u8; 4096];
+        while self.read_buf.len() < want {
+            let room = (want - self.read_buf.len()).min(scratch.len());
+            let n = self.stream.read(&mut scratch[..room]).await?;
+            if n == 0 {
+                break;
+            }
+            self.read_buf.extend_from_slice(&scratch[..n]);
+        }
+        Ok(())
+    }
+
     /// Receive and decrypt one message.
     ///
     /// Returns `None` when the peer closed the connection cleanly.
+    ///
+    /// Cancel-safe: the link driver races this against outbound traffic and a
+    /// poll timer inside a `tokio::select!`, so it may be dropped between any
+    /// two bytes of a frame. Partial progress lives in `read_buf`/`read_total`
+    /// and is picked up again on the next call.
     pub async fn recv(&mut self) -> Result<Option<Message>, TransportError> {
-        let frame = read_frame(&mut self.stream, MAX_MESSAGE_BYTES + TAG_LEN).await?;
-        if frame.is_empty() {
+        let max = MAX_MESSAGE_BYTES + TAG_LEN;
+
+        if self.read_total.is_none() {
+            self.fill_read_buf(PREFIX_LEN).await?;
+            if self.read_buf.len() < PREFIX_LEN {
+                // Closed before a full prefix: clean only if nothing at all
+                // had arrived, otherwise the stream is truncated.
+                return if self.read_buf.is_empty() {
+                    Ok(None)
+                } else {
+                    Err(TransportError::Closed)
+                };
+            }
+            let len = u32::from_be_bytes(
+                self.read_buf[..PREFIX_LEN]
+                    .try_into()
+                    .expect("prefix is four bytes"),
+            ) as usize;
+            if len > max {
+                return Err(TransportError::TooLarge(len));
+            }
+            self.read_total = Some(PREFIX_LEN + len);
+        }
+
+        let total = self.read_total.expect("set in the branch above");
+        self.fill_read_buf(total).await?;
+        if self.read_buf.len() < total {
+            // Closed in the middle of a frame; the stream cannot be trusted.
+            return Err(TransportError::Closed);
+        }
+
+        // A whole frame is buffered: take it and reset for the next one.
+        let payload = self.read_buf[PREFIX_LEN..total].to_vec();
+        self.read_buf.clear();
+        self.read_total = None;
+
+        if payload.is_empty() {
             return Ok(None);
         }
         let len = self
             .transport
-            .read_message(&frame, &mut self.plain_buf)
+            .read_message(&payload, &mut self.plain_buf)
             .map_err(|e| TransportError::Handshake(e.to_string()))?;
         let msg = Message::decode(&self.plain_buf[..len])
             .map_err(|e| TransportError::Malformed(e.to_string()))?;
@@ -552,6 +624,58 @@ mod tests {
 
         let mut client = Channel::connect(addr, secret, true).await.unwrap();
         assert!(client.recv().await.unwrap().is_none());
+        server.await.unwrap();
+    }
+
+    /// Regression: `recv` used to call `read_exact`, which discards the bytes
+    /// it had already consumed when the future is dropped. The link driver
+    /// races `recv` inside a `tokio::select!`, so a frame interrupted halfway
+    /// was re-read from its middle as a garbage length and the link died with
+    /// "frame of N bytes exceeds the maximum message size".
+    #[tokio::test]
+    async fn recv_resumes_after_being_cancelled_mid_frame() {
+        let secret = "cancel safety matters here";
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        let server = tokio::spawn(async move {
+            let (stream, _) = listener.accept().await.unwrap();
+            let mut ch = Channel::accept(stream, secret, true).await.unwrap();
+            // Build one valid encrypted frame, then dribble it out in two
+            // pieces so the reader is parked in the middle of the payload.
+            let plain = Message::Ping(42).encode().unwrap();
+            let len = ch
+                .transport
+                .write_message(&plain, &mut ch.cipher_buf)
+                .unwrap();
+            let frame = ch.cipher_buf[..len].to_vec();
+            let split = frame.len() / 2;
+            ch.stream
+                .write_all(&(frame.len() as u32).to_be_bytes())
+                .await
+                .unwrap();
+            ch.stream.write_all(&frame[..split]).await.unwrap();
+            ch.stream.flush().await.unwrap();
+            tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+            ch.stream.write_all(&frame[split..]).await.unwrap();
+            ch.stream.flush().await.unwrap();
+            // Hold the connection open until the client has read the frame.
+            tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+        });
+
+        let mut client = Channel::connect(addr, secret, true).await.unwrap();
+        // The first attempt is cancelled partway through the frame.
+        let cancelled =
+            tokio::time::timeout(std::time::Duration::from_millis(50), client.recv()).await;
+        assert!(
+            cancelled.is_err(),
+            "recv should still have been waiting for the rest of the frame"
+        );
+
+        // The retry must deliver the message intact, proving nothing was lost.
+        let msg = client.recv().await.unwrap().unwrap();
+        assert_eq!(msg, Message::Ping(42));
+
         server.await.unwrap();
     }
 

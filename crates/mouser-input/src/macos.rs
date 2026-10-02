@@ -514,6 +514,14 @@ impl InputBackend for MacosBackend {
         Some((point.x, point.y))
     }
 
+    fn warp_cursor(&self, x: f64, y: f64) -> Result<(), InputError> {
+        // Reuse the injection path: it posts a tagged mouse event, so the tap
+        // that captures local input filters it out instead of forwarding the
+        // recentering as if the user had moved the mouse.
+        let (cx, cy) = self.cursor_position().unwrap_or((x, y));
+        self.inject_move((x - cx).round() as i32, (y - cy).round() as i32)
+    }
+
     fn hide_cursor(&self) -> Result<(), InputError> {
         // `CGDisplayHideCursor` keeps a count, so make this idempotent rather
         // than letting a redundant call skew it.

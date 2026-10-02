@@ -152,7 +152,7 @@ async fn client_loop(
                 session(
                     state.clone(),
                     handle.clone(),
-                    Connection::Ready(channel),
+                    Connection::Ready(Box::new(channel)),
                     secret.clone(),
                     out_rx,
                     addr.to_string(),
@@ -171,8 +171,11 @@ async fn client_loop(
 }
 
 /// A live channel, or a stream still waiting for its handshake.
+///
+/// `Channel` is by far the larger variant (it owns working buffers), so it is
+/// boxed to keep the enum small.
 enum Connection {
-    Ready(Channel),
+    Ready(Box<Channel>),
     Stream(tokio::net::TcpStream),
 }
 
@@ -189,7 +192,7 @@ async fn session(
     let require_private = state.config().require_private_network;
 
     let mut channel = match connection {
-        Connection::Ready(c) => c,
+        Connection::Ready(c) => *c,
         Connection::Stream(stream) => {
             match tokio::time::timeout(
                 HANDSHAKE_TIMEOUT,
