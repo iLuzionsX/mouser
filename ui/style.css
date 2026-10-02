@@ -92,6 +92,14 @@ h1 .dim {
   color: var(--warn);
 }
 
+/* Last successful poll, ticking once per refresh: a stopped clock is a
+   frozen UI, distinguishable at a glance from an idle one. */
+
+#freshness {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
 /* Panels */
 
 .panel {

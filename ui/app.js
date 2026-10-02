@@ -21,12 +21,17 @@ async function refresh() {
   try {
     snap = await invoke("snapshot");
   } catch (err) {
-    // The backend is gone; stop polling rather than filling the console with
-    // identical failures.
+    // Transient IPC failures happen: a busy main thread, the webview coming
+    // back from suspension, a dropped in-flight request. Keep polling —
+    // when the backend is truly gone the window closes with the process,
+    // and a UI that stops updating while the app runs is the worst outcome.
     console.error("snapshot failed", err);
-    clearInterval(timer);
     return;
   }
+
+  // Wall clock of the last successful poll, so a stale window is visible at
+  // a glance: a stopped clock means the UI froze, not that mouser went idle.
+  setText("freshness", new Date().toLocaleTimeString());
 
   const state = snap.remote_active
     ? "remote"
@@ -160,5 +165,5 @@ el("quit").addEventListener("click", () => {
   invoke("quit");
 });
 
-const timer = setInterval(refresh, POLL_MS);
+setInterval(refresh, POLL_MS);
 refresh();
