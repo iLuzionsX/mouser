@@ -1,10 +1,10 @@
 # AGENT HANDOFF — read this first, append before you finish
 
-This file is the shared memory between agent sessions working on a mouser
-host. Read the whole file, do your task, then append an entry to the
-**Handoff log** at the bottom before reporting done. Do not delete history;
-append only. The values below describe the primary host; on another machine,
-adapt paths and addresses the same way.
+This file is the shared memory between agent sessions working on the mouser
+setup — the Mac host (sections below) and the Windows PC client (its section
+is further down). Read the whole file, do your task, then append an entry to
+the **Handoff log** at the bottom before reporting done. Do not delete
+history; append only. Each machine's section carries its own values.
 
 ## This machine's role
 
@@ -79,6 +79,76 @@ ICMP (100% loss while paired and working).
 - If the host dies with "missing accessibility permission", that is macOS
   Privacy & Security (Accessibility/Input Monitoring) — not a code bug.
 
+## The other machine — Windows PC (client)
+
+Written from the PC side (handoff log, 2026-10-02 ~13:35). The rules of
+engagement apply on both machines; only the facts differ.
+
+| Fact | Value |
+|---|---|
+| Windows PC (client) | `192.168.68.67`, connects out to the host |
+| Host (the Mac) | `192.168.68.68:47583`, sits to the PC's LEFT |
+| Shared edge | the PC shares its **LEFT** edge (`--edge left`) |
+| Repo | `C:\Users\eduar\mouser` (same workspace layout) |
+| Binary in use | `target\debug\mouser.exe` (**dev profile** — no release build) |
+| App config | `%APPDATA%\mouser\mouser\config\config.json` (never stores the secret) |
+| Pairing secret | NOT in this file. `%USERPROFILE%\.config\mouser\client-secret` |
+| Live console | `%TEMP%\opencode\mouser-live.err.log` (all app events with `--verbose`) |
+
+Canonical launch (PowerShell, detached):
+
+```powershell
+$env:MOUSER_SECRET = (Get-Content "$env:USERPROFILE\.config\mouser\client-secret" -Raw).Trim()
+Start-Process -FilePath "C:\Users\eduar\mouser\target\debug\mouser.exe" `
+  -ArgumentList "--connect","192.168.68.68:47583","--edge","left","--name","windows-pc","--verbose" `
+  -WindowStyle Minimized -RedirectStandardError "$env:TEMP\opencode\mouser-live.err.log"
+```
+
+The client does not auto-start at boot; if `Get-Process mouser` comes up
+empty after a reboot, relaunch with the command above.
+
+Update procedure (pull → build → restart, same order as the host):
+
+1. `git fetch origin && git status` — clean tree expected; **stash, never
+   discard**. Then `git pull --ff-only origin main`. No rebases, no force.
+2. **Kill the exe before any build**: `Stop-Process -Name mouser -Force`,
+   then wait ~1 s — the running exe locks `target\debug\mouser.exe` and the
+   link step fails while it lives. Dropping the link is fine; the client
+   re-pairs by itself within ~2 s of the host listener coming back.
+3. `cargo test --workspace` — expect **67 passed on Windows, 0 failed**
+   (the one extra vs macOS is `#[cfg(windows)]`).
+4. `cargo build` (dev). Agent shells must call it by full path —
+   `& "$env:USERPROFILE\.cargo\bin\cargo.exe" build` — `cargo` is not on PATH.
+5. Relaunch with the canonical command above.
+6. Run the done-checks below, then append to the handoff log.
+
+Objective done-checks:
+
+```powershell
+Get-Process mouser                                   # alive
+Get-NetTCPConnection -RemoteAddress 192.168.68.68    # State Established
+Get-Content "$env:TEMP\opencode\mouser-live.err.log" -Tail 5
+# expect: paired with mac at 192.168.68.68:47583 [0788FEF2]
+```
+
+The window's header clock must tick (~10 Hz): a stopped clock means the UI
+froze while the backend may still be working — read the `5ff492b` handoff
+log entry before diagnosing the link.
+
+Windows quirks:
+
+- `cargo test` does NOT refresh the exe — always `cargo build` before
+  running the binary against anything. A stale exe produced false failures
+  once.
+- The low-level hooks ignore injected input (`LLMHF_INJECTED`): no script
+  can simulate the physical push across the edge. Handoff feel can only be
+  tested by the user's hand; the log lines ("pushed the cursor off the
+  shared edge" / "-> local control") prove the state machine without it.
+- The seam-parked pointer stays visible on Windows by design: `ShowCursor`
+  is a per-thread count mouser's windowless threads cannot move — every
+  software KVM on Windows shows the parked cursor.
+- Desktop facts: 100% scale, single 3440x1440 monitor, seam at x=0.
+
 ## Handoff log (append-only)
 
 - **2026-10-02 ~13:20** — opencode (system.ai.glm-5-3): pulled `b6b6517`
@@ -87,3 +157,20 @@ ICMP (100% loss while paired and working).
   PID 97894, `--wait --edge right`, port 47583, secret via env. PC paired
   immediately from 192.168.68.67:64717. Tree clean. Created this file,
   `~/.config/mouser/host-secret`, and the `.git/info/exclude` entry.
+- **2026-10-02 ~13:35** — opencode on the Windows PC: the "reconnecting
+  shortly" report was a frozen UI, not a dead link — one failed `snapshot`
+  invoke permanently stopped the poller while the backend stayed paired
+  and handoffs kept working underneath. Fixed in `5ff492b` "Keep the UI
+  polling through transient snapshot failures" (poller retries through
+  failures; header clock ticks per poll so a stale window is obvious).
+  Already on `origin/main`; client rebuilt and relaunched 13:21, paired
+  from `:60414`. **Host agent: your UI has the same one-strike freeze — at
+  your next update, pull `main` (this file and `5ff492b` arrive together),
+  then restart via the canonical command, which also moves your log to
+  `$TMPDIR/mouser-host.log` as this file says.** Added the Windows PC
+  section above and created `%USERPROFILE%\.config\mouser\client-secret`
+  (value not in this file) so the PC's canonical command carries no secret.
+  Open item: the user has not yet given the subjective verdict on the
+  original complaints (forwarded-motion smoothness on the Mac, PC cursor
+  staying parked at the seam) — clean handoff/return cycles show in the
+  client console through 13:17; only feel remains unknown.
