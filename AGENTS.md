@@ -101,8 +101,14 @@ Canonical launch (PowerShell, detached):
 $env:MOUSER_SECRET = (Get-Content "$env:USERPROFILE\.config\mouser\client-secret" -Raw).Trim()
 Start-Process -FilePath "C:\Users\eduar\mouser\target\debug\mouser.exe" `
   -ArgumentList "--connect","192.168.68.68:47583","--edge","left","--name","windows-pc","--verbose" `
-  -WindowStyle Minimized -RedirectStandardError "$env:TEMP\opencode\mouser-live.err.log"
+  -RedirectStandardError "$env:TEMP\opencode\mouser-live.err.log"
 ```
+
+Never pass `-WindowStyle Minimized` here: creating the window hidden lets
+WebView2 suspend the renderer, and the UI freezes on a stale frame while
+the backend keeps working (see the 14:08 handoff entry). A suspended
+renderer shows 0 CPU across the whole `msedgewebview2.exe` tree; a live
+one idles around 30 ms per 3 s while polling.
 
 The client does not auto-start at boot; if `Get-Process mouser` comes up
 empty after a reboot, relaunch with the command above.
@@ -174,3 +180,19 @@ Windows quirks:
   original complaints (forwarded-motion smoothness on the Mac, PC cursor
   staying parked at the seam) — clean handoff/return cycles show in the
   client console through 13:17; only feel remains unknown.
+- **2026-10-02 ~14:10** — opencode on the Windows PC: at 14:01 the host
+  agent restarted the Mac host for its update; this client re-paired in
+  6 s (expected, per procedure). The window then sat on a stale
+  "reconnecting shortly" for minutes with the link up: the entire
+  WebView2 tree (browser + 5 renderer/gpu processes) was suspended at
+  0 CPU while the window was visible and un-minimized — a different
+  class from the `5ff492b` poller fix; a suspended renderer runs no JS
+  at all. Trigger: the window had been created minimized
+  (`-WindowStyle Minimized` in the canonical command — removed above,
+  do not re-add it). Relaunched 14:08 with the window shown normally;
+  UI verified live by renderer CPU (31 ms/3 s vs 0.0 suspended). Field
+  check: the header clock stops when the renderer is suspended. Open
+  proposal awaiting the user, not done unilaterally (code change): set
+  `additionalBrowserArgs` to `--disable-background-timer-throttling
+  --disable-renderer-backgrounding --disable-backgrounding-occluded-windows`
+  in tauri.conf.json so the renderer can never suspend.
