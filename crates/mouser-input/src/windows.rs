@@ -200,6 +200,16 @@ impl InputBackend for WindowsBackend {
         Some((point.x as f64, point.y as f64))
     }
 
+    fn warp_cursor(&self, x: f64, y: f64) -> Result<(), InputError> {
+        // `SendInput` marks the event as injected, so the low-level hook drops
+        // it instead of forwarding the recentering back to the peer.
+        let (cx, cy) = self.cursor_position().unwrap_or((x, y));
+        self.inject_absolute(&InputEvent::Move {
+            dx: (x - cx).round() as i32,
+            dy: (y - cy).round() as i32,
+        })
+    }
+
     fn hide_cursor(&self) -> Result<(), InputError> {
         // ShowCursor adjusts a process-wide counter, so it must be driven to
         // zero; other code may be incrementing it concurrently.

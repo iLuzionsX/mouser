@@ -78,6 +78,15 @@ pub trait InputBackend: Send + Sync {
     /// Absolute cursor position, if the platform will report one.
     fn cursor_position(&self) -> Option<(f64, f64)>;
 
+    /// Move the local cursor to an absolute point without producing a captured
+    /// event.
+    ///
+    /// Used to keep the pointer away from a screen edge while the peer owns
+    /// it: once pinned there the OS stops reporting motion, which would starve
+    /// the peer of deltas. Implementations must post the move as synthetic so
+    /// the local capture hook ignores it.
+    fn warp_cursor(&self, x: f64, y: f64) -> Result<(), InputError>;
+
     /// Hide the local cursor while the peer drives.
     fn hide_cursor(&self) -> Result<(), InputError>;
 
