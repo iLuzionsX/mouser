@@ -147,8 +147,17 @@ async fn client_loop(
     handle.log(Level::Info, format!("connecting to {addr}"));
 
     loop {
-        match Channel::connect(addr, &secret, config.require_private_network).await {
-            Ok(channel) => {
+        // The connect covers the TCP dial and the Noise handshake, and both
+        // are bounded: a peer that accepts the socket but never speaks — one
+        // that is restarting, wedged, or not mouser at all — must not be able
+        // to stall the reconnect loop for good.
+        match tokio::time::timeout(
+            HANDSHAKE_TIMEOUT,
+            Channel::connect(addr, &secret, config.require_private_network),
+        )
+        .await
+        {
+            Ok(Ok(channel)) => {
                 session(
                     state.clone(),
                     handle.clone(),
@@ -162,8 +171,13 @@ async fn client_loop(
                 handle.log(Level::Warn, "reconnecting shortly".into());
                 tokio::time::sleep(RETRY).await;
             }
-            Err(e) => {
+            Ok(Err(e)) => {
                 handle.log(Level::Warn, format!("connect failed: {e}"));
+                tokio::time::sleep(RETRY).await;
+            }
+            Err(_) => {
+                handle
+                    .log(Level::Warn, format!("connect to {addr} timed out; retrying"));
                 tokio::time::sleep(RETRY).await;
             }
         }
