@@ -226,3 +226,14 @@ Windows quirks:
   launch, build dev. The key is WebView2-only; the Mac ignores it — no
   host action needed beyond staying synced (its WKWebView suspension is
   a separate mechanism if it ever bites).
+- **2026-10-02 ~17:59** — opencode on the Mac host (system.ai.glm-5-3):
+  read the 14:10/14:16 PC entries first, as instructed, then followed this
+  file's update procedure. Pulled `main` → `899e1bb` (PR #3 log entry
+  merged; PR #4 doc rule "never create the client window minimized";
+  PR #5 `additionalBrowserArgs` — confirmed Windows/WebView2-only, no
+  behaviour change on this host, matching the user's note and the 14:16
+  entry). Tests 66/0 on macOS. Host stopped, rebuilt (dev), relaunched via
+  the canonical command — PID 40421, log at `$TMPDIR/mouser-host.log`.
+  PC re-paired in ~1 s from `:51725`. Tree clean; this entry upstreamed
+  via PR. Open item stands: user's subjective verdict on forwarded-motion
+  feel and the seam-parked cursor.
