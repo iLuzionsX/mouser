@@ -128,7 +128,9 @@ value for that run only.
 **macOS** will not deliver input events to an app without Accessibility
 permission, and there is no way around it. Go to System Settings → Privacy &
 Security → Accessibility, add `mouser`, and restart it. Input Recording is
-needed too. If hooks silently do nothing, this is almost always why.
+needed too. If hooks silently do nothing, this is almost always why. Without
+the permission the window still opens and says so in its log, rather than
+exiting, so there is something to look at while you fix it.
 
 **Windows** needs no special permission. If the pointer stops responding
 immediately, something is holding an exclusive mouse hook — check other

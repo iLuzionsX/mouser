@@ -37,6 +37,11 @@ async function refresh() {
   el("owner").dataset.state = state;
 
   setText("device", snap.device_name);
+  const warning = el("warning");
+  warning.hidden = !snap.capture_error;
+  if (snap.capture_error) {
+    setText("warning", snap.capture_error);
+  }
   setText(
     "role",
     snap.role === "host"

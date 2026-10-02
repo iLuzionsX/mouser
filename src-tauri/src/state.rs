@@ -55,6 +55,11 @@ pub struct Snapshot {
     pub round_trip_ms: Option<f64>,
     pub remote_active: bool,
     pub has_secret: bool,
+    /// Why input capture is not running, if it is not.
+    ///
+    /// Kept so the window can open and explain the fix instead of the process
+    /// exiting before there is anything to look at.
+    pub capture_error: Option<String>,
     pub screen_width: u32,
     pub screen_height: u32,
     pub log: Vec<LogLine>,
@@ -111,6 +116,9 @@ struct Inner {
     /// Held so the UI can hand over a new secret without a restart.
     secret_input: String,
     has_secret: bool,
+    /// Set when [`mouser_input::InputBackend::start_capture`] failed, so the UI
+    /// can tell the user what is missing instead of the process dying.
+    capture_error: Option<String>,
 }
 
 impl AppState {
@@ -118,43 +126,59 @@ impl AppState {
         let (events_tx, events_rx) = std::sync::mpsc::channel();
         let backend = Platform::new();
 
-        backend.start_capture(events_tx).map_err(|e| {
-            anyhow::anyhow!(
-                "could not capture input: {e}\n\
-                 On macOS grant Accessibility and Input Recording under \
-                 System Settings > Privacy & Security, then restart mouser."
+        // Missing permission must not stop the window from opening: the user
+        // has to see the app to be told what to fix, and the link and UI work
+        // without capture. The error is carried in the snapshot instead.
+        let capture_error = backend.start_capture(events_tx).err().map(|e| {
+            format!(
+                "could not capture input: {e}. On macOS grant Accessibility \
+                 and Input Recording under System Settings > Privacy & \
+                 Security, then restart mouser."
             )
-        })?;
+        });
 
         let fingerprint = Config::secret_fingerprint(secret);
         let bind_addr = config.bind_addr.clone();
 
-        let state = AppState {
-            inner: Arc::new(Mutex::new(Inner {
-                session: Session::new(config.peer_edge),
-                fingerprint,
-                status: "starting".into(),
-                listening: false,
-                bind_addr,
-                secret_input: secret.to_string(),
-                has_secret: !secret.is_empty(),
-                events_rx,
-                remote_active: AtomicBool::new(false),
-                forwarding: AtomicBool::new(false),
-                return_edge: None,
-                last_cursor: (0.0, 0.0),
-                last_handoff: None,
-                bridge: None,
-                log: Vec::new(),
-                next_seq: 1,
-                peer_name: String::new(),
-                peer_addr: None,
-                round_trip_ms: None,
-                config,
-                backend,
-            })),
+        let mut inner = Inner {
+            session: Session::new(config.peer_edge),
+            fingerprint,
+            status: if capture_error.is_some() {
+                "no input capture".into()
+            } else {
+                "starting".into()
+            },
+            listening: false,
+            bind_addr,
+            secret_input: secret.to_string(),
+            has_secret: !secret.is_empty(),
+            events_rx,
+            remote_active: AtomicBool::new(false),
+            forwarding: AtomicBool::new(false),
+            return_edge: None,
+            last_cursor: (0.0, 0.0),
+            last_handoff: None,
+            bridge: None,
+            log: Vec::new(),
+            next_seq: 1,
+            peer_name: String::new(),
+            peer_addr: None,
+            round_trip_ms: None,
+            config,
+            backend,
+            capture_error: capture_error.clone(),
         };
-        Ok(state)
+        if let Some(error) = &capture_error {
+            log(&mut inner, Level::Error, error.clone());
+        }
+        match &capture_error {
+            Some(error) => tracing::warn!("{error}"),
+            None => tracing::info!("input capture running"),
+        }
+
+        Ok(AppState {
+            inner: Arc::new(Mutex::new(inner)),
+        })
     }
 
     pub fn handle(&self) -> AppHandle {
@@ -218,8 +242,13 @@ impl AppState {
                     return;
                 }
 
-                // The cursor is here. Hand it over if it was pushed off the
-                // shared edge; otherwise the event stays local.
+                // The cursor is here. Hand it over only while connected: with no
+                // peer a stray edge hit would hide the cursor and queue input
+                // for a machine that does not exist.
+                if !guard.session.is_local() {
+                    return;
+                }
+
                 let crossed = screen.crossing(guard.session.edge(), x, y, ex, ey);
 
                 guard.session.on_event(
@@ -287,6 +316,11 @@ impl AppState {
 
     /// Give the cursor to the peer.
     fn handoff(&self, guard: &mut Inner, fraction: f64, reason: &str) {
+        // Only a connected, locally-owned session may hand over. This is also
+        // the guard against a stray edge hit while there is no peer.
+        if !guard.session.is_local() {
+            return;
+        }
         let edge = guard.session.edge();
         if guard.forwarding.swap(true, Ordering::Relaxed) {
             return;
@@ -312,7 +346,10 @@ impl AppState {
         log(
             guard,
             Level::Info,
-            format!("-> peer: {reason} (edge {edge})"),
+            format!(
+                "-> peer: {reason} (edge {edge}, from {}, {})",
+                guard.last_cursor.0 as i64, guard.last_cursor.1 as i64
+            ),
         );
         self.send(guard, Message::TakeControl { edge, fraction });
     }
@@ -401,6 +438,7 @@ impl AppState {
             remote_active: guard.remote_active.load(Ordering::Relaxed)
                 || guard.forwarding.load(Ordering::Relaxed),
             has_secret: guard.has_secret,
+            capture_error: guard.capture_error.clone(),
             screen_width: bounds.width.max(0.0) as u32,
             screen_height: bounds.height.max(0.0) as u32,
             log: guard.log.clone(),
@@ -415,6 +453,9 @@ impl AppState {
 
     pub fn shutdown(&self) {
         let guard = self.inner.lock().expect("state mutex poisoned");
+        // Never leave the pointer hidden: hiding is a counted display state,
+        // and a graceful quit should always undo it.
+        let _ = guard.backend.show_cursor();
         guard.backend.stop_capture();
     }
 }
@@ -644,5 +685,71 @@ trait BoolToF64 {
 impl BoolToF64 for bool {
     fn to_f64(self) -> f64 {
         if self { 1.0 } else { 0.0 }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::mpsc::channel;
+
+    /// Build an app state without starting capture, so a test can feed it
+    /// captured events directly.
+    fn state_at(edge: Edge) -> (AppState, std::sync::mpsc::Sender<CapturedEvent>) {
+        let (tx, rx) = channel();
+        let config = Config {
+            peer_edge: edge,
+            ..Config::default()
+        };
+        let inner = Inner {
+            session: Session::new(edge),
+            backend: Platform::new(),
+            events_rx: rx,
+            remote_active: AtomicBool::new(false),
+            forwarding: AtomicBool::new(false),
+            return_edge: None,
+            last_cursor: (0.0, 0.0),
+            last_handoff: None,
+            bridge: None,
+            log: Vec::new(),
+            next_seq: 1,
+            status: "starting".into(),
+            peer_name: String::new(),
+            fingerprint: String::new(),
+            peer_addr: None,
+            round_trip_ms: None,
+            listening: false,
+            bind_addr: String::new(),
+            secret_input: String::new(),
+            has_secret: false,
+            capture_error: None,
+            config,
+        };
+        (
+            AppState {
+                inner: Arc::new(Mutex::new(inner)),
+            },
+            tx,
+        )
+    }
+
+    #[test]
+    fn edge_hit_without_a_peer_does_not_hand_off() {
+        // Regression: this used to fire while disconnected, which hid the
+        // cursor and queued input for a peer that did not exist.
+        let (state, tx) = state_at(Edge::Right);
+
+        tx.send(CapturedEvent::Move {
+            x: 1.0e9,
+            y: 50.0,
+            dx: 40.0,
+            dy: 0.0,
+        })
+        .expect("the state holds the receiver");
+        state.pump();
+
+        let snap = state.snapshot();
+        assert!(!snap.remote_active, "must not hand off without a peer");
+        assert_eq!(snap.status, "starting");
     }
 }
