@@ -316,9 +316,11 @@ impl AppState {
 
                 let (ex, ey) = if dx != 0.0 || dy != 0.0 {
                     (dx, dy)
-                } else {
+                } else if !guard.forwarding.load(Ordering::Relaxed) {
                     let (prev_x, prev_y) = guard.last_cursor;
                     (x - prev_x, y - prev_y)
+                } else {
+                    (0.0, 0.0)
                 };
                 guard.last_cursor = (x, y);
 

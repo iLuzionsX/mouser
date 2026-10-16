@@ -154,6 +154,14 @@ impl Default for MacosBackend {
     }
 }
 
+static WARPED_TARGET: Mutex<Option<CGPoint>> = Mutex::new(None);
+
+fn note_warp(pt: CGPoint) {
+    if let Ok(mut guard) = WARPED_TARGET.lock() {
+        *guard = Some(pt);
+    }
+}
+
 /// Build the tap callback.
 ///
 /// `CGEventTap` takes a safe Rust closure rather than a bare function pointer,
@@ -192,7 +200,24 @@ fn callback(
             _ => {}
         }
 
-        if let Some(captured) = translate(event_type, event) {
+        let point = event.location();
+        let mut captured = translate(event_type, event);
+        if let Some(CapturedEvent::Move { ref mut dx, ref mut dy, .. }) = captured {
+            if let Ok(mut guard) = WARPED_TARGET.lock() {
+                if let Some(target) = *guard {
+                    // After a warp, Quartz reports the artificial jump between the
+                    // pre-warp position and the target in delta_x / delta_y.
+                    // Suppress this spike so it does not falsely trigger returns or jerks.
+                    if (point.x - target.x).abs() <= 150.0 && (point.y - target.y).abs() <= 150.0 {
+                        *guard = None;
+                        *dx = 0.0;
+                        *dy = 0.0;
+                    }
+                }
+            }
+        }
+
+        if let Some(captured) = captured {
             let suppress = crate::suppress_local(&captured);
             if sink.send(captured).is_ok() && suppress {
                 return CallbackResult::Drop;
@@ -458,6 +483,9 @@ impl InputBackend for MacosBackend {
     }
 
     fn stop_capture(&self) {
+        if let Ok(mut guard) = WARPED_TARGET.lock() {
+            *guard = None;
+        }
         if !self.active.swap(false, Ordering::SeqCst) {
             return;
         }
@@ -518,7 +546,9 @@ impl InputBackend for MacosBackend {
     }
 
     fn warp_cursor(&self, x: f64, y: f64) -> Result<(), InputError> {
-        self.post_move(CGPoint::new(x, y))
+        let pt = CGPoint::new(x, y);
+        note_warp(pt);
+        self.post_move(pt)
     }
 
     fn hide_cursor(&self) -> Result<(), InputError> {

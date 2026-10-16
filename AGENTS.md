@@ -285,6 +285,14 @@ Windows quirks:
   out; retrying` on every attempt, `Test-NetConnection` TCP 47583 failed.
   Host side looks down or pre-restart; it likely needs the same `1f48dfa`
   update. Client will re-pair by itself once the listener is back.
+- **2026-10-16 ~15:46 EDT** — Claude Code on the Mac host: `main` at `1f48dfa`
+  (the 2026-10-11 Codex changes, committed and pushed on user request).
+  No host was running. Built dev, launched detached via Python Popen
+  (start_new_session) with the secret only in env — PID 66365, PPID 1,
+  `--wait --edge right`, log at `$TMPDIR/mouser-host.log`. Log shows input
+  capture running and listening on 0.0.0.0:47583. No PC connection
+  established at check time; the PC still needs to pull `1f48dfa`, rebuild
+  and relaunch. Windows runtime of the new input code remains untested.
 - **2026-10-16 ~16:25 EDT** — Antigravity on the Windows PC: diagnosed and
   fixed the remote mouse stutter / failure to move smoothly. Root cause:
   `RECENTER_JUMP = 8.0` with `await_recenter` in `src-tauri/src/state.rs`
@@ -303,3 +311,34 @@ Windows quirks:
   instant ping-pong returns, and warping to the return seam on `release_control`.
   Workspace tests: 72 passed, 0 failed. Dev binary rebuilt and relaunched
   (PID 15724, paired to Mac at 192.168.68.68:47583 [0788FEF2], Established).
+- **2026-10-16 ~16:41 EDT** — Antigravity on the Mac host: resolved merge
+  conflict in `AGENTS.md`, preserving both host and PC handoff records. Synced
+  with `origin/main` (at `f2d35c3`). Ran workspace test suite (72 passed, 0
+  failed across all crates). Stopped previous host (PID 66365), rebuilt dev
+  profile, and relaunched detached via Python Popen (PID 80545, PPID 1, log at
+  `$TMPDIR/mouser-host.log`). Verified listen on `0.0.0.0:47583`, established
+  connection to windows-pc (`192.168.68.60:52024` `[0788FEF2]`), and peer
+  control transfer confirmed in log.
+- **2026-10-16 ~17:45 EDT** — Antigravity on the Mac host: diagnosed and
+  fixed mouse failing to move on Windows PC when handed off from Mac.
+  Root cause: when Mac handed off control or recentered, `warp_cursor`
+  teleported the cursor to screen center `(cx, cy)`. On macOS, Quartz's
+  WindowServer computes mouse deltas (`MOUSE_EVENT_DELTA_X/Y`) based on
+  the difference between the pre-warp and post-warp cursor positions,
+  creating a massive artificial delta spike (hundreds of pixels directly
+  pointing back towards the return seam). This huge delta was immediately
+  forwarded to Windows, where `returns_home` detected an overshoot past
+  the return margin and instantly sent `ReleaseControl` within ~25ms.
+  Fixed by:
+  (1) tracking `WARPED_TARGET` in `crates/mouser-input/src/macos.rs` so that
+  the synthetic warp transition delta reported by Quartz upon reaching the
+  target position is recognized and zeroed out (`dx = 0, dy = 0`), matching
+  Windows's `LAST_POS` delta isolation;
+  (2) guarding `(x - prev_x, y - prev_y)` fallback in `src-tauri/src/state.rs`
+  so that when forwarding is active, a zero delta event never synthesizes
+  a synthetic jump from position differences.
+  Workspace tests: 72 passed, 0 failed. Dev binary rebuilt and relaunched
+  detached via Python Popen (PID 96879, PPID 1, log at `$TMPDIR/mouser-host.log`).
+  Verified listening on `0.0.0.0:47583` and paired with `windows-pc` at
+  `192.168.68.60:51078 [0788FEF2]`.
+
