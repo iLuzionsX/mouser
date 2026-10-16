@@ -339,6 +339,31 @@ Windows quirks:
   a synthetic jump from position differences.
   Workspace tests: 72 passed, 0 failed. Dev binary rebuilt and relaunched
   detached via Python Popen (PID 96879, PPID 1, log at `$TMPDIR/mouser-host.log`).
-  Verified listening on `0.0.0.0:47583` and paired with `windows-pc` at
-  `192.168.68.60:51078 [0788FEF2]`.
+- **2026-10-16 ~18:25 EDT** — Antigravity on the Mac host: diagnosed and fixed
+  Mac cursor not disappearing / not staying parked at the screen edge when handing
+  off control to Windows.
+  Root causes:
+  (1) `CGDisplay::main().hide_cursor()` on macOS does not hide the cursor system-wide
+  when called from a background process or non-focused app unless the WindowServer
+  connection property `SetsCursorInBackground` is enabled via CoreGraphics
+  (`_CGSDefaultConnection` / `CGSSetConnectionProperty`);
+  (2) `handoff` and `recenter` in `src-tauri/src/state.rs` unconditionally called
+  `warp_cursor(cx, cy)`, teleporting the Mac cursor to the exact center of the screen
+  and wandering around center whenever the user moved the mouse;
+  (3) `suppress_local` in `crates/mouser-input/src/lib.rs` explicitly exempted `Move`
+  events (`!matches!(event, CapturedEvent::Move)`), causing local macOS WindowServer
+  to process every forwarded mouse move, moving the Mac cursor across the screen
+  and unhiding it.
+  Fixed by:
+  (1) invoking `CGSSetConnectionProperty(_CGSDefaultConnection(), ...)` with
+  `SetsCursorInBackground = true` and hiding/showing across active displays in
+  `crates/mouser-input/src/macos.rs`;
+  (2) gating screen center warp in `handoff` and `recenter` in `src-tauri/src/state.rs`
+  to `#[cfg(windows)]` so macOS keeps the pointer parked at the seam;
+  (3) updating `suppress_local` to suppress `Move` events on macOS while forwarding,
+  so WindowServer never moves or unhides the local cursor while driving the peer.
+  Workspace tests: 72 passed, 0 failed. Dev binary rebuilt (`cargo build`).
+  Host relaunched detached via Python Popen (PID 7732, PPID 1, log at `$TMPDIR/mouser-host.log`).
+  Verified listening on `0.0.0.0:47583`, paired and ESTABLISHED with `windows-pc` at
+  `192.168.68.60:49348 [0788FEF2]`.
 

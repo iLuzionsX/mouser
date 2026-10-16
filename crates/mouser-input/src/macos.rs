@@ -28,9 +28,11 @@ use std::sync::mpsc::{Sender, channel};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 
-use core_foundation::base::TCFType;
+use core_foundation::base::{CFTypeRef, TCFType};
+use core_foundation::boolean::CFBoolean;
 use core_foundation::mach_port::CFMachPortRef;
 use core_foundation::runloop::{CFRunLoop, kCFRunLoopCommonModes};
+use core_foundation::string::{CFString, CFStringRef};
 use core_graphics::display::CGDisplay;
 use core_graphics::event::{
     CGEvent, CGEventField, CGEventFlags, CGEventTap, CGEventTapLocation, CGEventTapOptions,
@@ -46,6 +48,8 @@ use crate::events::CapturedEvent;
 use crate::keymap;
 use crate::{InputBackend, InputError, ScreenInfo};
 
+type CGSConnectionID = u32;
+
 #[link(name = "CoreGraphics", kind = "framework")]
 unsafe extern "C" {
     /// Enable or disable an event tap.
@@ -54,6 +58,14 @@ unsafe extern "C" {
     /// recover a tap the system disabled: the callback is not handed the tap,
     /// so the Mach port is stashed in shared state instead.
     fn CGEventTapEnable(tap: CFMachPortRef, enable: bool);
+
+    fn _CGSDefaultConnection() -> CGSConnectionID;
+    fn CGSSetConnectionProperty(
+        cid: CGSConnectionID,
+        target_cid: CGSConnectionID,
+        key: CFStringRef,
+        value: CFTypeRef,
+    ) -> i32;
 }
 
 /// Value written to `kCGEventSourceUserData` on every event we create.
@@ -557,8 +569,19 @@ impl InputBackend for MacosBackend {
         if self.cursor_hidden.swap(true, Ordering::SeqCst) {
             return Ok(());
         }
-        // The display argument is documented as ignored: the hide count is
-        // process-wide, not per display.
+        unsafe {
+            let conn = _CGSDefaultConnection();
+            let key = CFString::new("SetsCursorInBackground");
+            let _ = CGSSetConnectionProperty(
+                conn,
+                conn,
+                key.as_concrete_TypeRef(),
+                CFBoolean::true_value().as_CFTypeRef(),
+            );
+        }
+        for id in CGDisplay::active_displays().unwrap_or_default() {
+            let _ = CGDisplay::new(id).hide_cursor();
+        }
         CGDisplay::main()
             .hide_cursor()
             .map_err(|e| InputError::Inject(format!("could not hide the cursor: {e}")))
@@ -567,6 +590,19 @@ impl InputBackend for MacosBackend {
     fn show_cursor(&self) -> Result<(), InputError> {
         if !self.cursor_hidden.swap(false, Ordering::SeqCst) {
             return Ok(());
+        }
+        unsafe {
+            let conn = _CGSDefaultConnection();
+            let key = CFString::new("SetsCursorInBackground");
+            let _ = CGSSetConnectionProperty(
+                conn,
+                conn,
+                key.as_concrete_TypeRef(),
+                CFBoolean::true_value().as_CFTypeRef(),
+            );
+        }
+        for id in CGDisplay::active_displays().unwrap_or_default() {
+            let _ = CGDisplay::new(id).show_cursor();
         }
         CGDisplay::main()
             .show_cursor()

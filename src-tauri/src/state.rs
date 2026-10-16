@@ -78,6 +78,7 @@ fn screen_of(backend: &Platform) -> Rect {
 /// the peer. Warping the invisible pointer back toward the center gives the
 /// OS unlimited room to keep reporting motion in all directions without
 /// ever stalling against an edge.
+#[allow(dead_code)]
 fn recenter_offset(screen: &Rect, x: f64, y: f64) -> Option<(f64, f64)> {
     let (cx, cy) = screen.center();
     let margin_x = (screen.width * 0.25).max(100.0);
@@ -458,10 +459,13 @@ impl AppState {
         );
         self.send(guard, Message::TakeControl { edge, fraction });
 
-        let screen = screen_of(&guard.backend);
-        let (cx, cy) = screen.center();
-        let _ = guard.backend.warp_cursor(cx, cy);
-        guard.last_cursor = (cx, cy);
+        #[cfg(windows)]
+        {
+            let screen = screen_of(&guard.backend);
+            let (cx, cy) = screen.center();
+            let _ = guard.backend.warp_cursor(cx, cy);
+            guard.last_cursor = (cx, cy);
+        }
     }
 
     /// Keep the hidden local pointer away from the screen boundaries while
@@ -473,19 +477,26 @@ impl AppState {
     /// central deadzone gives the mouse unlimited room to move in all
     /// directions without ever stalling against an edge.
     fn recenter(&self, guard: &mut Inner, screen: &Rect) {
-        let (x, y) = guard.last_cursor;
-        let Some((cx, cy)) = recenter_offset(screen, x, y) else {
-            return;
-        };
-        if let Err(e) = guard.backend.warp_cursor(cx, cy) {
-            log(
-                guard,
-                Level::Warn,
-                format!("could not recenter the pointer: {e}"),
-            );
-            return;
+        #[cfg(windows)]
+        {
+            let (x, y) = guard.last_cursor;
+            let Some((cx, cy)) = recenter_offset(screen, x, y) else {
+                return;
+            };
+            if let Err(e) = guard.backend.warp_cursor(cx, cy) {
+                log(
+                    guard,
+                    Level::Warn,
+                    format!("could not recenter the pointer: {e}"),
+                );
+                return;
+            }
+            guard.last_cursor = (cx, cy);
         }
-        guard.last_cursor = (cx, cy);
+        #[cfg(not(windows))]
+        {
+            let _ = (guard, screen);
+        }
     }
 
     /// Queue a message, dropping it if the peer is not keeping up.

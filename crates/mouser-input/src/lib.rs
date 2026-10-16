@@ -50,8 +50,22 @@ pub fn set_forwarding(active: bool) {
 }
 
 fn suppress_local(event: &CapturedEvent) -> bool {
-    FORWARDING.load(std::sync::atomic::Ordering::Relaxed)
-        && !matches!(event, CapturedEvent::Move { .. })
+    if !FORWARDING.load(std::sync::atomic::Ordering::Relaxed) {
+        return false;
+    }
+    // Windows derives relative mouse motion from absolute cursor movement,
+    // so motion must stay local for the hook to keep receiving updates.
+    // On macOS, motion deltas come directly from hardware and suppressing
+    // the local move keeps the pointer parked and hidden at the seam.
+    #[cfg(windows)]
+    {
+        !matches!(event, CapturedEvent::Move { .. })
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = event;
+        true
+    }
 }
 
 /// Bounds and scaling of the machine's screens.
@@ -210,8 +224,10 @@ mod tests {
             dy: 1.0,
         };
         set_forwarding(true);
-        assert!(suppress_local(&key));
+        #[cfg(windows)]
         assert!(!suppress_local(&motion));
+        #[cfg(not(windows))]
+        assert!(suppress_local(&motion));
         set_forwarding(false);
         assert!(!suppress_local(&key));
     }
