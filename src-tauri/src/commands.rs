@@ -6,7 +6,7 @@
 use std::sync::Arc;
 
 use mouser_core::layout::Edge;
-use tauri::{Manager, State};
+use tauri::State;
 
 use crate::state::AppState;
 
@@ -49,9 +49,6 @@ pub fn set_secret(state: State<'_, Shared>, secret: String) -> Result<(), String
 /// letting the process teardown strand a global hook.
 #[tauri::command]
 pub fn quit(app: tauri::AppHandle) {
-    if let Some(state) = app.try_state::<Shared>() {
-        state.shutdown();
-    }
     app.exit(0);
 }
 

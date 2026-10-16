@@ -12,7 +12,6 @@ use mouser_core::layout::Edge;
 use mouser_core::protocol::{Message, PROTOCOL_VERSION, PeerHello};
 use mouser_net::Channel;
 use tokio::net::TcpListener;
-use tokio::sync::mpsc;
 
 use crate::bridge::Bridge;
 use crate::state::{AppHandle, AppState, Level};
@@ -21,8 +20,8 @@ use crate::state::{AppHandle, AppState, Level};
 /// invisible on a LAN.
 const KEEPALIVE: Duration = Duration::from_secs(2);
 
-/// How long to wait before sending a keepalive when nothing else happened.
-const POLL: Duration = Duration::from_millis(80);
+/// Bound a stalled write or silent peer so local control always returns.
+const LINK_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Upper bound on the handshake, so a silent peer cannot stall the session.
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
@@ -31,34 +30,15 @@ const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 const RETRY: Duration = Duration::from_secs(2);
 
 /// Spawn the link for the configured role.
-pub async fn run(state: Arc<AppState>, secret: String) {
+pub async fn run(state: Arc<AppState>) {
     let config = state.config();
     let handle = state.handle();
 
-    // The UI produces messages on its own thread, so they cross into the
-    // async world once here rather than per session. Sessions then borrow the
-    // receiver, which is what lets the host accept repeatedly without
-    // consuming the queue.
-    let (bridge, outbound) = Bridge::channel();
-    state.install_bridge(Arc::new(std::sync::Mutex::new(bridge)));
-
-    let (out_tx, mut out_rx) = mpsc::channel::<Message>(OUTBOUND_DEPTH);
-    tokio::spawn(async move {
-        while let Ok(msg) = outbound.recv() {
-            if out_tx.send(msg).await.is_err() {
-                break;
-            }
-        }
-    });
-
     match config.role {
-        Role::Host => host_loop(state, handle, config, secret, &mut out_rx).await,
-        Role::Client => client_loop(state, handle, config, secret, &mut out_rx).await,
+        Role::Host => host_loop(state, handle, config).await,
+        Role::Client => client_loop(state, handle, config).await,
     }
 }
-
-/// Depth of the async hand-off between the bridge and the link task.
-const OUTBOUND_DEPTH: usize = 256;
 
 fn local_hello(state: &Arc<AppState>, secret: &str) -> PeerHello {
     let snap = state.snapshot();
@@ -73,13 +53,7 @@ fn local_hello(state: &Arc<AppState>, secret: &str) -> PeerHello {
 }
 
 /// Accept connections until the process exits.
-async fn host_loop(
-    state: Arc<AppState>,
-    handle: AppHandle,
-    config: Config,
-    secret: String,
-    out_rx: &mut mpsc::Receiver<Message>,
-) {
+async fn host_loop(state: Arc<AppState>, handle: AppHandle, config: Config) {
     let addr = match config.bind_addr() {
         Ok(a) => a,
         Err(e) => {
@@ -119,8 +93,7 @@ async fn host_loop(
             state.clone(),
             handle.clone(),
             Connection::Stream(stream),
-            secret.clone(),
-            out_rx,
+            state.secret_input(),
             peer,
             true,
         )
@@ -129,13 +102,7 @@ async fn host_loop(
 }
 
 /// Keep dialling until the peer answers.
-async fn client_loop(
-    state: Arc<AppState>,
-    handle: AppHandle,
-    config: Config,
-    secret: String,
-    out_rx: &mut mpsc::Receiver<Message>,
-) {
+async fn client_loop(state: Arc<AppState>, handle: AppHandle, config: Config) {
     let addr = match config.peer_addr() {
         Ok(a) => a,
         Err(e) => {
@@ -151,6 +118,7 @@ async fn client_loop(
         // are bounded: a peer that accepts the socket but never speaks — one
         // that is restarting, wedged, or not mouser at all — must not be able
         // to stall the reconnect loop for good.
+        let secret = state.secret_input();
         match tokio::time::timeout(
             HANDSHAKE_TIMEOUT,
             Channel::connect(addr, &secret, config.require_private_network),
@@ -162,8 +130,7 @@ async fn client_loop(
                     state.clone(),
                     handle.clone(),
                     Connection::Ready(Box::new(channel)),
-                    secret.clone(),
-                    out_rx,
+                    secret,
                     addr.to_string(),
                     false,
                 )
@@ -176,8 +143,10 @@ async fn client_loop(
                 tokio::time::sleep(RETRY).await;
             }
             Err(_) => {
-                handle
-                    .log(Level::Warn, format!("connect to {addr} timed out; retrying"));
+                handle.log(
+                    Level::Warn,
+                    format!("connect to {addr} timed out; retrying"),
+                );
                 tokio::time::sleep(RETRY).await;
             }
         }
@@ -199,7 +168,6 @@ async fn session(
     handle: AppHandle,
     connection: Connection,
     secret: String,
-    out_rx: &mut mpsc::Receiver<Message>,
     peer_label: String,
     accepted: bool,
 ) {
@@ -234,7 +202,7 @@ async fn session(
 
     // Initiator greets; responder waits to be greeted.
     if !accepted {
-        if let Err(e) = channel.send(&Message::Hello(ours.clone())).await {
+        if let Err(e) = send(&mut channel, &Message::Hello(ours.clone())).await {
             handle.log(Level::Error, format!("could not send hello: {e}"));
             return;
         }
@@ -292,12 +260,15 @@ async fn session(
     }
 
     if accepted {
-        if let Err(e) = channel.send(&Message::HelloAck(ours.clone())).await {
+        if let Err(e) = send(&mut channel, &Message::HelloAck(ours.clone())).await {
             handle.log(Level::Error, format!("could not send hello ack: {e}"));
             return;
         }
     }
 
+    let (bridge, mut out_rx) = Bridge::channel();
+    let bridge = Arc::new(bridge);
+    state.install_bridge(bridge.clone());
     handle.link_up(peer_hello.clone(), peer_label.clone());
 
     if let Some(peer_edge) = conflicting_edge(&ours.edge, &peer_hello.edge) {
@@ -312,16 +283,20 @@ async fn session(
         );
     }
 
-    // Move the blocking receiver onto the async world once.
-    let mut last_ping = Instant::now();
+    let mut ticks = tokio::time::interval(KEEPALIVE);
+    ticks.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+    let mut last_received = Instant::now();
     let keepalive = !state.config().disable_keepalive;
     let mut outcome = "peer closed the connection".to_string();
 
     loop {
+        if !bridge.is_connected() || state.secret_input() != secret {
+            outcome = "input queue failed or pairing secret changed".into();
+            break;
+        }
         tokio::select! {
-            // Outbound first: input must not queue behind a poll tick.
             Some(msg) = out_rx.recv() => {
-                if let Err(e) = channel.send(&msg).await {
+                if let Err(e) = send(&mut channel, &msg).await {
                     outcome = format!("send failed: {e}");
                     break;
                 }
@@ -330,6 +305,13 @@ async fn session(
             inbound = channel.recv() => {
                 match inbound {
                     Ok(Some(msg)) => {
+                        last_received = Instant::now();
+                        if let Message::Ping(id) = msg {
+                            if let Err(e) = send(&mut channel, &Message::Pong(id)).await {
+                                outcome = format!("pong failed: {e}");
+                                break;
+                            }
+                        }
                         if apply(&handle, msg, &peer_label) {
                             outcome = "peer ended the session".into();
                             break;
@@ -343,10 +325,13 @@ async fn session(
                 }
             }
 
-            _ = tokio::time::sleep(POLL) => {
-                if keepalive && last_ping.elapsed() >= KEEPALIVE {
-                    last_ping = Instant::now();
-                    if let Err(e) = channel.send(&Message::Ping(1)).await {
+            _ = ticks.tick() => {
+                if keepalive {
+                    if last_received.elapsed() >= LINK_TIMEOUT {
+                        outcome = "peer stopped responding".into();
+                        break;
+                    }
+                    if let Err(e) = send(&mut channel, &Message::Ping(1)).await {
                         outcome = format!("keepalive failed: {e}");
                         break;
                     }
@@ -356,6 +341,12 @@ async fn session(
     }
 
     handle.link_down(&outcome);
+}
+
+// A timed-out write may have sent a partial frame; callers must drop the channel.
+async fn send(channel: &mut Channel, msg: &Message) -> anyhow::Result<()> {
+    tokio::time::timeout(LINK_TIMEOUT, channel.send(msg)).await??;
+    Ok(())
 }
 
 /// The two machines must name opposite sides, or the handoff crosses wrongly.
@@ -388,5 +379,58 @@ fn apply(handle: &AppHandle, msg: Message, _peer: &str) -> bool {
         }
         Message::Bye => true,
         Message::Hello(_) | Message::HelloAck(_) | Message::PairingConfirmed => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn pairing_replies_to_ping_and_reconnects_with_a_changed_secret() {
+        tokio::time::timeout(Duration::from_secs(8), async {
+            let (state, _, _) = crate::state::tests::state_at(Edge::Right);
+            let state = Arc::new(state);
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            for secret in ["test-pairing-secret-one", "test-pairing-secret-two"] {
+                state.set_secret(secret.into());
+                let connecting = tokio::spawn(Channel::connect(
+                    listener.local_addr().unwrap(),
+                    secret,
+                    true,
+                ));
+                let (stream, addr) = listener.accept().await.unwrap();
+                let driver = tokio::spawn(session(
+                    state.clone(),
+                    state.handle(),
+                    Connection::Stream(stream),
+                    secret.into(),
+                    addr.to_string(),
+                    true,
+                ));
+                let mut peer = connecting.await.unwrap().unwrap();
+                peer.send(&Message::Hello(local_hello(&state, secret)))
+                    .await
+                    .unwrap();
+                assert!(matches!(
+                    peer.recv().await.unwrap(),
+                    Some(Message::HelloAck(_))
+                ));
+                peer.send(&Message::Ping(42)).await.unwrap();
+                loop {
+                    match peer.recv().await.unwrap().unwrap() {
+                        Message::Pong(42) => break,
+                        Message::Ping(id) => peer.send(&Message::Pong(id)).await.unwrap(),
+                        msg => panic!("unexpected message: {msg:?}"),
+                    }
+                }
+                assert!(state.snapshot().peer_addr.is_some());
+                state.set_secret("test-changed-secret".into());
+                driver.await.unwrap();
+                assert!(state.snapshot().peer_addr.is_none());
+            }
+        })
+        .await
+        .expect("pairing or reconnect stalled");
     }
 }

@@ -22,20 +22,23 @@ pub fn run(config: mouser_core::config::Config, secret: String) -> anyhow::Resul
     let state = Arc::new(AppState::new(config, &secret)?);
     let app_state = Arc::clone(&state);
 
-    let mut builder = commands::builder(state);
+    let mut builder = commands::builder(state.clone());
 
     // Start the link before the window opens so the UI's first poll already
     // shows a real connection state rather than a blank one.
     builder = builder.setup(move |_app| {
         let link_state = Arc::clone(&app_state);
-        let link_secret = link_state.secret_input();
         tauri::async_runtime::spawn(async move {
-            link::run(link_state, link_secret).await;
+            link::run(link_state).await;
         });
         Ok(())
     });
 
-    builder
-        .run(tauri::generate_context!())
-        .map_err(|e| anyhow::anyhow!("window failed: {e}"))
+    let app = builder.build(tauri::generate_context!())?;
+    app.run(move |_, event| {
+        if matches!(event, tauri::RunEvent::Exit) {
+            state.shutdown();
+        }
+    });
+    Ok(())
 }

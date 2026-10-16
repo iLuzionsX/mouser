@@ -1,69 +1,50 @@
-//! Bounded queue carrying outbound messages to the link task.
-//!
-//! The webview drives input processing while a tokio task owns the socket, so
-//! the two need a hand-off that never blocks the thread producing input.
-//! Bounded is the important part: if the peer stalls, dropping the oldest
-//! queued input beats blocking capture, which would freeze the local cursor
-//! and read as a hang.
-
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{SyncSender, TrySendError};
+//! One bounded queue from input capture to the current connection.
 
 use mouser_core::protocol::Message;
+use std::sync::atomic::{AtomicBool, Ordering};
+use tokio::sync::mpsc::{self, error::TrySendError};
 
-/// Depth of the outbound queue.
-///
-/// Sized to absorb a burst of motion between polls without growing without
-/// bound: 256 events is roughly two seconds of continuous movement.
 pub const CAPACITY: usize = 256;
 
 pub struct Bridge {
-    tx: SyncSender<Message>,
-    /// Cleared once a send is refused because the receiver is gone.
-    connected: AtomicBool,
+    tx: mpsc::Sender<Message>,
+    failed: AtomicBool,
 }
 
 impl Bridge {
-    /// Create a bridge and the receiver its task will drain.
-    pub fn channel() -> (Bridge, std::sync::mpsc::Receiver<Message>) {
-        let (tx, rx) = std::sync::mpsc::sync_channel(CAPACITY);
+    pub fn channel() -> (Self, mpsc::Receiver<Message>) {
+        let (tx, rx) = mpsc::channel(CAPACITY);
         (
-            Bridge {
+            Self {
                 tx,
-                connected: AtomicBool::new(true),
+                failed: AtomicBool::new(false),
             },
             rx,
         )
     }
 
-    /// Queue a message, never blocking.
+    /// Never block capture. A lost event invalidates the session: it may be a key-up.
     pub fn send(&self, msg: Message) -> Result<(), SendError> {
-        match self.tx.try_send(msg) {
-            Ok(()) => Ok(()),
-            Err(TrySendError::Full(_)) => Err(SendError::QueueFull),
-            Err(TrySendError::Disconnected(_)) => {
-                // Latch it: once the receiver is gone it cannot come back,
-                // and the UI uses this to stop warning on every event.
-                self.connected.store(false, Ordering::Relaxed);
-                Err(SendError::Disconnected)
-            }
+        if !self.is_connected() {
+            return Err(SendError::Disconnected);
         }
+        self.tx.try_send(msg).map_err(|e| {
+            self.failed.store(true, Ordering::Relaxed);
+            match e {
+                TrySendError::Full(_) => SendError::QueueFull,
+                TrySendError::Closed(_) => SendError::Disconnected,
+            }
+        })
     }
 
-    /// Whether the link task is still listening.
-    ///
-    /// Stable std gives `SyncSender` no disconnect query, so liveness is
-    /// observed through the error from [`Bridge::send`] rather than queried. No
-    /// predicate is offered here because any probe would have to either occupy a
-    /// real queue slot with a sentinel message or be a constant that lies.
     pub fn is_connected(&self) -> bool {
-        self.connected.load(Ordering::Relaxed)
+        !self.failed.load(Ordering::Relaxed) && !self.tx.is_closed()
     }
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum SendError {
-    #[error("outbound queue is full")]
+    #[error("outbound queue is full; reconnecting")]
     QueueFull,
     #[error("link task is not running")]
     Disconnected,
@@ -75,7 +56,7 @@ mod tests {
 
     #[test]
     fn queue_reports_full_instead_of_blocking() {
-        let (bridge, rx) = Bridge::channel();
+        let (bridge, mut rx) = Bridge::channel();
         for i in 0..CAPACITY {
             bridge.send(Message::Ping(i as u64)).expect("should fit");
         }
@@ -83,15 +64,14 @@ mod tests {
             bridge.send(Message::Bye),
             Err(SendError::QueueFull)
         ));
-        // The full item was dropped, not the queue.
+        assert!(!bridge.is_connected(), "overflow must end the session");
+        // Already queued input is still available until the receiver closes.
         assert!(rx.try_recv().is_ok());
     }
 
     #[test]
     fn liveness_latches_off_after_a_disconnected_send() {
         let (bridge, rx) = Bridge::channel();
-        // Liveness is only observable once a send has failed, so a fresh
-        // bridge reports connected.
         assert!(bridge.is_connected());
 
         drop(rx);

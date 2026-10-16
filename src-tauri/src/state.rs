@@ -53,7 +53,6 @@ pub struct Snapshot {
     pub listening: bool,
     pub bind_addr: String,
     pub peer_addr: Option<String>,
-    pub round_trip_ms: Option<f64>,
     pub remote_active: bool,
     pub has_secret: bool,
     /// Why input capture is not running, if it is not.
@@ -110,6 +109,21 @@ fn returns_home(bounds: &Rect, edge: Edge, nx: f64, ny: f64, dx: f64, dy: f64) -
         Edge::Bottom => ny - bounds.bottom(),
     };
     overshoot > RETURN_MARGIN
+}
+
+// Keep seam hysteresis, but never accumulate invisible travel beyond other edges.
+fn mirrored_position(bounds: &Rect, edge: Edge, x: f64, y: f64) -> (f64, f64) {
+    let margin = RETURN_MARGIN + 1.0;
+    (
+        x.clamp(
+            bounds.left() - if edge == Edge::Left { margin } else { 0.0 },
+            bounds.right() + if edge == Edge::Right { margin } else { -1.0 },
+        ),
+        y.clamp(
+            bounds.top() - if edge == Edge::Top { margin } else { 0.0 },
+            bounds.bottom() + if edge == Edge::Bottom { margin } else { -1.0 },
+        ),
+    )
 }
 
 /// Minimum gap between two handoffs.
@@ -174,6 +188,7 @@ struct Inner {
     /// so a peer that announces a different edge than expected still behaves.
     return_edge: Option<Edge>,
     last_cursor: (f64, f64),
+    held: Vec<InputEvent>,
     /// Set right after the pointer is recentered away from the shared edge.
     ///
     /// Input is pumped in bursts, so the queue can still hold mouse events
@@ -183,14 +198,13 @@ struct Inner {
     /// position arrives.
     await_recenter: Option<(f64, f64)>,
     last_handoff: Option<Instant>,
-    bridge: Option<Arc<Mutex<Bridge>>>,
+    bridge: Option<Arc<Bridge>>,
     log: Vec<LogLine>,
     next_seq: u64,
     status: String,
     peer_name: String,
     fingerprint: String,
     peer_addr: Option<String>,
-    round_trip_ms: Option<f64>,
     listening: bool,
     bind_addr: String,
     /// Held so the UI can hand over a new secret without a restart.
@@ -199,6 +213,29 @@ struct Inner {
     /// Set when [`mouser_input::InputBackend::start_capture`] failed, so the UI
     /// can tell the user what is missing instead of the process dying.
     capture_error: Option<String>,
+}
+
+impl Inner {
+    fn release_held(&mut self) {
+        for event in self.held.drain(..) {
+            let _ = self.backend.inject(&event);
+        }
+    }
+}
+
+fn key_up(event: InputEvent) -> Option<InputEvent> {
+    match event {
+        InputEvent::Key { key, .. } => Some(InputEvent::Key {
+            key,
+            pressed: false,
+            mods: Default::default(),
+        }),
+        InputEvent::Button { button, .. } => Some(InputEvent::Button {
+            button,
+            pressed: false,
+        }),
+        _ => None,
+    }
 }
 
 impl AppState {
@@ -236,6 +273,7 @@ impl AppState {
             forwarding: AtomicBool::new(false),
             return_edge: None,
             last_cursor: (0.0, 0.0),
+            held: Vec::new(),
             await_recenter: None,
             last_handoff: None,
             bridge: None,
@@ -243,7 +281,6 @@ impl AppState {
             next_seq: 1,
             peer_name: String::new(),
             peer_addr: None,
-            round_trip_ms: None,
             config,
             backend,
             capture_error: capture_error.clone(),
@@ -433,14 +470,16 @@ impl AppState {
             return;
         }
 
+        mouser_input::set_forwarding(true);
+
         // Drive the state machine rather than assigning to it, so ownership
         // rules stay in one place.
         guard.session.on_event(
             SessionEvent::CursorMoved {
                 x: guard.last_cursor.0,
                 y: guard.last_cursor.1,
-                dx: edge.is_vertical().to_f64(),
-                dy: (!edge.is_vertical()).to_f64(),
+                dx: f64::from(u8::from(edge.is_vertical())),
+                dy: f64::from(u8::from(!edge.is_vertical())),
             },
             |_, _, _, _, _| true,
         );
@@ -448,7 +487,7 @@ impl AppState {
         // The visible cursor is now on the peer, so hide ours and keep
         // relaying. `remote_active` stays clear: that flag means the opposite,
         // that this machine is the one being driven. On Windows the hide is a
-        // counted no-op — its display count only applies over windows of the
+        // no-op — its display count only applies over windows of the
         // calling thread — so the parked pointer stays visible at the seam,
         // the usual software-KVM behavior.
         let _ = guard.backend.hide_cursor();
@@ -500,17 +539,12 @@ impl AppState {
         let Some(bridge) = guard.bridge.clone() else {
             return;
         };
-        match bridge.lock() {
-            Ok(bridge) => {
-                if let Err(e) = bridge.send(msg) {
-                    log(guard, Level::Warn, format!("send dropped: {e}"));
-                }
-            }
-            Err(_) => log(guard, Level::Error, "bridge lock poisoned".into()),
+        if let Err(e) = bridge.send(msg) {
+            log(guard, Level::Warn, format!("send dropped: {e}"));
         }
     }
 
-    pub fn install_bridge(&self, bridge: Arc<Mutex<Bridge>>) {
+    pub fn install_bridge(&self, bridge: Arc<Bridge>) {
         self.inner.lock().expect("state mutex poisoned").bridge = Some(bridge);
     }
 
@@ -575,7 +609,6 @@ impl AppState {
             listening: guard.listening,
             bind_addr: guard.bind_addr.clone(),
             peer_addr: guard.peer_addr.clone(),
-            round_trip_ms: guard.round_trip_ms,
             remote_active: guard.remote_active.load(Ordering::Relaxed)
                 || guard.forwarding.load(Ordering::Relaxed),
             has_secret: guard.has_secret,
@@ -593,10 +626,12 @@ impl AppState {
     }
 
     pub fn shutdown(&self) {
-        let guard = self.inner.lock().expect("state mutex poisoned");
+        let mut guard = self.inner.lock().expect("state mutex poisoned");
         // Never leave the pointer hidden: hiding is a counted display state,
         // and a graceful quit should always undo it.
         let _ = guard.backend.show_cursor();
+        guard.release_held();
+        mouser_input::set_forwarding(false);
         guard.backend.stop_capture();
     }
 }
@@ -638,10 +673,10 @@ impl AppHandle {
         guard.peer_name = peer.device_name.clone();
         guard.fingerprint = peer.secret_fingerprint.clone();
         guard.peer_addr = Some(addr.clone());
-        guard.round_trip_ms = None;
         guard.status = "connected".into();
         guard.remote_active.store(false, Ordering::Relaxed);
         guard.forwarding.store(false, Ordering::Relaxed);
+        mouser_input::set_forwarding(false);
         guard.return_edge = None;
         guard.await_recenter = None;
         let _ = guard.backend.show_cursor();
@@ -660,11 +695,13 @@ impl AppHandle {
 
     pub fn link_down(&self, reason: &str) {
         let mut guard = self.inner.lock().expect("state mutex poisoned");
+        guard.release_held();
+        guard.bridge = None;
         guard.peer_addr = None;
-        guard.round_trip_ms = None;
         guard.status = "disconnected".into();
         guard.remote_active.store(false, Ordering::Relaxed);
         guard.forwarding.store(false, Ordering::Relaxed);
+        mouser_input::set_forwarding(false);
         guard.return_edge = None;
         guard.await_recenter = None;
         let _ = guard.backend.show_cursor();
@@ -679,11 +716,6 @@ impl AppHandle {
         guard.listening = true;
         guard.bind_addr = bound.clone();
         log(&mut guard, Level::Info, format!("listening on {bound}"));
-    }
-
-    pub fn set_rtt(&self, ms: f64) {
-        let mut guard = self.inner.lock().expect("state mutex poisoned");
-        guard.round_trip_ms = Some(ms);
     }
 
     pub fn set_status(&self, status: &str) {
@@ -712,10 +744,11 @@ impl AppHandle {
             let bounds = screen_of(&guard.backend);
             let (x, y) = guard.last_cursor;
             let (nx, ny) = (x + dx as f64, y + dy as f64);
-            guard.last_cursor = (nx, ny);
-
             let edge = guard.return_edge.unwrap_or(guard.session.edge());
+            guard.last_cursor = mirrored_position(&bounds, edge, nx, ny);
+
             if returns_home(&bounds, edge, nx, ny, dx as f64, dy as f64) {
+                guard.release_held();
                 guard.remote_active.store(false, Ordering::Relaxed);
                 guard.return_edge = None;
                 let _ = guard.backend.show_cursor();
@@ -741,25 +774,31 @@ impl AppHandle {
                 let bridge = guard.bridge.clone();
                 drop(guard);
                 if let Some(bridge) = bridge {
-                    // A poisoned bridge lock is reported like a failed send
-                    // rather than silently swallowed: a release that never
-                    // leaves the machine strands control with the peer.
-                    let result =
-                        bridge.lock().map(|bridge| bridge.send(Message::ReleaseControl));
-                    match result {
-                        Ok(Ok(())) => {}
-                        Ok(Err(e)) => {
-                            self.log(Level::Warn, format!("send dropped: {e}"));
-                        }
-                        Err(poisoned) => {
-                            self.log(Level::Warn, format!("send dropped: {poisoned}"));
-                        }
+                    if let Err(e) = bridge.send(Message::ReleaseControl) {
+                        self.log(Level::Warn, format!("send dropped: {e}"));
                     }
                 }
                 return;
             }
+            let (x, y) = guard.last_cursor;
+            if let Err(e) = guard.backend.warp_cursor(
+                x.clamp(bounds.left(), bounds.right() - 1.0),
+                y.clamp(bounds.top(), bounds.bottom() - 1.0),
+            ) {
+                log(&mut guard, Level::Warn, format!("move failed: {e}"));
+            }
+            return;
         }
 
+        if let Some(release) = key_up(event) {
+            guard.held.retain(|held| *held != release);
+            if matches!(
+                event,
+                InputEvent::Key { pressed: true, .. } | InputEvent::Button { pressed: true, .. }
+            ) {
+                guard.held.push(release);
+            }
+        }
         if let Err(e) = guard.backend.inject(&event) {
             log(&mut guard, Level::Warn, format!("inject failed: {e}"));
         }
@@ -769,6 +808,7 @@ impl AppHandle {
     pub fn take_control(&self, edge: Edge, fraction: f64) {
         let mut guard = self.inner.lock().expect("state mutex poisoned");
         guard.forwarding.store(false, Ordering::Relaxed);
+        mouser_input::set_forwarding(false);
         if guard.remote_active.swap(true, Ordering::Relaxed) {
             return;
         }
@@ -788,7 +828,10 @@ impl AppHandle {
         // Without the warp the two sit apart by wherever the pointer happened
         // to rest, and control comes back before the visible cursor reaches
         // the seam.
-        let _ = guard.backend.warp_cursor(x, y);
+        let _ = guard.backend.warp_cursor(
+            x.clamp(bounds.left(), bounds.right() - 1.0),
+            y.clamp(bounds.top(), bounds.bottom() - 1.0),
+        );
         guard.await_recenter = None;
 
         // The mirrored cursor is the one the user is now working with, so it
@@ -804,8 +847,11 @@ impl AppHandle {
     /// The peer handed control back.
     pub fn release_control(&self) {
         let mut guard = self.inner.lock().expect("state mutex poisoned");
+        guard.release_held();
+        guard.last_handoff = Some(Instant::now());
         let remote = guard.remote_active.swap(false, Ordering::Relaxed);
         let forwarding = guard.forwarding.swap(false, Ordering::Relaxed);
+        mouser_input::set_forwarding(false);
         if !remote && !forwarding {
             return;
         }
@@ -828,34 +874,10 @@ impl AppHandle {
             "-> local control (peer released)".into(),
         );
     }
-
-    /// Replay an outbound message to the link.
-    pub fn send(&self, msg: Message) {
-        let bridge = {
-            let guard = self.inner.lock().expect("state mutex poisoned");
-            guard.bridge.clone()
-        };
-        if let Some(bridge) = bridge {
-            if let Err(e) = bridge.lock().expect("bridge poisoned").send(msg) {
-                self.log(Level::Warn, format!("send dropped: {e}"));
-            }
-        }
-    }
-}
-
-/// `f64::from(bool)` is not implemented, so make the intent explicit.
-trait BoolToF64 {
-    fn to_f64(self) -> f64;
-}
-
-impl BoolToF64 for bool {
-    fn to_f64(self) -> f64 {
-        if self { 1.0 } else { 0.0 }
-    }
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use std::sync::mpsc::channel;
 
@@ -863,7 +885,7 @@ mod tests {
     /// captured events directly. The receiver is handed back alongside the
     /// sender: the real pump thread owns it, and the test drains it through
     /// [`pump_all`] instead.
-    fn state_at(
+    pub(crate) fn state_at(
         edge: Edge,
     ) -> (
         AppState,
@@ -882,6 +904,7 @@ mod tests {
             forwarding: AtomicBool::new(false),
             return_edge: None,
             last_cursor: (0.0, 0.0),
+            held: Vec::new(),
             await_recenter: None,
             last_handoff: None,
             bridge: None,
@@ -891,7 +914,6 @@ mod tests {
             peer_name: String::new(),
             fingerprint: String::new(),
             peer_addr: None,
-            round_trip_ms: None,
             listening: false,
             bind_addr: String::new(),
             secret_input: String::new(),
@@ -996,8 +1018,8 @@ mod tests {
         // local pointer happened to idle, so pushing back over the seam
         // released nothing and control stayed with the peer.
         let (state, tx, rx) = state_at(Edge::Left);
-        let (bridge, out_rx) = Bridge::channel();
-        state.install_bridge(Arc::new(Mutex::new(bridge)));
+        let (bridge, mut out_rx) = Bridge::channel();
+        state.install_bridge(Arc::new(bridge));
         let handle = state.handle();
 
         // Where the pointer started, so the test can put it back.
@@ -1050,15 +1072,55 @@ mod tests {
             !state.snapshot().remote_active,
             "pushing back over the seam must return control"
         );
-        assert!(matches!(
-            out_rx.try_recv(),
-            Ok(Message::ReleaseControl))
-        );
+        assert!(matches!(out_rx.try_recv(), Ok(Message::ReleaseControl)));
 
         // Put the pointer back where the test found it.
         if let Some((x, y)) = home {
-            let mut guard = state.inner.lock().expect("state mutex poisoned");
+            let guard = state.inner.lock().expect("state mutex poisoned");
             let _ = guard.backend.warp_cursor(x, y);
         }
+    }
+    #[test]
+    fn offscreen_motion_does_not_build_up_before_returning() {
+        let bounds = Rect::new(0.0, 0.0, 1000.0, 800.0);
+        let (x, y) = mirrored_position(&bounds, Edge::Left, 100_000.0, -100_000.0);
+        assert_eq!((x, y), (999.0, 0.0));
+        assert_eq!(
+            mirrored_position(&bounds, Edge::Left, x - 10.0, y + 10.0),
+            (989.0, 10.0)
+        );
+        // Small deliberate pushes still accumulate across the return seam.
+        let mut x = 0.0;
+        for _ in 0..4 {
+            x = mirrored_position(&bounds, Edge::Left, x - 2.0, 400.0).0;
+        }
+        assert!(returns_home(&bounds, Edge::Left, x, 400.0, -2.0, 0.0));
+    }
+
+    #[test]
+    fn disconnect_drops_the_old_queue_and_releases_held_input() {
+        let (state, _, _) = state_at(Edge::Right);
+        let (bridge, mut rx) = Bridge::channel();
+        state.install_bridge(Arc::new(bridge));
+        {
+            let mut guard = state.inner.lock().unwrap();
+            // Unknown key: exercises bookkeeping without typing into the desktop.
+            guard.held.push(
+                key_up(InputEvent::Key {
+                    key: mouser_core::protocol::HidKey(255),
+                    pressed: true,
+                    mods: Default::default(),
+                })
+                .unwrap(),
+            );
+        }
+        state.handle().link_down("test disconnect");
+        let guard = state.inner.lock().unwrap();
+        assert!(guard.bridge.is_none());
+        assert!(guard.held.is_empty());
+        assert!(matches!(
+            rx.try_recv(),
+            Err(tokio::sync::mpsc::error::TryRecvError::Disconnected)
+        ));
     }
 }

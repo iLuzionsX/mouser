@@ -226,3 +226,50 @@ Windows quirks:
   launch, build dev. The key is WebView2-only; the Mac ignores it — no
   host action needed beyond staying synced (its WKWebView suspension is
   a separate mechanism if it ever bites).
+
+- **2026-10-11** — Codex inspected the checkout and host state for a minimal-fix
+  assessment; the exact user-visible symptom is awaiting clarification. No
+  mouser process or TCP 47583 listener was found, and the canonical host log
+  was absent. Source review found a blocking std receiver inside a Tokio task
+  (`src-tauri/src/link.rs:46–48`); moving that bridge to `spawn_blocking` with
+  `blocking_send` would avoid occupying an async worker. macOS movement also
+  reads the OS cursor before each posted move, a possible burst-motion issue
+  requiring validation. No application code changed, no tests run, and no host
+  restart, commit, or push performed.
+
+- **2026-10-11 ~16:41 EDT** — Codex, user authorized a code review/fix and
+  simplification pass. Local changes on the existing checkout (no fetch/pull,
+  commit, or push): replaced the two outbound queues and blocking forwarding
+  task with one per-pairing Tokio queue; overflow invalidates the connection,
+  stale input cannot survive reconnect, writes/quiet peers time out, and Ping
+  gets Pong. The current UI pairing secret is used on subsequent connections;
+  changing it ends an active pairing. Cursor replay now posts the accumulated
+  absolute position, clamps non-seam edges, and retains seam hysteresis. Fixed
+  the right/bottom last-pixel crossing check and UI edge enum casing. Forwarded
+  typing/clicks/scrolling are suppressed locally; pointer motion stays local
+  for capture. Held injected keys/buttons are released on disconnect, return,
+  and normal app exit. macOS injection retains modifier state and click position.
+  Windows scan/HID mappings, Alt handling, wheel units, hook-ready reporting,
+  and WM_QUIT shutdown were corrected. Removed ineffective Windows ShowCursor
+  counting, redundant bridge locks, and unused RTT UI/state. UI polls cannot
+  overlap and recover from failures. Non-test source is 38 lines smaller
+  (including comments/whitespace); regression tests are additional.
+  Validation: 72 workspace tests passed, final affected-crate tests passed,
+  macOS Clippy with -D warnings and formatting/diff checks passed, and the Node
+  UI regression passed. Windows input crate including tests cross-compiles for
+  x86_64-pc-windows-gnu using the rustup stable compiler, with isolated output
+  in target/windows-check (the default cargo/rustc are separate Homebrew tools).
+  Windows runtime was NOT tested or updated. Built cargo build in dev profile;
+  host launched detached with secret only in the environment, PID 64224,
+  PPID 1, log at $TMPDIR/mouser-host.log. Log confirms input capture running and
+  listener on 0.0.0.0:47583. No established PC connection or paired-with log
+  arrived, so live two-machine behavior remains unverified. The usual shell
+  nohup launch did not survive the tool shell; Python Popen with
+  start_new_session=True launched the equivalent host successfully.
+
+- **2026-10-11** — Codex measured the current checkout: 6,519 source lines
+  across 22 Rust/JS/CJS/HTML/CSS files, including tests, comments, and blank
+  lines (5,915 nonblank). Tracked/nonignored project files total about 0.64 MB;
+  the dev executable is 41.14 MB. The entire checkout uses about 5.34 GB on
+  disk, almost all of it generated target/ build output, including the Windows
+  cross-check cache. No application code or running-process changes.

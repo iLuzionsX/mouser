@@ -33,8 +33,9 @@ use core_foundation::mach_port::CFMachPortRef;
 use core_foundation::runloop::{CFRunLoop, kCFRunLoopCommonModes};
 use core_graphics::display::CGDisplay;
 use core_graphics::event::{
-    CGEvent, CGEventField, CGEventTap, CGEventTapLocation, CGEventTapOptions, CGEventTapPlacement,
-    CGEventTapProxy, CGEventType, CGMouseButton, CallbackResult, EventField, ScrollEventUnit,
+    CGEvent, CGEventField, CGEventFlags, CGEventTap, CGEventTapLocation, CGEventTapOptions,
+    CGEventTapPlacement, CGEventTapProxy, CGEventType, CGMouseButton, CallbackResult, EventField,
+    ScrollEventUnit,
 };
 use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 use core_graphics::geometry::{CGPoint, CGRect};
@@ -123,6 +124,8 @@ pub struct MacosBackend {
     thread: Mutex<Option<JoinHandle<()>>>,
     /// Mouse buttons currently held, as [`HELD_LEFT`] and friends.
     held: AtomicU8,
+    modifiers: AtomicU8,
+    position: Mutex<Option<CGPoint>>,
     /// Whether the cursor is hidden, so hide/show stay balanced.
     ///
     /// `CGDisplayHideCursor` maintains a count rather than a boolean, so an
@@ -138,6 +141,8 @@ impl MacosBackend {
             loop_ref: Mutex::new(None),
             thread: Mutex::new(None),
             held: AtomicU8::new(0),
+            modifiers: AtomicU8::new(0),
+            position: Mutex::new(None),
             cursor_hidden: AtomicBool::new(false),
         }
     }
@@ -188,13 +193,11 @@ fn callback(
         }
 
         if let Some(captured) = translate(event_type, event) {
-            // A full queue means the link task has fallen behind. Dropping is
-            // the right call: blocking inside a tap callback is what gets the
-            // tap disabled in the first place.
-            let _ = sink.send(captured);
+            let suppress = crate::suppress_local(&captured);
+            if sink.send(captured).is_ok() && suppress {
+                return CallbackResult::Drop;
+            }
         }
-
-        // Never consume: the local user keeps their input either way.
         CallbackResult::Keep
     }
 }
@@ -515,11 +518,7 @@ impl InputBackend for MacosBackend {
     }
 
     fn warp_cursor(&self, x: f64, y: f64) -> Result<(), InputError> {
-        // Reuse the injection path: it posts a tagged mouse event, so the tap
-        // that captures local input filters it out instead of forwarding the
-        // recentering as if the user had moved the mouse.
-        let (cx, cy) = self.cursor_position().unwrap_or((x, y));
-        self.inject_move((x - cx).round() as i32, (y - cy).round() as i32)
+        self.post_move(CGPoint::new(x, y))
     }
 
     fn hide_cursor(&self) -> Result<(), InputError> {
@@ -577,20 +576,19 @@ impl MacosBackend {
     }
 
     fn inject_move(&self, dx: i32, dy: i32) -> Result<(), InputError> {
-        // macOS has no relative-movement primitive for injection, so the delta
-        // is applied to where the cursor already is and posted as an absolute
-        // move. The peer therefore tracks its own position, which is the same
-        // model the Windows backend uses.
         let (x, y) = self.cursor_position().unwrap_or((0.0, 0.0));
-        let target = CGPoint::new(x + dx as f64, y + dy as f64);
+        self.post_move(CGPoint::new(x + dx as f64, y + dy as f64))
+    }
+
+    fn post_move(&self, target: CGPoint) -> Result<(), InputError> {
         let (event_type, mouse_button, number) = self.drag_kind();
         let event = CGEvent::new_mouse_event(event_source()?, event_type, target, mouse_button)
             .map_err(|()| InputError::Inject("could not build a mouse-moved event".into()))?;
         if number != 0 {
             event.set_integer_value_field(EventField::MOUSE_EVENT_BUTTON_NUMBER, number);
         }
-        tag_injected(&event);
-        event.post(CGEventTapLocation::HID);
+        *self.position.lock().expect("cursor position poisoned") = Some(target);
+        self.post(event);
         Ok(())
     }
 
@@ -599,8 +597,7 @@ impl MacosBackend {
         // notch feeling like one notch.
         let event = CGEvent::new_scroll_event(event_source()?, ScrollEventUnit::LINE, 2, dy, dx, 0)
             .map_err(|()| InputError::Inject("could not build a scroll event".into()))?;
-        tag_injected(&event);
-        event.post(CGEventTapLocation::HID);
+        self.post(event);
         Ok(())
     }
 
@@ -632,16 +629,32 @@ impl MacosBackend {
             (Button::Forward, false) => (CGEventType::OtherMouseUp, CGMouseButton::Center, 4),
         };
         let point = self
-            .cursor_position()
-            .map_or(CGPoint::new(0.0, 0.0), |(x, y)| CGPoint::new(x, y));
+            .position
+            .lock()
+            .expect("cursor position poisoned")
+            .unwrap_or_else(|| {
+                let (x, y) = self.cursor_position().unwrap_or((0.0, 0.0));
+                CGPoint::new(x, y)
+            });
         let event = CGEvent::new_mouse_event(event_source()?, event_type, point, mouse_button)
             .map_err(|()| InputError::Inject("could not build a mouse-button event".into()))?;
         if number != 0 {
             event.set_integer_value_field(EventField::MOUSE_EVENT_BUTTON_NUMBER, number);
         }
+        self.post(event);
+        Ok(())
+    }
+
+    fn post(&self, event: CGEvent) {
+        let held = self.modifiers.load(Ordering::Relaxed);
+        let flags = (0..8)
+            .filter(|bit| held & (1 << bit) != 0)
+            .fold(0, |flags, bit| {
+                flags | modifier_flag(HidKey(0xE0 + bit)).unwrap()
+            });
+        event.set_flags(CGEventFlags::from_bits_truncate(flags));
         tag_injected(&event);
         event.post(CGEventTapLocation::HID);
-        Ok(())
     }
 
     fn inject_key(&self, key: HidKey, pressed: bool) -> Result<(), InputError> {
@@ -650,8 +663,15 @@ impl MacosBackend {
         };
         let event = CGEvent::new_keyboard_event(event_source()?, native as u16, pressed)
             .map_err(|()| InputError::Inject("could not build a keyboard event".into()))?;
-        tag_injected(&event);
-        event.post(CGEventTapLocation::HID);
+        if key.is_modifier() {
+            let bit = 1 << (key.0 - 0xE0);
+            if pressed {
+                self.modifiers.fetch_or(bit, Ordering::Relaxed);
+            } else {
+                self.modifiers.fetch_and(!bit, Ordering::Relaxed);
+            }
+        }
+        self.post(event);
         Ok(())
     }
 }

@@ -30,20 +30,17 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
 };
 use windows::Win32::UI::WindowsAndMessaging::{
     CallNextHookEx, DispatchMessageW, GetCursorPos, GetMessageW, GetSystemMetrics, KBDLLHOOKSTRUCT,
-    LLKHF_ALTDOWN, LLKHF_EXTENDED, LLKHF_INJECTED, LLMHF_INJECTED, MSG, MSLLHOOKSTRUCT,
-    PostThreadMessageW, SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN, SM_XVIRTUALSCREEN,
-    SM_YVIRTUALSCREEN, SetWindowsHookExW, ShowCursor, TranslateMessage, UnhookWindowsHookEx,
-    WH_KEYBOARD_LL, WH_MOUSE_LL, WM_KEYDOWN, WM_KEYUP, WM_LBUTTONDOWN, WM_LBUTTONUP,
-    WM_MBUTTONDOWN, WM_MBUTTONUP, WM_MOUSEHWHEEL, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_RBUTTONDOWN,
-    WM_RBUTTONUP, WM_SYSKEYDOWN, WM_SYSKEYUP,
+    LLKHF_EXTENDED, LLKHF_INJECTED, LLMHF_INJECTED, MSG, MSLLHOOKSTRUCT, PostThreadMessageW,
+    SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN, SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN,
+    SetWindowsHookExW, TranslateMessage, UnhookWindowsHookEx, WH_KEYBOARD_LL, WH_MOUSE_LL,
+    WM_KEYDOWN, WM_KEYUP, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MBUTTONDOWN, WM_MBUTTONUP,
+    WM_MOUSEHWHEEL, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_QUIT, WM_RBUTTONDOWN, WM_RBUTTONUP,
+    WM_SYSKEYDOWN, WM_SYSKEYUP,
 };
 
 use crate::events::CapturedEvent;
-use crate::keymap;
+use crate::keymap::{self, hid_from_scan};
 use crate::{InputBackend, InputError, ScreenInfo};
-
-/// Private application message used to stop the hook thread's message loop.
-const WM_APP_QUIT: u32 = 0x4D1A;
 
 /// `SendInput` treats a `dx`/`dy` of this as "no movement", which is how a
 /// button or wheel event is expressed without also moving the cursor.
@@ -58,26 +55,9 @@ const WHEEL_DELTA: i32 = 120;
 /// available, and must be non-zero to be distinguishable from "unset".
 const INJECT_TAG: usize = 0x6D6F_7573_6572;
 
-/// How deep hide drives the calling thread's cursor display count.
-///
-/// The count is per thread, and it only applies while the cursor is over a
-/// window that belongs to that thread. Every thread mouser hides from owns
-/// no windows, so on Windows the pair is a counted no-op: the pointer parked
-/// at the shared seam stays visible, which is the usual software-KVM
-/// behavior. The count is still driven with headroom rather than one unit,
-/// so the pair stays correct the day a caller that owns windows uses it: a
-/// stray `ShowCursor(true)` from other code on that thread — a webview is
-/// plenty capable of it — must not be able to un-hide mid-handoff.
-const CURSOR_DEPTH: usize = 4;
-
 pub struct WindowsBackend {
     active: AtomicBool,
     hook_thread: Mutex<Option<HookThread>>,
-    /// Whether the cursor is hidden, so hide and show stay balanced.
-    ///
-    /// Like the macOS backend's flag: the display count must not skew, or a
-    /// later hide/show pair no longer matches up.
-    cursor_hidden: AtomicBool,
 }
 
 struct HookThread {
@@ -90,7 +70,6 @@ impl WindowsBackend {
         Self {
             active: AtomicBool::new(false),
             hook_thread: Mutex::new(None),
-            cursor_hidden: AtomicBool::new(false),
         }
     }
 
@@ -162,9 +141,7 @@ impl InputBackend for WindowsBackend {
             // than racing it and leaking the thread.
             for _ in 0..50 {
                 // SAFETY: post-only call; nothing is shared with the callee.
-                if unsafe { PostThreadMessageW(thread_id, WM_APP_QUIT, WPARAM(0), LPARAM(0)) }
-                    .is_ok()
-                {
+                if unsafe { PostThreadMessageW(thread_id, WM_QUIT, WPARAM(0), LPARAM(0)) }.is_ok() {
                     break;
                 }
                 std::thread::sleep(std::time::Duration::from_millis(10));
@@ -178,10 +155,6 @@ impl InputBackend for WindowsBackend {
 
     fn inject(&self, event: &InputEvent) -> Result<(), InputError> {
         match *event {
-            // A peer sends absolute cursor positions in virtual-desktop
-            // coordinates, which is the only representation that can cross a
-            // monitor boundary. Deltas would be wrong on any setup where the
-            // two machines' monitors differ in size or offset.
             InputEvent::Move { .. } => self.inject_absolute(event),
             InputEvent::Scroll { dx, dy } => self.inject_scroll(dx, dy),
             InputEvent::Button { button, pressed } => self.inject_button(button, pressed),
@@ -215,32 +188,20 @@ impl InputBackend for WindowsBackend {
     }
 
     fn warp_cursor(&self, x: f64, y: f64) -> Result<(), InputError> {
-        // `SendInput` marks the event as injected, so the low-level hook drops
-        // it instead of forwarding the recentering back to the peer.
-        let (cx, cy) = self.cursor_position().unwrap_or((x, y));
-        self.inject_absolute(&InputEvent::Move {
-            dx: (x - cx).round() as i32,
-            dy: (y - cy).round() as i32,
-        })
+        let (x, y) = self.absolute_coords(x, y);
+        send(&[mouse_input(
+            x,
+            y,
+            MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK,
+        )])
     }
 
+    // ShowCursor only affects windows owned by the calling thread. These hook
+    // threads own none, so leave the parked pointer visible without changing counts.
     fn hide_cursor(&self) -> Result<(), InputError> {
-        // Idempotent, like the macOS backend: the display count must stay
-        // balanced across however many state transitions ask for this.
-        if self.cursor_hidden.swap(true, Ordering::SeqCst) {
-            return Ok(());
-        }
-        // SAFETY: ShowCursor takes no pointers and shares no state.
-        unsafe { drive_cursor(false) };
         Ok(())
     }
-
     fn show_cursor(&self) -> Result<(), InputError> {
-        if !self.cursor_hidden.swap(false, Ordering::SeqCst) {
-            return Ok(());
-        }
-        // SAFETY: ShowCursor takes no pointers and shares no state.
-        unsafe { drive_cursor(true) };
         Ok(())
     }
 }
@@ -251,12 +212,7 @@ impl WindowsBackend {
             return Ok(());
         };
         let (cx, cy) = self.cursor_position().unwrap_or((0.0, 0.0));
-        let (x, y) = self.absolute_coords(cx + dx as f64, cy + dy as f64);
-        send(&[mouse_input(
-            x,
-            y,
-            MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK,
-        )])
+        self.warp_cursor(cx + dx as f64, cy + dy as f64)
     }
 
     fn inject_scroll(&self, dx: i32, dy: i32) -> Result<(), InputError> {
@@ -302,24 +258,6 @@ impl WindowsBackend {
             flags |= KEYEVENTF_KEYUP;
         }
         send(&[keyboard_input(VIRTUAL_KEY(native as u16), flags)])
-    }
-}
-
-/// Drive the calling thread's cursor display count `CURSOR_DEPTH` units.
-///
-/// Hides and shows run on whatever thread asks for them, so a pair may
-/// adjust two different counts; the idempotence flag in the backend is what
-/// keeps the pair logical rather than the count itself. The depth is more
-/// than one unit so a stray `ShowCursor(true)` from other code on a
-/// window-owning thread cannot reveal the pointer mid-handoff.
-///
-/// # Safety
-///
-/// `ShowCursor` takes no pointers and shares no state with the caller.
-unsafe fn drive_cursor(show: bool) {
-    for _ in 0..CURSOR_DEPTH {
-        // SAFETY: see the function documentation.
-        unsafe { ShowCursor(show) };
     }
 }
 
@@ -386,10 +324,6 @@ fn sink_slot() -> &'static Mutex<Option<Sender<CapturedEvent>>> {
 fn hook_loop(sink: &Sender<CapturedEvent>, thread_id_tx: &Sender<u32>) -> Result<(), InputError> {
     *sink_slot().lock().unwrap() = Some(sink.clone());
 
-    thread_id_tx
-        .send(unsafe { GetCurrentThreadId() })
-        .map_err(|e| InputError::Hook(e.to_string()))?;
-
     // SAFETY: both callbacks live in this module and stay valid for the
     // whole lifetime of the process; the hooks are removed before this
     // function returns, so no callback can run after it does.
@@ -404,6 +338,12 @@ fn hook_loop(sink: &Sender<CapturedEvent>, thread_id_tx: &Sender<u32>) -> Result
             }
         };
 
+        if thread_id_tx.send(GetCurrentThreadId()).is_err() {
+            let _ = UnhookWindowsHookEx(keyboard);
+            let _ = UnhookWindowsHookEx(mouse);
+            *sink_slot().lock().unwrap() = None;
+            return Ok(());
+        }
         let mut msg = MSG::default();
         loop {
             let result = GetMessageW(&mut msg, None, 0, 0);
@@ -424,13 +364,15 @@ fn hook_loop(sink: &Sender<CapturedEvent>, thread_id_tx: &Sender<u32>) -> Result
 }
 
 /// Forward a captured event, if a hook thread is listening.
-fn forward(event: CapturedEvent) {
+fn forward(event: CapturedEvent) -> bool {
     let slot = sink_slot();
     let guard = slot.lock().expect("sink slot is never poisoned");
     if let Some(sink) = guard.as_ref() {
         // A closed receiver simply means the app is shutting down.
-        let _ = sink.send(event);
+        let suppress = crate::suppress_local(&event);
+        return sink.send(event).is_ok() && suppress;
     }
+    false
 }
 
 /// True when an event originated from injection rather than a real device.
@@ -498,7 +440,9 @@ unsafe extern "system" fn mouse_hook(code: i32, wparam: WPARAM, lparam: LPARAM) 
         };
 
         if let Some(event) = event {
-            forward(event);
+            if forward(event) {
+                return LRESULT(1);
+            }
         }
         CallNextHookEx(None, code, wparam, lparam)
     }
@@ -524,13 +468,15 @@ unsafe extern "system" fn keyboard_hook(code: i32, wparam: WPARAM, lparam: LPARA
             _ => return CallNextHookEx(None, code, wparam, lparam),
         };
 
-        let extended = hook.flags.0 & (LLKHF_EXTENDED.0 | LLKHF_ALTDOWN.0) != 0;
+        let extended = hook.flags.0 & LLKHF_EXTENDED.0 != 0;
         if let Some(key) = hid_from_scan(hook.scanCode, extended) {
-            forward(CapturedEvent::Key {
+            if forward(CapturedEvent::Key {
                 key,
                 pressed,
                 mods: Modifiers::default(),
-            });
+            }) {
+                return LRESULT(1);
+            }
         }
 
         CallNextHookEx(None, code, wparam, lparam)
@@ -542,136 +488,7 @@ unsafe extern "system" fn keyboard_hook(code: i32, wparam: WPARAM, lparam: LPARA
 /// The delta lives in the high word as a *signed* 16-bit value, so scrolling
 /// down arrives as a negative number.
 fn wheel_notches(mouse_data: u32) -> f64 {
-    ((mouse_data >> 16) & 0xFFFF) as i16 as f64
-}
-
-/// Scan code set 1 to USB HID usage.
-///
-/// Windows passes the byte following an E0 prefix with `LLKHF_EXTENDED` set,
-/// so E0 codes are matched on the post-E0 byte plus the flag rather than by
-/// a synthetic 0xE0 prefix. Codes that carry no reliable positional meaning
-/// (the keypad digits, which change with NumLock) are deliberately omitted:
-/// guessing would send the wrong key to the peer machine.
-fn hid_from_scan(scan: u32, extended: bool) -> Option<HidKey> {
-    // Extended (E0-prefixed) codes must be matched first. Several share a
-    // byte with a base-1 code -- 0x4B is both Left and keypad 7, 0x4D is Down
-    // and keypad 6 -- so an unordered match would resolve them wrongly.
-    if extended {
-        // Navigation cluster: 0x49 Insert, 0x4A Home, 0x4B PageUp,
-        // 0x4C Delete, 0x4D End, 0x4E PageDown, 0x4F Right, 0x50 Left,
-        // 0x51 Down, 0x52 Up.
-        return match scan & 0xFF {
-            0x1C => Some(HidKey(0x28)), // Keypad Enter
-            0x1D => Some(HidKey(0xE4)), // RightControl
-            0x35 => Some(HidKey(0x54)), // Keypad /
-            0x37 => Some(HidKey(0x4F)), // Right
-            0x38 => Some(HidKey(0xE6)), // RightAlt
-            0x47 => Some(HidKey(0x4A)), // Home
-            0x48 => Some(HidKey(0x52)), // Up
-            0x4B => Some(HidKey(0x50)), // Left
-            0x4D => Some(HidKey(0x51)), // Down
-            0x4F => Some(HidKey(0x49)), // Insert
-            0x50 => Some(HidKey(0x4D)), // End
-            0x51 => Some(HidKey(0x4C)), // Delete
-            0x53 => Some(HidKey(0x4E)), // PageDown
-            0x5B => Some(HidKey(0x4B)), // LeftGUI
-            0x5C => Some(HidKey(0xE7)), // RightGUI
-            _ => None,
-        };
-    }
-
-    let hid = match scan & 0xFF {
-        // Main block.
-        0x01 => 0x29, // Escape
-        0x02 => 0x1E, // 1
-        0x03 => 0x1F, // 2
-        0x04 => 0x20, // 3
-        0x05 => 0x21, // 4
-        0x06 => 0x22, // 5
-        0x07 => 0x23, // 6
-        0x08 => 0x24, // 7
-        0x09 => 0x25, // 8
-        0x0A => 0x26, // 9
-        0x0B => 0x27, // 0
-        0x0C => 0x2D, // -
-        0x0D => 0x2E, // =
-        0x0E => 0x2A, // Backspace
-        0x0F => 0x2B, // Tab
-        0x10 => 0x14, // Q
-        0x11 => 0x1A, // W
-        0x12 => 0x08, // E
-        0x13 => 0x15, // R
-        0x14 => 0x17, // T
-        0x15 => 0x1C, // Y
-        0x16 => 0x18, // U
-        0x17 => 0x0C, // I
-        0x18 => 0x12, // O
-        0x19 => 0x13, // P
-        0x1A => 0x2F, // [
-        0x1B => 0x30, // ]
-        0x1C => 0x28, // Enter
-        0x1D => 0xE0, // LeftControl
-        0x1E => 0x04, // A
-        0x1F => 0x16, // S
-        0x20 => 0x07, // D
-        0x21 => 0x09, // F
-        0x22 => 0x0A, // G
-        0x23 => 0x0B, // H
-        0x24 => 0x0D, // J
-        0x25 => 0x0E, // K
-        0x26 => 0x0F, // L
-        0x27 => 0x33, // ;
-        0x28 => 0x34, // '
-        0x29 => 0x35, // `
-        0x2A => 0xE1, // LeftShift
-        0x2B => 0x31, // \
-        0x2C => 0x1D, // Z
-        0x2D => 0x1B, // X
-        0x2E => 0x06, // C
-        0x2F => 0x19, // V
-        0x30 => 0x05, // B
-        0x31 => 0x11, // N
-        0x32 => 0x10, // M
-        0x33 => 0x36, // ,
-        0x34 => 0x37, // .
-        0x35 => 0x38, // /
-        0x36 => 0xE5, // RightShift
-        0x37 => 0x55, // Keypad *
-        0x38 => 0xE2, // LeftAlt
-        0x39 => 0x2C, // Space
-        0x3A => 0x39, // CapsLock
-        0x3B => 0x3A, // F1
-        0x3C => 0x3B, // F2
-        0x3D => 0x3C, // F3
-        0x3E => 0x3D, // F4
-        0x3F => 0x3E, // F5
-        0x40 => 0x3F, // F6
-        0x41 => 0x40, // F7
-        0x42 => 0x41, // F8
-        0x43 => 0x42, // F9
-        0x44 => 0x43, // F10
-        0x45 => 0x53, // NumLock
-        0x46 => 0x46, // ScrollLock
-        // Keypad. HID usages 0x59..=0x62 are keypad 1..0; 0x63 is keypad dot.
-        0x47 => 0x5F, // Keypad 7
-        0x48 => 0x60, // Keypad 8
-        0x49 => 0x61, // Keypad 9
-        0x4A => 0x54, // Keypad /
-        0x4B => 0x5C, // Keypad 4
-        0x4C => 0x5D, // Keypad 5
-        0x4D => 0x5E, // Keypad 6
-        0x4E => 0x56, // Keypad -
-        0x4F => 0x59, // Keypad 1
-        0x50 => 0x5A, // Keypad 2
-        0x51 => 0x5B, // Keypad 3
-        0x52 => 0x62, // Keypad 0
-        0x53 => 0x63, // Keypad .
-        0x56 => 0xE3, // LeftGUI
-        0x57 => 0x3F, // F11
-        0x58 => 0x41, // F12
-        _ => return None,
-    };
-    Some(HidKey(hid as u8))
+    ((mouse_data >> 16) & 0xFFFF) as i16 as f64 / WHEEL_DELTA as f64
 }
 
 #[cfg(test)]
@@ -680,9 +497,9 @@ mod tests {
 
     #[test]
     fn wheel_notches_handle_negative_deltas() {
-        assert_eq!(wheel_notches(0x0001_0000), 1.0);
-        assert_eq!(wheel_notches(0xFFFF_0000), -1.0);
-        assert_eq!(wheel_notches(0x0002_0000), 2.0);
+        assert_eq!(wheel_notches(0x0078_0000), 1.0);
+        assert_eq!(wheel_notches(0xFF88_0000), -1.0);
+        assert_eq!(wheel_notches(0x00F0_0000), 2.0);
     }
 
     #[test]
@@ -715,92 +532,6 @@ mod tests {
         assert_eq!(hid_from_scan(0x1D, true), Some(HidKey(0xE4))); // RCtrl
         assert_eq!(hid_from_scan(0x4B, true), Some(HidKey(0x50))); // Left
         assert_eq!(hid_from_scan(0xE1, false), None); // unmapped
-    }
-
-    #[test]
-    fn scan_table_agrees_with_the_keymap() {
-        // The two tables are written by hand and encode the same physical
-        // keys, so they can drift apart silently. Any scan code whose HID
-        // usage is in the keymap must name the same key, or a key pressed on
-        // one machine would arrive as a different key on the other.
-        for scan in 0x00u32..=0xFF {
-            for extended in [false, true] {
-                let Some(from_scan) = hid_from_scan(scan, extended) else {
-                    continue;
-                };
-                // Only compare keys the keymap knows about; ScanCode-only
-                // entries like PrintScreen are legitimately absent.
-                if keymap::to_native(from_scan).is_none() {
-                    continue;
-                }
-                // A key present in both tables must agree.
-                if let Some(shared) = shared_hid_key(scan, extended) {
-                    assert_eq!(
-                        from_scan, shared,
-                        "scan {scan:#04x} (extended={extended}) maps to \
-                         {from_scan:?} in hid_from_scan but {shared:?} in keymap"
-                    );
-                }
-            }
-        }
-    }
-
-    /// The keymap entry a scan code should correspond to, if there is one.
-    ///
-    /// Derived by inverting: a scan code and a virtual key code are two
-    /// names for the same physical key, so the entry whose Windows virtual
-    /// key code matches the scan code's documented pairing.
-    fn shared_hid_key(scan: u32, extended: bool) -> Option<HidKey> {
-        // The navigation cluster shares bytes between base-1 and E0, so a
-        // scan code alone does not determine a virtual key code. Only compare
-        // where the mapping is unambiguous.
-        if extended {
-            return None;
-        }
-        // Base-1 scan codes and virtual key codes for the alphanumeric block
-        // map by an explicit table, not arithmetic: scan 0x02 is the digit 1
-        // (VK 0x31) but scan 0x10 is Q (VK 0x51), so an offset would be wrong
-        // for one of them.
-        let vk = match scan {
-            0x02 => 0x31, // 1
-            0x03 => 0x32, // 2
-            0x04 => 0x33, // 3
-            0x05 => 0x34, // 4
-            0x06 => 0x35, // 5
-            0x07 => 0x36, // 6
-            0x08 => 0x37, // 7
-            0x09 => 0x38, // 8
-            0x0A => 0x39, // 9
-            0x0B => 0x30, // 0
-            0x10 => 0x51, // Q
-            0x11 => 0x57, // W
-            0x12 => 0x45, // E
-            0x13 => 0x52, // R
-            0x14 => 0x54, // T
-            0x15 => 0x59, // Y
-            0x16 => 0x55, // U
-            0x17 => 0x49, // I
-            0x18 => 0x4F, // O
-            0x19 => 0x50, // P
-            0x1E => 0x41, // A
-            0x1F => 0x53, // S
-            0x20 => 0x44, // D
-            0x21 => 0x46, // F
-            0x22 => 0x47, // G
-            0x23 => 0x48, // H
-            0x24 => 0x4A, // J
-            0x25 => 0x4B, // K
-            0x26 => 0x4C, // L
-            0x2C => 0x5A, // Z
-            0x2D => 0x58, // X
-            0x2E => 0x43, // C
-            0x2F => 0x56, // V
-            0x30 => 0x42, // B
-            0x31 => 0x4E, // N
-            0x32 => 0x4D, // M
-            _ => return None,
-        };
-        keymap::from_native(vk)
     }
 
     #[test]

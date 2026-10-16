@@ -41,6 +41,19 @@ pub enum InputError {
     Unavailable(&'static str),
 }
 
+// Hook callbacks cannot lock application state. Movement stays local so Windows
+// continues reporting positions; clicks, scrolling and typing belong to the peer.
+static FORWARDING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+pub fn set_forwarding(active: bool) {
+    FORWARDING.store(active, std::sync::atomic::Ordering::Relaxed);
+}
+
+fn suppress_local(event: &CapturedEvent) -> bool {
+    FORWARDING.load(std::sync::atomic::Ordering::Relaxed)
+        && !matches!(event, CapturedEvent::Move { .. })
+}
+
 /// Bounds and scaling of the machine's screens.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScreenInfo {
@@ -92,7 +105,7 @@ pub trait InputBackend: Send + Sync {
     /// Used by the machine that just handed off: its pointer is parked at the
     /// shared seam and the cursor being driven is the peer's. Backends keep
     /// this idempotent and paired with [`InputBackend::show_cursor`]; on
-    /// Windows it is a counted no-op — the display count there only applies
+    /// Windows it is a no-op — the display count there only applies
     /// over windows of the calling thread — so the parked pointer stays
     /// visible at the seam, the usual software-KVM behavior.
     fn hide_cursor(&self) -> Result<(), InputError>;
@@ -182,5 +195,24 @@ mod tests {
                 },
             }
         );
+    }
+    #[test]
+    fn forwarding_consumes_typing_but_preserves_motion_for_capture() {
+        let key = CapturedEvent::Key {
+            key: HidKey(4),
+            pressed: true,
+            mods: Default::default(),
+        };
+        let motion = CapturedEvent::Move {
+            x: 1.0,
+            y: 1.0,
+            dx: 1.0,
+            dy: 1.0,
+        };
+        set_forwarding(true);
+        assert!(suppress_local(&key));
+        assert!(!suppress_local(&motion));
+        set_forwarding(false);
+        assert!(!suppress_local(&key));
     }
 }

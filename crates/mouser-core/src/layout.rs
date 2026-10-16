@@ -170,9 +170,9 @@ impl Rect {
     pub fn crossing(&self, edge: Edge, x: f64, y: f64, dx: f64, dy: f64) -> Option<f64> {
         let (pushing, on_seam) = match edge {
             Edge::Left => (-dx > 0.0, x <= self.left()),
-            Edge::Right => (dx > 0.0, x >= self.right()),
+            Edge::Right => (dx > 0.0, x >= self.right() - 1.0),
             Edge::Top => (-dy > 0.0, y <= self.top()),
-            Edge::Bottom => (dy > 0.0, y >= self.bottom()),
+            Edge::Bottom => (dy > 0.0, y >= self.bottom() - 1.0),
         };
         if pushing && on_seam {
             Some(self.fraction_at(edge, x, y))
@@ -434,6 +434,25 @@ mod tests {
                 edge: Edge::Bottom,
                 fraction: 0.5
             }
+        );
+    }
+    #[test]
+    fn last_visible_pixel_can_cross_right_and_bottom_edges() {
+        let bounds = Rect::new(100.0, 50.0, 1000.0, 800.0);
+        assert!(
+            bounds
+                .crossing(Edge::Right, 1099.0, 400.0, 1.0, 0.0)
+                .is_some()
+        );
+        assert!(
+            bounds
+                .crossing(Edge::Bottom, 500.0, 849.0, 0.0, 1.0)
+                .is_some()
+        );
+        assert!(
+            bounds
+                .crossing(Edge::Right, 1099.0, 400.0, -1.0, 0.0)
+                .is_none()
         );
     }
 }
