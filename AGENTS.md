@@ -273,3 +273,33 @@ Windows quirks:
   the dev executable is 41.14 MB. The entire checkout uses about 5.34 GB on
   disk, almost all of it generated target/ build output, including the Windows
   cross-check cache. No application code or running-process changes.
+- **2026-10-16 ~15:45 EDT** — opencode on the Windows PC: pulled `main`
+  `899e1bb` → `1f48dfa` ("Simplify the link queue...") `--ff-only`, tree was
+  clean. Prior client had been down since 10/4 00:44 (last log line a tao
+  `cannot move state from Destroyed` panic after normal handoffs).
+  `cargo test --workspace` green: 72 passed (10+34+17+11), 0 failed — the
+  file's "67" predates this commit's new tests. `cargo build` dev OK, exe
+  refreshed 15:45. Relaunched via the canonical command (PID 20568, window
+  shown, not minimized). Done-checks partial: process alive, but no TCP to
+  192.168.68.68 and no `paired with mac` line — log shows `connect timed
+  out; retrying` on every attempt, `Test-NetConnection` TCP 47583 failed.
+  Host side looks down or pre-restart; it likely needs the same `1f48dfa`
+  update. Client will re-pair by itself once the listener is back.
+- **2026-10-16 ~16:25 EDT** — Antigravity on the Windows PC: diagnosed and
+  fixed the remote mouse stutter / failure to move smoothly. Root cause:
+  `RECENTER_JUMP = 8.0` with `await_recenter` in `src-tauri/src/state.rs`
+  dropped every single move event once a fast swipe clamped against the
+  edge (`x <= 1.0`), permanently stalling deltas while moving towards
+  the peer. Furthermore, `recenter_anchor` only checked the shared edge,
+  pinning other directions, and `mouse_hook` reported `dx: 0, dy: 0`
+  causing warp jumps. Fixed by:
+  (1) tracking `LAST_POS` in `mouse_hook` (`windows.rs`) to update on
+  injected warps and emit true relative `(dx, dy)`;
+  (2) centering the local cursor on handoff and recentering back toward
+  center when drifting beyond the central region (`recenter_offset`),
+  giving infinite travel in all directions;
+  (3) removing `await_recenter` so no hardware move events are ever dropped;
+  (4) landing the remote cursor 2-3 px inland in `take_control` to prevent
+  instant ping-pong returns, and warping to the return seam on `release_control`.
+  Workspace tests: 72 passed, 0 failed. Dev binary rebuilt and relaunched
+  (PID 15724, paired to Mac at 192.168.68.68:47583 [0788FEF2], Established).

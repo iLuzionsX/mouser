@@ -323,6 +323,7 @@ fn sink_slot() -> &'static Mutex<Option<Sender<CapturedEvent>>> {
 /// Install both hooks and pump messages until asked to quit.
 fn hook_loop(sink: &Sender<CapturedEvent>, thread_id_tx: &Sender<u32>) -> Result<(), InputError> {
     *sink_slot().lock().unwrap() = Some(sink.clone());
+    *LAST_POS.lock().unwrap() = None;
 
     // SAFETY: both callbacks live in this module and stay valid for the
     // whole lifetime of the process; the hooks are removed before this
@@ -380,6 +381,14 @@ fn is_injected(injected_flag: bool, extra_info: usize) -> bool {
     injected_flag || extra_info == INJECT_TAG
 }
 
+static LAST_POS: Mutex<Option<(f64, f64)>> = Mutex::new(None);
+
+fn update_last_pos(pt: (f64, f64)) {
+    if let Ok(mut guard) = LAST_POS.lock() {
+        *guard = Some(pt);
+    }
+}
+
 unsafe extern "system" fn mouse_hook(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     // SAFETY: per the WH_MOUSE_LL contract, for a non-negative `code` the
     // lparam points to a valid MOUSE_LLHOOKSTRUCT for the duration of the call.
@@ -390,52 +399,83 @@ unsafe extern "system" fn mouse_hook(code: i32, wparam: WPARAM, lparam: LPARAM) 
         let Some(hook) = (lparam.0 as *const MSLLHOOKSTRUCT).as_ref() else {
             return CallNextHookEx(None, code, wparam, lparam);
         };
+        let pt = (hook.pt.x as f64, hook.pt.y as f64);
         if is_injected(hook.flags & LLMHF_INJECTED != 0, hook.dwExtraInfo) {
+            update_last_pos(pt);
             return CallNextHookEx(None, code, wparam, lparam);
         }
 
-        let (x, y) = (hook.pt.x as f64, hook.pt.y as f64);
         let event = match wparam.0 as u32 {
-            WM_MOUSEMOVE => Some(CapturedEvent::Move {
-                x,
-                y,
-                // LL hooks report absolute positions only. Deltas are
-                // derived downstream from consecutive positions.
-                dx: 0.0,
-                dy: 0.0,
-            }),
-            WM_LBUTTONDOWN => Some(CapturedEvent::Button {
-                button: Button::Left,
-                pressed: true,
-            }),
-            WM_LBUTTONUP => Some(CapturedEvent::Button {
-                button: Button::Left,
-                pressed: false,
-            }),
-            WM_RBUTTONDOWN => Some(CapturedEvent::Button {
-                button: Button::Right,
-                pressed: true,
-            }),
-            WM_RBUTTONUP => Some(CapturedEvent::Button {
-                button: Button::Right,
-                pressed: false,
-            }),
-            WM_MBUTTONDOWN => Some(CapturedEvent::Button {
-                button: Button::Middle,
-                pressed: true,
-            }),
-            WM_MBUTTONUP => Some(CapturedEvent::Button {
-                button: Button::Middle,
-                pressed: false,
-            }),
-            WM_MOUSEWHEEL => Some(CapturedEvent::Scroll {
-                dx: 0.0,
-                dy: wheel_notches(hook.mouseData),
-            }),
-            WM_MOUSEHWHEEL => Some(CapturedEvent::Scroll {
-                dx: wheel_notches(hook.mouseData),
-                dy: 0.0,
-            }),
+            WM_MOUSEMOVE => {
+                let mut guard = LAST_POS.lock().unwrap();
+                let (dx, dy) = match *guard {
+                    Some((px, py)) => (pt.0 - px, pt.1 - py),
+                    None => (0.0, 0.0),
+                };
+                *guard = Some(pt);
+                Some(CapturedEvent::Move {
+                    x: pt.0,
+                    y: pt.1,
+                    dx,
+                    dy,
+                })
+            }
+            WM_LBUTTONDOWN => {
+                update_last_pos(pt);
+                Some(CapturedEvent::Button {
+                    button: Button::Left,
+                    pressed: true,
+                })
+            }
+            WM_LBUTTONUP => {
+                update_last_pos(pt);
+                Some(CapturedEvent::Button {
+                    button: Button::Left,
+                    pressed: false,
+                })
+            }
+            WM_RBUTTONDOWN => {
+                update_last_pos(pt);
+                Some(CapturedEvent::Button {
+                    button: Button::Right,
+                    pressed: true,
+                })
+            }
+            WM_RBUTTONUP => {
+                update_last_pos(pt);
+                Some(CapturedEvent::Button {
+                    button: Button::Right,
+                    pressed: false,
+                })
+            }
+            WM_MBUTTONDOWN => {
+                update_last_pos(pt);
+                Some(CapturedEvent::Button {
+                    button: Button::Middle,
+                    pressed: true,
+                })
+            }
+            WM_MBUTTONUP => {
+                update_last_pos(pt);
+                Some(CapturedEvent::Button {
+                    button: Button::Middle,
+                    pressed: false,
+                })
+            }
+            WM_MOUSEWHEEL => {
+                update_last_pos(pt);
+                Some(CapturedEvent::Scroll {
+                    dx: 0.0,
+                    dy: wheel_notches(hook.mouseData),
+                })
+            }
+            WM_MOUSEHWHEEL => {
+                update_last_pos(pt);
+                Some(CapturedEvent::Scroll {
+                    dx: wheel_notches(hook.mouseData),
+                    dy: 0.0,
+                })
+            }
             _ => None,
         };
 

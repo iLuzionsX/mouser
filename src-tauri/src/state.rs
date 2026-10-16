@@ -71,26 +71,22 @@ fn screen_of(backend: &Platform) -> Rect {
     backend.screen_info().bounds
 }
 
-/// Where to move the hidden local pointer so it stays clear of the shared
-/// edge, or `None` while it is already inland.
+/// Where to move the hidden local pointer so it stays clear of all screen
+/// edges, or `None` while it is comfortably within the central area.
 ///
-/// Used only while this machine owns the hardware and the visible cursor is on
-/// the peer. Warping the invisible pointer a little inland keeps the OS able
-/// to report the next movement; a cursor left pinned against the edge reports
-/// nothing until it is dragged back.
-fn recenter_anchor(screen: &Rect, edge: Edge, x: f64, y: f64) -> Option<(f64, f64)> {
-    let near_edge = match edge {
-        Edge::Left => x <= screen.left() + RECENTER_MARGIN,
-        Edge::Right => x >= screen.right() - RECENTER_MARGIN,
-        Edge::Top => y <= screen.top() + RECENTER_MARGIN,
-        Edge::Bottom => y >= screen.bottom() - RECENTER_MARGIN,
-    };
-    near_edge.then(|| match edge {
-        Edge::Left => (screen.left() + RECENTER_JUMP, y),
-        Edge::Right => (screen.right() - RECENTER_JUMP, y),
-        Edge::Top => (x, screen.top() + RECENTER_JUMP),
-        Edge::Bottom => (x, screen.bottom() - RECENTER_JUMP),
-    })
+/// Used while this machine owns the hardware and the visible cursor is on
+/// the peer. Warping the invisible pointer back toward the center gives the
+/// OS unlimited room to keep reporting motion in all directions without
+/// ever stalling against an edge.
+fn recenter_offset(screen: &Rect, x: f64, y: f64) -> Option<(f64, f64)> {
+    let (cx, cy) = screen.center();
+    let margin_x = (screen.width * 0.25).max(100.0);
+    let margin_y = (screen.height * 0.25).max(100.0);
+    if (x - cx).abs() > margin_x || (y - cy).abs() > margin_y {
+        Some((cx, cy))
+    } else {
+        None
+    }
 }
 
 /// Whether an injected move carries the mirrored cursor back through the seam
@@ -132,26 +128,6 @@ fn mirrored_position(bounds: &Rect, edge: Edge, x: f64, y: f64) -> (f64, f64) {
 /// the mirrored move crosses straight back, and control never settles.
 const HANDOFF_DEBOUNCE: Duration = Duration::from_millis(250);
 
-/// How close to the shared edge the pointer may get before it is nudged back
-/// toward the middle.
-///
-/// The OS pins the cursor once it reaches a screen edge: outward mouse motion
-/// then stops changing its position, so the machine that owns the hardware
-/// would forward one last delta and then nothing. Nudging the (hidden) pointer
-/// inland gives the next motion somewhere to go.
-const RECENTER_MARGIN: f64 = 1.0;
-
-/// How far inland the hidden pointer is pulled when it reaches the shared
-/// edge.
-///
-/// Small on purpose. Every pixel of the pull is motion that gets relayed to
-/// the peer, and the peer demands it back — past its own seam — before
-/// control returns. A pull measured in hundreds of pixels, like the
-/// screen-center warp this replaces, costs a whole screen of debt per push
-/// and can exceed what a return push can repay before the local pointer pins
-/// against the far edge, stranding control with the peer. A few pixels are
-/// still enough room for the OS to keep reporting outward motion.
-const RECENTER_JUMP: f64 = 8.0;
 
 /// How far back through the seam the mirrored cursor must travel before
 /// control is handed home.
@@ -189,14 +165,6 @@ struct Inner {
     return_edge: Option<Edge>,
     last_cursor: (f64, f64),
     held: Vec<InputEvent>,
-    /// Set right after the pointer is recentered away from the shared edge.
-    ///
-    /// Input is pumped in bursts, so the queue can still hold mouse events
-    /// captured before the warp; they carry the pinned edge position and would
-    /// be relayed as a large outward jump. While this is set, moves that are
-    /// still against the shared edge are dropped until the fresh (inland)
-    /// position arrives.
-    await_recenter: Option<(f64, f64)>,
     last_handoff: Option<Instant>,
     bridge: Option<Arc<Bridge>>,
     log: Vec<LogLine>,
@@ -274,7 +242,6 @@ impl AppState {
             return_edge: None,
             last_cursor: (0.0, 0.0),
             held: Vec::new(),
-            await_recenter: None,
             last_handoff: None,
             bridge: None,
             log: Vec::new(),
@@ -347,26 +314,13 @@ impl AppState {
                     return;
                 }
 
-                // A recenter warps the pointer, but events captured before the
-                // warp are still queued and carry the pinned edge position.
-                // Drop those rather than relaying the jump to the middle; the
-                // first fresh (inland) event ends the wait.
-                if guard.await_recenter.is_some()
-                    && recenter_anchor(&screen, guard.session.edge(), x, y).is_some()
-                {
-                    return;
-                }
-                guard.await_recenter = None;
-
-                // Low-level hooks report absolute positions only, so the delta
-                // is derived from the previous position.
-                let (prev_x, prev_y) = guard.last_cursor;
-                guard.last_cursor = (x, y);
-                let (ex, ey) = if dx == 0.0 && dy == 0.0 {
-                    (x - prev_x, y - prev_y)
-                } else {
+                let (ex, ey) = if dx != 0.0 || dy != 0.0 {
                     (dx, dy)
+                } else {
+                    let (prev_x, prev_y) = guard.last_cursor;
+                    (x - prev_x, y - prev_y)
                 };
+                guard.last_cursor = (x, y);
 
                 if guard.forwarding.load(Ordering::Relaxed) {
                     // We own the hardware and the cursor is on the peer. Relay
@@ -501,28 +455,27 @@ impl AppState {
             ),
         );
         self.send(guard, Message::TakeControl { edge, fraction });
+
+        let screen = screen_of(&guard.backend);
+        let (cx, cy) = screen.center();
+        let _ = guard.backend.warp_cursor(cx, cy);
+        guard.last_cursor = (cx, cy);
     }
 
-    /// Nudge the hidden local pointer in from the shared edge while the peer
-    /// owns it.
+    /// Keep the hidden local pointer away from the screen boundaries while
+    /// the peer owns it.
     ///
     /// The OS pins the cursor once it reaches a screen edge, and outward mouse
-    /// motion then no longer changes its position. Without this the peer gets
-    /// one last delta and then nothing, so the cursor stalls the moment it
-    /// arrives. Moving the invisible pointer a little inland of the seam gives
-    /// the next movement somewhere to go while keeping the debt the peer must
-    /// repay to hand control back down to a small push.
-    ///
-    /// The warp is posted through the backend's injection path, which both
-    /// platforms tag as synthetic, so it is never captured and forwarded as if
-    /// the user had moved the mouse.
+    /// motion then no longer changes its position. Warping the pointer back
+    /// towards the center of the screen whenever it wanders outside the
+    /// central deadzone gives the mouse unlimited room to move in all
+    /// directions without ever stalling against an edge.
     fn recenter(&self, guard: &mut Inner, screen: &Rect) {
-        let edge = guard.session.edge();
         let (x, y) = guard.last_cursor;
-        let Some((ax, ay)) = recenter_anchor(screen, edge, x, y) else {
+        let Some((cx, cy)) = recenter_offset(screen, x, y) else {
             return;
         };
-        if let Err(e) = guard.backend.warp_cursor(ax, ay) {
+        if let Err(e) = guard.backend.warp_cursor(cx, cy) {
             log(
                 guard,
                 Level::Warn,
@@ -530,8 +483,7 @@ impl AppState {
             );
             return;
         }
-        guard.last_cursor = (ax, ay);
-        guard.await_recenter = Some((ax, ay));
+        guard.last_cursor = (cx, cy);
     }
 
     /// Queue a message, dropping it if the peer is not keeping up.
@@ -678,7 +630,6 @@ impl AppHandle {
         guard.forwarding.store(false, Ordering::Relaxed);
         mouser_input::set_forwarding(false);
         guard.return_edge = None;
-        guard.await_recenter = None;
         let _ = guard.backend.show_cursor();
         guard
             .session
@@ -703,7 +654,6 @@ impl AppHandle {
         guard.forwarding.store(false, Ordering::Relaxed);
         mouser_input::set_forwarding(false);
         guard.return_edge = None;
-        guard.await_recenter = None;
         let _ = guard.backend.show_cursor();
         guard
             .session
@@ -820,19 +770,21 @@ impl AppHandle {
         let bounds = screen_of(&guard.backend);
         let entry = edge.opposite();
         let (x, y) = bounds.point_at_fraction(entry, fraction);
-        guard.last_cursor = (x, y);
+        let (start_x, start_y) = match entry {
+            Edge::Left => (bounds.left() + 2.0, y),
+            Edge::Right => (bounds.right() - 3.0, y),
+            Edge::Top => (x, bounds.top() + 2.0),
+            Edge::Bottom => (x, bounds.bottom() - 3.0),
+        };
+        guard.last_cursor = (start_x, start_y);
         guard.return_edge = Some(entry);
 
         // Move the pointer there as well, so the cursor the user watches and
         // the position the return crossing is judged on are the same one.
-        // Without the warp the two sit apart by wherever the pointer happened
-        // to rest, and control comes back before the visible cursor reaches
-        // the seam.
         let _ = guard.backend.warp_cursor(
-            x.clamp(bounds.left(), bounds.right() - 1.0),
-            y.clamp(bounds.top(), bounds.bottom() - 1.0),
+            start_x.clamp(bounds.left(), bounds.right() - 1.0),
+            start_y.clamp(bounds.top(), bounds.bottom() - 1.0),
         );
-        guard.await_recenter = None;
 
         // The mirrored cursor is the one the user is now working with, so it
         // stays visible; nothing here hides it.
@@ -856,9 +808,22 @@ impl AppHandle {
             return;
         }
         guard.return_edge = None;
-        guard.await_recenter = None;
         let _ = guard.backend.show_cursor();
         guard.status = "connected".into();
+
+        // Warp the cursor to just inside the edge where it returned
+        let bounds = screen_of(&guard.backend);
+        let edge = guard.session.edge();
+        let (rx, ry) = guard.last_cursor;
+        let return_pos = match edge {
+            Edge::Left => (bounds.left() + 2.0, ry.clamp(bounds.top(), bounds.bottom() - 1.0)),
+            Edge::Right => (bounds.right() - 3.0, ry.clamp(bounds.top(), bounds.bottom() - 1.0)),
+            Edge::Top => (rx.clamp(bounds.left(), bounds.right() - 1.0), bounds.top() + 2.0),
+            Edge::Bottom => (rx.clamp(bounds.left(), bounds.right() - 1.0), bounds.bottom() - 3.0),
+        };
+        let _ = guard.backend.warp_cursor(return_pos.0, return_pos.1);
+        guard.last_cursor = return_pos;
+
         guard.session.on_event(
             SessionEvent::RemoteCursorMoved {
                 x: 0.0,
@@ -905,7 +870,6 @@ pub(crate) mod tests {
             return_edge: None,
             last_cursor: (0.0, 0.0),
             held: Vec::new(),
-            await_recenter: None,
             last_handoff: None,
             bridge: None,
             log: Vec::new(),
@@ -959,42 +923,66 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn pointer_is_recentered_only_near_the_shared_edge() {
+    fn pointer_is_recentered_when_wandering_from_center() {
         let screen = Rect::new(0.0, 0.0, 1000.0, 800.0);
-        // Pinned against the right edge: pull it just inland, keeping the
-        // height it crossed at.
-        assert_eq!(
-            recenter_anchor(&screen, Edge::Right, 1000.0, 400.0),
-            Some((1000.0 - RECENTER_JUMP, 400.0))
-        );
-        // A little inland: leave it alone, motion is still being reported.
-        assert_eq!(recenter_anchor(&screen, Edge::Right, 900.0, 400.0), None);
-        // The same on the other edges.
-        assert_eq!(
-            recenter_anchor(&screen, Edge::Left, 0.0, 400.0),
-            Some((RECENTER_JUMP, 400.0))
-        );
-        assert_eq!(
-            recenter_anchor(&screen, Edge::Bottom, 400.0, 800.0),
-            Some((400.0, 800.0 - RECENTER_JUMP))
-        );
-        assert_eq!(recenter_anchor(&screen, Edge::Top, 400.0, 40.0), None);
+        let center = (500.0, 400.0);
+        // Near center: leave it alone.
+        assert_eq!(recenter_offset(&screen, 500.0, 400.0), None);
+        assert_eq!(recenter_offset(&screen, 550.0, 450.0), None);
+
+        // Wandering beyond margin (25% = 250px on X, 200px on Y): pull back to center.
+        assert_eq!(recenter_offset(&screen, 100.0, 400.0), Some(center));
+        assert_eq!(recenter_offset(&screen, 900.0, 400.0), Some(center));
+        assert_eq!(recenter_offset(&screen, 500.0, 100.0), Some(center));
+        assert_eq!(recenter_offset(&screen, 500.0, 700.0), Some(center));
     }
 
     #[test]
-    fn a_recenter_cycle_is_cheap_for_the_peer_to_give_back() {
-        // One full cycle of pushing past the shared edge costs the pull plus
-        // the return margin. The peer repays it with one small push, and a
-        // return push has a whole screen of room to travel, so control can
-        // never be stranded by the recentering itself.
-        let screen = Rect::new(0.0, 0.0, 1000.0, 800.0);
-        let cycle_debt = RECENTER_JUMP + RETURN_MARGIN;
-        let return_budget = screen.width - RECENTER_JUMP;
-        assert!(
-            cycle_debt < return_budget / 10.0,
-            "one push cycle costs {cycle_debt}px but a return push only has \
-             {return_budget}px of room; repeated pushes would strand control"
+    fn forwarding_relays_continuous_moves_without_stalling() {
+        let (state, tx, rx) = state_at(Edge::Left);
+        let (bridge, mut out_rx) = Bridge::channel();
+        state.install_bridge(Arc::new(bridge));
+        state.handle().link_up(
+            PeerHello {
+                protocol_version: 1,
+                device_name: "peer".into(),
+                secret_fingerprint: "abc".into(),
+                screen_width: 1920,
+                screen_height: 1080,
+                edge: Edge::Right,
+            },
+            "127.0.0.1:47583".into(),
         );
+
+        // Hand off across the left seam (screen is 0..1000 x 0..800)
+        tx.send(CapturedEvent::Move {
+            x: 0.0,
+            y: 400.0,
+            dx: -10.0,
+            dy: 0.0,
+        })
+        .unwrap();
+        pump_all(&state, &rx);
+
+        assert!(matches!(out_rx.try_recv(), Ok(Message::TakeControl { .. })));
+        assert!(state.snapshot().remote_active);
+
+        // Subsequent pushes in any direction must continue relaying without being dropped
+        for i in 1..=5 {
+            tx.send(CapturedEvent::Move {
+                x: 500.0 - (i as f64 * 20.0),
+                y: 400.0,
+                dx: -20.0,
+                dy: 0.0,
+            })
+            .unwrap();
+            pump_all(&state, &rx);
+
+            assert!(
+                matches!(out_rx.try_recv(), Ok(Message::Input(events)) if matches!(events[0], InputEvent::Move { dx: -20, dy: 0 })),
+                "continuous move {i} must be forwarded"
+            );
+        }
     }
 
     #[test]
