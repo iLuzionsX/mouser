@@ -50,11 +50,13 @@ pub enum ConfigError {
     NoConfigDir,
     #[error("{0} is not a valid socket address")]
     InvalidAddress(String),
+    #[error("pairing secret must be at least 8 characters")]
+    SecretTooShort,
 }
 
 /// User configuration, serialized as JSON.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default)]
 pub struct Config {
     pub role: Role,
     /// Address to bind when [`Role::Host`].
@@ -97,20 +99,11 @@ impl Config {
 
     pub fn load() -> Result<Self, ConfigError> {
         let path = Self::path()?;
-        // Every read failure is reported the same way. `NotFound` used to be
-        // special-cased, but `load_or_default` treats a missing file and an
-        // unreadable one identically, so branching only added a way for the
-        // two arms to disagree.
         let text = std::fs::read_to_string(&path).map_err(|source| ConfigError::Read {
             path: path.clone(),
             source,
         })?;
         serde_json::from_str(&text).map_err(|source| ConfigError::Parse { path, source })
-    }
-
-    /// Load the config, falling back to defaults when none exists yet.
-    pub fn load_or_default() -> Self {
-        Self::load().unwrap_or_default()
     }
 
     /// Write the config, creating parent directories as needed.
@@ -161,9 +154,7 @@ impl Config {
     /// predictable words is fine, a one-character secret is not.
     pub fn validate_secret(secret: &str) -> Result<(), ConfigError> {
         if secret.len() < 8 {
-            return Err(ConfigError::InvalidAddress(
-                "pairing secret must be at least 8 characters".into(),
-            ));
+            return Err(ConfigError::SecretTooShort);
         }
         Ok(())
     }
@@ -203,9 +194,11 @@ mod tests {
     }
 
     #[test]
-    fn unknown_fields_are_rejected() {
-        let json = r#"{"rol": "host"}"#;
-        assert!(serde_json::from_str::<Config>(json).is_err());
+    fn unknown_fields_do_not_reset_the_rest() {
+        let json = r#"{"peer_edge": "Top", "device_name": "mac", "added_later": 1}"#;
+        let cfg: Config = serde_json::from_str(json).unwrap();
+        assert_eq!(cfg.peer_edge, Edge::Top);
+        assert_eq!(cfg.device_name, "mac");
     }
 
     #[test]

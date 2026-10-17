@@ -7,8 +7,10 @@
 //! Everything the CLI does is a one-off override of the saved config, so
 //! `mouser --edge left` behaves like editing the file and then launching.
 
+use std::io::ErrorKind;
+
 use clap::Parser;
-use mouser_core::config::{Config, Role};
+use mouser_core::config::{Config, ConfigError, Role};
 use mouser_core::layout::Edge;
 use tracing_subscriber::EnvFilter;
 
@@ -87,7 +89,18 @@ fn main() -> anyhow::Result<()> {
         .with_writer(std::io::stderr)
         .init();
 
-    let mut config = Config::load_or_default();
+    // A file that exists but cannot be read or parsed is left alone: saving
+    // defaults over it would silently erase the user's settings.
+    let (mut config, save_allowed) = match Config::load() {
+        Ok(config) => (config, true),
+        Err(ConfigError::Read { source, .. }) if source.kind() == ErrorKind::NotFound => {
+            (Config::default(), true)
+        }
+        Err(e) => {
+            tracing::warn!("{e}; using defaults and leaving the file untouched");
+            (Config::default(), false)
+        }
+    };
     if let Some(addr) = cli.connect.clone() {
         config.role = Role::Client;
         config.peer_addr = Some(addr);
@@ -115,7 +128,9 @@ fn main() -> anyhow::Result<()> {
             .map_err(|e| anyhow::anyhow!("peer address is invalid: {e}"))?;
     }
 
-    let _ = config.save();
+    if save_allowed {
+        let _ = config.save();
+    }
 
     // Precedence: flag, then environment, then the window's field.
     let secret = cli
