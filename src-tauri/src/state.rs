@@ -129,7 +129,6 @@ fn mirrored_position(bounds: &Rect, edge: Edge, x: f64, y: f64) -> (f64, f64) {
 /// the mirrored move crosses straight back, and control never settles.
 const HANDOFF_DEBOUNCE: Duration = Duration::from_millis(250);
 
-
 /// How far back through the seam the mirrored cursor must travel before
 /// control is handed home.
 ///
@@ -829,10 +828,22 @@ impl AppHandle {
         let edge = guard.session.edge();
         let (rx, ry) = guard.last_cursor;
         let return_pos = match edge {
-            Edge::Left => (bounds.left() + 2.0, ry.clamp(bounds.top(), bounds.bottom() - 1.0)),
-            Edge::Right => (bounds.right() - 3.0, ry.clamp(bounds.top(), bounds.bottom() - 1.0)),
-            Edge::Top => (rx.clamp(bounds.left(), bounds.right() - 1.0), bounds.top() + 2.0),
-            Edge::Bottom => (rx.clamp(bounds.left(), bounds.right() - 1.0), bounds.bottom() - 3.0),
+            Edge::Left => (
+                bounds.left() + 2.0,
+                ry.clamp(bounds.top(), bounds.bottom() - 1.0),
+            ),
+            Edge::Right => (
+                bounds.right() - 3.0,
+                ry.clamp(bounds.top(), bounds.bottom() - 1.0),
+            ),
+            Edge::Top => (
+                rx.clamp(bounds.left(), bounds.right() - 1.0),
+                bounds.top() + 2.0,
+            ),
+            Edge::Bottom => (
+                rx.clamp(bounds.left(), bounds.right() - 1.0),
+                bounds.bottom() - 3.0,
+            ),
         };
         let _ = guard.backend.warp_cursor(return_pos.0, return_pos.1);
         guard.last_cursor = return_pos;

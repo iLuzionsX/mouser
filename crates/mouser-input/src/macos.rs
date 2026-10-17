@@ -214,7 +214,12 @@ fn callback(
 
         let point = event.location();
         let mut captured = translate(event_type, event);
-        if let Some(CapturedEvent::Move { ref mut dx, ref mut dy, .. }) = captured {
+        if let Some(CapturedEvent::Move {
+            ref mut dx,
+            ref mut dy,
+            ..
+        }) = captured
+        {
             if let Ok(mut guard) = WARPED_TARGET.lock() {
                 if let Some(target) = *guard {
                     // After a warp, Quartz reports the artificial jump between the
