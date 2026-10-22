@@ -132,13 +132,24 @@ impl Config {
             .map_err(|_| ConfigError::InvalidAddress(self.bind_addr.clone()))
     }
 
-    pub fn peer_addr(&self) -> Result<SocketAddr, ConfigError> {
+    /// The peer as `host:port`, where host is an IP literal or a name such as
+    /// `eds-MacBook-Pro.local`.
+    ///
+    /// Returned as a string, not a `SocketAddr`, so the caller resolves it on
+    /// every dial and follows the peer across DHCP address changes.
+    pub fn peer_addr(&self) -> Result<String, ConfigError> {
         let raw = self
             .peer_addr
             .as_deref()
             .ok_or_else(|| ConfigError::InvalidAddress("<unset>".into()))?;
-        raw.parse()
-            .map_err(|_| ConfigError::InvalidAddress(raw.to_string()))
+        // `rsplit_once` leaves the colons inside a bracketed IPv6 host alone.
+        let valid = raw.rsplit_once(':').is_some_and(|(host, port)| {
+            !host.is_empty() && port.parse::<u16>().is_ok_and(|p| p != 0)
+        });
+        if !valid {
+            return Err(ConfigError::InvalidAddress(raw.to_string()));
+        }
+        Ok(raw.to_string())
     }
 
     /// Short, human-comparable hash of the pairing secret.
@@ -199,7 +210,23 @@ mod tests {
         let json = serde_json::to_string(&cfg).unwrap();
         let back: Config = serde_json::from_str(&json).unwrap();
         assert_eq!(cfg, back);
-        assert_eq!(back.peer_addr().unwrap().port(), DEFAULT_PORT);
+        assert_eq!(back.peer_addr().unwrap(), "192.168.1.50:47583");
+    }
+
+    #[test]
+    fn peer_addr_accepts_hostnames_and_requires_a_port() {
+        let with = |addr: &str| Config {
+            peer_addr: Some(addr.into()),
+            ..Default::default()
+        };
+        assert_eq!(
+            with("eds-MacBook-Pro.local:47583").peer_addr().unwrap(),
+            "eds-MacBook-Pro.local:47583"
+        );
+        assert!(with("[fe80::1]:47583").peer_addr().is_ok());
+        assert!(with("eds-MacBook-Pro.local").peer_addr().is_err());
+        assert!(with("host:notaport").peer_addr().is_err());
+        assert!(with(":47583").peer_addr().is_err());
     }
 
     #[test]

@@ -100,9 +100,18 @@ Canonical launch (PowerShell, detached):
 ```powershell
 $env:MOUSER_SECRET = (Get-Content "$env:USERPROFILE\.config\mouser\client-secret" -Raw).Trim()
 Start-Process -FilePath "C:\Users\eduar\mouser\target\debug\mouser.exe" `
-  -ArgumentList "--connect","192.168.68.68:47583","--edge","left","--name","windows-pc","--verbose" `
+  -ArgumentList "--connect","eds-MacBook-Pro.local:47583","--edge","left","--name","windows-pc","--verbose" `
   -RedirectStandardError "$env:TEMP\opencode\mouser-live.err.log"
 ```
+
+The client dials the Mac **by its Bonjour name** and re-resolves it on every
+attempt, so DHCP moving the Mac no longer breaks pairing; the IPs in the
+tables above are informational only. The first few attempts after launch
+may log `No such host is known` while mDNS warms up (the network profile is
+Public); it pairs within ~10 s. If the name never resolves
+(`Resolve-DnsName eds-MacBook-Pro.local`), fall back to a router DHCP
+reservation for the Mac's MAC `bc:d0:74:59:ac:87`. The desktop shortcut's
+`%USERPROFILE%\.config\mouser\launch.vbs` uses the same hostname.
 
 Never pass `-WindowStyle Minimized` here: creating the window hidden lets
 WebView2 suspend the renderer, and the UI freezes on a stale frame while
@@ -121,7 +130,7 @@ Update procedure (pull → build → restart, same order as the host):
    then wait ~1 s — the running exe locks `target\debug\mouser.exe` and the
    link step fails while it lives. Dropping the link is fine; the client
    re-pairs by itself within ~2 s of the host listener coming back.
-3. `cargo test --workspace` — expect **67 passed on Windows, 0 failed**
+3. `cargo test --workspace` — expect **74 passed on Windows, 0 failed**
    (the one extra vs macOS is `#[cfg(windows)]`).
 4. `cargo build` (dev). Agent shells must call it by full path —
    `& "$env:USERPROFILE\.cargo\bin\cargo.exe" build` — `cargo` is not on PATH.
@@ -556,3 +565,20 @@ Windows quirks:
   pushed. Note: the Mac's 10/16 entries log the PC at `192.168.68.60`, not
   the `.67` in the tables above.
 
+- **2026-10-22 ~03:20 EDT** — Claude Code on the Windows PC, user asked for
+  the client to find the Mac by name instead of IP (DHCP had moved the Mac
+  from `.68` to `.65`; the desktop shortcut still dialled `.68`).
+  `Config::peer_addr()` now returns a validated `host:port` string (IP
+  literal or hostname, non-zero port) instead of a `SocketAddr`, and
+  `client_loop` passes it to `Channel::connect` each attempt, so resolution
+  re-runs on every retry. Private-network guard unchanged (checks the
+  resolved peer after connect). New test
+  `peer_addr_accepts_hostnames_and_requires_a_port`; `cargo test
+  --workspace` 74 passed, 0 failed. Built dev, relaunched with
+  `--connect eds-MacBook-Pro.local:47583` (PID 15868): five
+  `No such host is known` retries while mDNS warmed up, then
+  `paired with mac at eds-MacBook-Pro.local:47583 [0788FEF2]`, TCP
+  Established to 192.168.68.65. Updated `launch.vbs` and the canonical
+  command above. **Mac host needs no change.** Still open: the
+  `edge settings disagree` warning (PC says left, Mac says top; the live
+  seam is bottom/top per the 10/17 entry). Committed and pushed on user request.

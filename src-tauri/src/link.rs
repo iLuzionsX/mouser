@@ -125,7 +125,9 @@ async fn client_loop(state: Arc<AppState>, handle: AppHandle, config: Config) {
         let secret = state.secret_input();
         match tokio::time::timeout(
             HANDSHAKE_TIMEOUT,
-            Channel::connect(addr, &secret, config.require_private_network),
+            // Resolved afresh on every attempt, so a hostname follows the
+            // peer to whatever address DHCP gives it next.
+            Channel::connect(addr.as_str(), &secret, config.require_private_network),
         )
         .await
         {
@@ -135,7 +137,7 @@ async fn client_loop(state: Arc<AppState>, handle: AppHandle, config: Config) {
                     handle.clone(),
                     Connection::Ready(Box::new(channel)),
                     secret,
-                    addr.to_string(),
+                    addr.clone(),
                     false,
                 )
                 .await;
