@@ -6,19 +6,42 @@ is further down). Read the whole file, do your task, then append an entry to
 the **Handoff log** at the bottom before reporting done. Do not delete
 history; append only. Each machine's section carries its own values.
 
+## v0.2 rewrite — read before updating either machine
+
+As of the 2026-10-22 rewrite (see the last handoff entry) mouser is **one
+headless crate**: no window, no UI, no config file, no Tauri. The facts and
+procedures below describe v0.2.
+
+- **The wire format changed and is incompatible with v0.1** (the Tauri app,
+  everything up to `8129429`). Mixed versions fail the handshake with a
+  logged error and never pair. **Update both machines in the same session.**
+  The old "mixed versions are safe" rule no longer holds.
+- Binary is now the **release** profile: `target/release/mouser`
+  (`target\release\mouser.exe` on the PC), a few hundred KB.
+- Flags: `--wait | --connect HOST:PORT`, `--edge left|right|top|bottom`
+  (required), `--allow-public`. `--name`, `--verbose`, `--secret` are gone and
+  rejected (exit code 2 with usage).
+- The old config files (`~/Library/Application Support/dev.mouser.mouser/config.json`,
+  `%APPDATA%\mouser\mouser\config\config.json`) are no longer read; `--edge`
+  is the only source of the edge. Before the first v0.2 run, **confirm with
+  the user which side each screen is on**: the v0.1 configs disagreed (PC
+  `left`, Mac `top`, crossings logged `bottom`, see the 10/17 entry).
+- Only the Mac keyboard is forwarded; the PC keyboard is never hooked.
+- Log lines are `HH:MM:SSZ` (UTC). The proof of pairing is
+  `paired with <ip>:<port> [0788FEF2]` (no peer name any more).
+
 ## This machine's role
 
 This Mac is the **HOST** in a two-machine software-KVM setup:
 
 | Fact | Value |
 |---|---|
-| This Mac (host) | `192.168.68.68`, sits LEFT of the Windows PC |
-| Windows PC (client) | `192.168.68.67`, auto-reconnects every ~2 s |
-| Shared edge | this Mac shares its **RIGHT** screen edge (`peer_edge: Right`) |
-| Listen port | `47583` (bind `0.0.0.0`) |
-| Repo | `/Users/ed/Documents/GitHub/mouser` (workspace: `mouser-core/-net/-input`, `src-tauri`) |
-| Binary in use | `target/debug/mouser` (**dev profile** — no release build exists) |
-| App config | `~/Library/Application Support/dev.mouser.mouser/config.json` (never stores the secret) |
+| This Mac (host) | `eds-MacBook-Pro.local` (DHCP; seen at `.68` and `.65`) |
+| Windows PC (client) | `192.168.68.67` / `.60`, redials every 2 s |
+| Shared edge | `--edge right` per this file — confirm with the user (see above) |
+| Listen port | `47583` (bind `0.0.0.0`, fixed) |
+| Repo | `/Users/ed/Documents/GitHub/mouser` (single crate, `src/*.rs`) |
+| Binary in use | `target/release/mouser` (**release profile** from v0.2) |
 | Pairing secret | NOT in this file. `cat ~/.config/mouser/host-secret` (file exists, mode 600) |
 
 ## How the host runs (canonical form)
@@ -26,41 +49,43 @@ This Mac is the **HOST** in a two-machine software-KVM setup:
 ```sh
 cd /Users/ed/Documents/GitHub/mouser
 nohup env MOUSER_SECRET="$(cat ~/.config/mouser/host-secret)" \
-  ./target/debug/mouser --wait --edge right \
+  ./target/release/mouser --wait --edge right \
   </dev/null >"$TMPDIR/mouser-host.log" 2>&1 &
 ```
 
-- Detached (nohup, PPID 1). No `--verbose` currently.
-- Role/edge/port come from the config file; the secret comes only from the env.
+- Detached (nohup, PPID 1). If the agent's tool shell kills nohup children,
+  launch the same command via Python `Popen(..., start_new_session=True)`
+  (what the 10/11 and 10/16 Mac entries did).
+- Everything comes from the flags; the secret comes only from the env.
 - The host does **not** auto-start at boot. If nothing listens on 47583 after a
   reboot or crash, relaunch it with the command above.
+- A new pairing replaces the current one, so a restarted PC re-pairs at once.
 
 ## Update procedure (pull → build → restart only)
 
 1. `git fetch origin && git status`. Clean tree expected. If dirty: **stash,
    never discard** — it may be another agent's work in progress. Then
    `git pull --ff-only origin main`. No rebases, no force, no merges.
-2. `cargo test --workspace` — expect **66 passed on macOS, 0 failed**.
-   (67 in the full suite cross-platform; 1 test, `keymap::arrows_and_delete_need_the_extended_flag`,
-   is `#[cfg(windows)]` and never runs here. The `mouser-net` suite takes ~75 s —
-   `public_address_is_refused` is slow by design. That is not a hang.)
-3. Stop the old host: `kill $(pgrep -f 'target/debug/mouser')`, wait for the
-   port to free.
-4. Rebuild the same profile it was running: `cargo build` (dev). Do NOT switch
-   to `--release` — match the running binary's path.
-5. Relaunch with the canonical command above, detached, secret in env.
-6. Run the done-checks below, then append to the handoff log.
+2. `cargo test` — expect **20 passed, 0 failed** (same count on macOS and
+   Windows; each platform has 2 tests of its own). The loopback handshake
+   tests take well under a second.
+3. `cargo clippy --all-targets -- -D warnings` must be clean.
+4. Stop the old host: `kill $(pgrep -f 'target/.*/mouser')`, wait for the
+   port to free. (The first v0.2 update kills the old `target/debug/mouser`.)
+5. `cargo build --release`.
+6. Relaunch with the canonical command above, detached, secret in env.
+7. Run the done-checks below, then append to the handoff log.
 
 ## Objective done-checks (verify, don't trust prose)
 
 ```sh
 lsof -nP -iTCP:47583 -sTCP:LISTEN          # mouser PID listening
-lsof -nP -iTCP:47583 | grep ESTABLISHED    # line to 192.168.68.67:xxxxx
-tail "$TMPDIR/mouser-host.log"            # "paired with windows-pc at 192.168.68.67:..."
+lsof -nP -iTCP:47583 | grep ESTABLISHED    # line to the PC
+tail "$TMPDIR/mouser-host.log"            # "paired with 192.168.68.x:... [0788FEF2]"
 ```
 
 The "paired with" log line is the real proof; a LISTEN socket alone is not.
-Do **not** use `ping 192.168.68.67` as a health check — that Windows box drops
+Do **not** use `ping` on the PC as a health check — that Windows box drops
 ICMP (100% loss while paired and working).
 
 ## Rules of engagement
@@ -71,53 +96,51 @@ ICMP (100% loss while paired and working).
 - If `git pull` refuses because an untracked `AGENTS.md` would be overwritten,
   the upstream tracked version supersedes the local copy: delete the local
   file and pull again.
-- Never put the secret value in the repo, this file, logs, or command args
-  (`--secret` is visible in `ps`; use the env var).
+- Never put the secret value in the repo, this file, logs, or command args.
+  There is no `--secret` flag any more; `MOUSER_SECRET` is the only way in.
 - Dropping the link while working is fine — the PC client re-pairs by itself
   within ~2 s of the listener coming back.
-- Mixed versions across the two machines are safe; the wire protocol is stable.
-- If the host dies with "missing accessibility permission", that is macOS
-  Privacy & Security (Accessibility/Input Monitoring) — not a code bug.
+- **Versions must match across the two machines** from v0.2 on (see the top).
+- If the host exits with "no event tap: grant Accessibility and Input
+  Monitoring", that is macOS Privacy & Security — not a code bug. A new binary
+  path (`target/release/mouser`) may need the permission granted again.
 
 ## The other machine — Windows PC (client)
 
-Written from the PC side (handoff log, 2026-10-02 ~13:35). The rules of
-engagement apply on both machines; only the facts differ.
+Written from the PC side. The rules of engagement apply on both machines;
+only the facts differ.
 
 | Fact | Value |
 |---|---|
-| Windows PC (client) | `192.168.68.67`, connects out to the host |
-| Host (the Mac) | `192.168.68.68:47583`, sits to the PC's LEFT |
-| Shared edge | the PC shares its **LEFT** edge (`--edge left`) |
-| Repo | `C:\Users\eduar\mouser` (same workspace layout) |
-| Binary in use | `target\debug\mouser.exe` (**dev profile** — no release build) |
-| App config | `%APPDATA%\mouser\mouser\config\config.json` (never stores the secret) |
+| Windows PC (client) | `192.168.68.67` / `.60`, connects out to the host |
+| Host (the Mac) | `eds-MacBook-Pro.local:47583`, re-resolved on every attempt |
+| Shared edge | `--edge left` per this file — confirm with the user (see top) |
+| Repo | `C:\Users\eduar\mouser` (same single-crate layout) |
+| Binary in use | `target\release\mouser.exe` (**release profile** from v0.2) |
 | Pairing secret | NOT in this file. `%USERPROFILE%\.config\mouser\client-secret` |
-| Live console | `%TEMP%\opencode\mouser-live.err.log` (all app events with `--verbose`) |
+| Live log | `%TEMP%\opencode\mouser-live.err.log` (stderr) |
 
 Canonical launch (PowerShell, detached):
 
 ```powershell
 $env:MOUSER_SECRET = (Get-Content "$env:USERPROFILE\.config\mouser\client-secret" -Raw).Trim()
-Start-Process -FilePath "C:\Users\eduar\mouser\target\debug\mouser.exe" `
-  -ArgumentList "--connect","eds-MacBook-Pro.local:47583","--edge","left","--name","windows-pc","--verbose" `
+Start-Process -FilePath "C:\Users\eduar\mouser\target\release\mouser.exe" `
+  -ArgumentList "--connect","eds-MacBook-Pro.local:47583","--edge","left" `
   -RedirectStandardError "$env:TEMP\opencode\mouser-live.err.log"
 ```
 
-The client dials the Mac **by its Bonjour name** and re-resolves it on every
-attempt, so DHCP moving the Mac no longer breaks pairing; the IPs in the
-tables above are informational only. The first few attempts after launch
-may log `No such host is known` while mDNS warms up (the network profile is
-Public); it pairs within ~10 s. If the name never resolves
-(`Resolve-DnsName eds-MacBook-Pro.local`), fall back to a router DHCP
-reservation for the Mac's MAC `bc:d0:74:59:ac:87`. The desktop shortcut's
-`%USERPROFILE%\.config\mouser\launch.vbs` uses the same hostname.
+The release exe is a GUI-subsystem program: no console and no window appear;
+stderr goes to the redirected file. The first few attempts after launch may
+log `No such host is known` while mDNS warms up (the network profile is
+Public); it pairs within ~10 s. Identical connect errors are logged once, not
+every retry. If the name never resolves (`Resolve-DnsName
+eds-MacBook-Pro.local`), fall back to a router DHCP reservation for the
+Mac's MAC `bc:d0:74:59:ac:87`.
 
-Never pass `-WindowStyle Minimized` here: creating the window hidden lets
-WebView2 suspend the renderer, and the UI freezes on a stale frame while
-the backend keeps working (see the 14:08 handoff entry). A suspended
-renderer shows 0 CPU across the whole `msedgewebview2.exe` tree; a live
-one idles around 30 ms per 3 s while polling.
+**Desktop shortcut:** `%USERPROFILE%\.config\mouser\launch.vbs` still starts
+`target\debug\mouser.exe` with `--name windows-pc --verbose`. v0.2 rejects
+both flags, so at the v0.2 rollout update launch.vbs to the release path and
+the flags of the canonical command above, or the shortcut starts nothing.
 
 The client does not auto-start at boot; if `Get-Process mouser` comes up
 empty after a reboot, relaunch with the command above.
@@ -127,47 +150,37 @@ Update procedure (pull → build → restart, same order as the host):
 1. `git fetch origin && git status` — clean tree expected; **stash, never
    discard**. Then `git pull --ff-only origin main`. No rebases, no force.
 2. **Kill the exe before any build**: `Stop-Process -Name mouser -Force`,
-   then wait ~1 s — the running exe locks `target\debug\mouser.exe` and the
-   link step fails while it lives. Dropping the link is fine; the client
-   re-pairs by itself within ~2 s of the host listener coming back.
-3. `cargo test --workspace` — expect **74 passed on Windows, 0 failed**
-   (the one extra vs macOS is `#[cfg(windows)]`).
-4. `cargo build` (dev). Agent shells must call it by full path —
-   `& "$env:USERPROFILE\.cargo\bin\cargo.exe" build` — `cargo` is not on PATH.
+   then wait ~1 s — the running exe locks its file and the link step fails
+   while it lives. A force-kill while the cursor is hidden leaves the system
+   cursors blank until the next mouser launch, which restores them first.
+3. `cargo test` — expect **20 passed, 0 failed**.
+4. `cargo build --release`. Agent shells must call cargo by full path —
+   `& "$env:USERPROFILE\.cargo\bin\cargo.exe" build --release` — `cargo` is
+   not on PATH.
 5. Relaunch with the canonical command above.
 6. Run the done-checks below, then append to the handoff log.
 
 Objective done-checks:
 
 ```powershell
-Get-Process mouser                                   # alive
-Get-NetTCPConnection -RemoteAddress 192.168.68.68    # State Established
+Get-Process mouser                                   # alive, Path ends target\release\mouser.exe
+Get-NetTCPConnection -RemotePort 47583               # State Established
 Get-Content "$env:TEMP\opencode\mouser-live.err.log" -Tail 5
-# expect: paired with mac at 192.168.68.68:47583 [0788FEF2]
+# expect: paired with 192.168.68.x:47583 [0788FEF2]
 ```
-
-The window's header clock must tick (~10 Hz): a stopped clock means the UI
-froze while the backend may still be working — read the `5ff492b` handoff
-log entry before diagnosing the link.
 
 Windows quirks:
 
-- `cargo test` does NOT refresh the exe — always `cargo build` before
-  running the binary against anything. A stale exe produced false failures
-  once.
-- The low-level hooks ignore injected input (`LLMHF_INJECTED`): no script
+- `cargo test` does NOT refresh the exe — always build before running the
+  binary against anything. A stale exe produced false failures once.
+- The low-level hook ignores injected input (`LLMHF_INJECTED`): no script
   can simulate the physical push across the edge. Handoff feel can only be
-  tested by the user's hand; the log lines ("pushed the cursor off the
-  shared edge" / "-> local control") prove the state machine without it.
-- The seam-parked pointer stays visible on Windows by design: `ShowCursor`
-  is a per-thread count mouser's windowless threads cannot move — every
-  software KVM on Windows shows the parked cursor.
-- The UI's liveness depends on `additionalBrowserArgs` in
-  `src-tauri/tauri.conf.json` (backgrounding disabled + native occlusion
-  calculation off). If a rebuild ever drops them, a hidden or minimized
-  window can suspend the WebView2 renderer to 0 CPU and freeze the
-  display while the backend keeps working.
-- Desktop facts: 100% scale, single 3440x1440 monitor, seam at x=0.
+  tested by the user's hand; the log lines ("-> peer: pushed off the ... edge"
+  / "-> local control") prove the state machine without it.
+- The seam-parked pointer is hidden by swapping the system cursor set for a
+  blank one (`SetSystemCursor`); mouser restores the user's scheme at
+  startup, on Ctrl+C, on panic and when control returns.
+- Desktop facts: 100% scale, single 3440x1440 monitor.
 
 ## Handoff log (append-only)
 
@@ -582,3 +595,37 @@ Windows quirks:
   command above. **Mac host needs no change.** Still open: the
   `edge settings disagree` warning (PC says left, Mac says top; the live
   seam is bottom/top per the 10/17 entry). Committed and pushed on user request.
+
+- **2026-10-22 ~03:40 EDT** — Claude Code on the Windows PC, user-approved
+  plan "Phase 2": rewrote mouser as **one headless crate** (v0.2) on branch
+  `claude/tiny-headless-851055` — NOT merged to `main`, not pushed. Deleted
+  `src-tauri/`, `ui/`, `tests/ui.cjs`, `crates/*`, icons, and the tokio, clap,
+  serde/postcard/serde_json, directories, tracing, thiserror and anyhow deps.
+  New `src/`: `main.rs` (hand-parsed flags, `MOUSER_SECRET` only, dial loop
+  re-resolving `host:port` each 2 s retry, accept loop where the newest
+  pairing wins), `wire.rs` (fixed 8-byte frames as 24-byte ciphertext over
+  snow `Noise_NNpsk0_25519_ChaChaPoly_SHA256`, sync `std::net`, implicit
+  nonces via snow's stateless transport, `set_nodelay`, private-address
+  check, prologue `mouser/v2`; PSK and fingerprint derivations unchanged so
+  `[0788FEF2]` still identifies the secret), `kvm.rs` (Local / Forwarding /
+  Remote; ported `seam_anchor`, `recenter_seam`, return margin, debounce,
+  held-key release), `win.rs` (mouse hook only, `LAST_POS`, XBUTTONs,
+  `CURSOR_SHAPES` + restore at startup/Ctrl+C/panic, keys injected as
+  positional scan codes), `mac.rs` (event tap with mouse+keyboard capture,
+  `WARPED_TARGET`, `SetsCursorInBackground`; mouse-only injection). Ping/Pong
+  replaced by a one-way keepalive frame every 2 s and a 6 s read timeout.
+  Behaviour fixes that came along: a key/button pressed before a handoff is
+  now released locally instead of being forwarded and left stuck; a
+  simultaneous crossing from both sides leaves the host in control instead
+  of deadlocking; ISO `§`/`<` and keypad Enter are mapped; scroll carries
+  1/120-notch units. **Wire format is incompatible with v0.1 — both
+  machines must update together.** Size: 1,530 non-test lines (1,886 with
+  tests; plan estimate was ~1,000), release exe **339 KB** (346,624 B) vs
+  the 18.3 MB v0.1 dev exe. `cargo test` 20 passed, 0 failed; `cargo clippy
+  --all-targets -- -D warnings` clean for x86_64-pc-windows-msvc **and**
+  aarch64/x86_64-apple-darwin (type-checked from Windows, not linked or run);
+  `cargo build --release` OK on Windows; release exe smoke-ran (usage error
+  path, capture start, connect-retry log) then killed. **Unverified:** the
+  macOS build/link/run, any live two-machine pairing, handoff feel, and the
+  launch.vbs update. The live v0.1 client (PID 15868, `target\debug`) was
+  left running and paired; nothing was deployed on either machine.

@@ -1,46 +1,43 @@
-[workspace]
-resolver = "3"
-members = [
-    "crates/mouser-core",
-    "crates/mouser-net",
-    "crates/mouser-input",
-    "src-tauri",
-]
-
-[workspace.package]
-version = "0.1.0"
+[package]
+name = "mouser"
+description = "One mouse and keyboard across two computers on a LAN."
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.85"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/iLuzionsX/mouser"
-authors = ["mouser contributors"]
 
-[workspace.dependencies]
-mouser-core = { path = "crates/mouser-core", version = "0.1.0" }
-mouser-net = { path = "crates/mouser-net", version = "0.1.0" }
-mouser-input = { path = "crates/mouser-input", version = "0.1.0" }
+# A root of its own, even when checked out inside another workspace.
+[workspace]
 
-anyhow = "1.0"
-clap = { version = "4.5", features = ["derive"] }
-postcard = { version = "1.1", features = ["use-std"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-sha2 = "0.11"
-snow = "0.10"
-tauri = { version = "2", features = [] }
-thiserror = "2.0"
-tokio = { version = "1", features = [
-    "io-util",
-    "macros",
-    "net",
-    "rt-multi-thread",
-    "sync",
-    "time",
+[dependencies]
+# Only the primitives NNpsk0_25519_ChaChaPoly_SHA256 needs. snow's `std`
+# feature is left off on purpose: it would also pull in `ring`.
+snow = { version = "0.10", default-features = false, features = [
+    "use-chacha20poly1305",
+    "use-curve25519",
+    "use-getrandom",
+    "use-sha2",
 ] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+sha2 = { version = "0.10", default-features = false }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_System_Console",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.10"
+# `highsierra` gates `CGEvent::new_scroll_event`.
+core-graphics = { version = "0.25", features = ["highsierra"] }
 
 [profile.release]
-lto = "thin"
+opt-level = "z"
+lto = true
 codegen-units = 1
+panic = "abort"
 strip = true
