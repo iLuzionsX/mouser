@@ -827,3 +827,14 @@ Windows quirks:
   mouser` started PID 16892. Not verified: a real sign-out/sign-in, and
   pairing (the Mac was not answering at 18:08Z: timeouts and `No such host`).
   Committed and pushed on user request, on top of `5cfd4f7` (Mac tray icon).
+
+- **2026-10-22 ~14:32 EDT**: Claude Code on the Mac host. The launchd-started
+  host (v0.3, `5cfd4f7`) had no event tap, so it did not listen and the PC could
+  not pair. Toggling the existing permission entries on was not enough: Accessibility
+  held two stale `mouser` entries from earlier builds (an ad-hoc rebuild changes
+  the signature). Fix: remove **every** `mouser` entry in Accessibility and Input
+  Monitoring, re-add `target/release/mouser` once, then `launchctl kickstart -k
+  gui/$(id -u)/dev.mouser.mouser`. Now PID 17376 (launchd), Mac at
+  `192.168.68.62`, `paired with 192.168.68.59:52004 [0788FEF2]` at 18:31:48Z, and
+  a live push off the Top edge followed by a return. No code changes; the
+  PC's scheduled-task commit `5143d56` is Windows-only, so no Mac rebuild.
