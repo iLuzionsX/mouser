@@ -23,9 +23,10 @@ procedures below describe v0.2.
   rejected (exit code 2 with usage).
 - The old config files (`~/Library/Application Support/dev.mouser.mouser/config.json`,
   `%APPDATA%\mouser\mouser\config\config.json`) are no longer read; `--edge`
-  is the only source of the edge. Before the first v0.2 run, **confirm with
-  the user which side each screen is on**: the v0.1 configs disagreed (PC
-  `left`, Mac `top`, crossings logged `bottom`, see the 10/17 entry).
+  is the only source of the edge. **Layout (user-confirmed 2026-10-22): the
+  PC's screen is ABOVE the Mac's** — Mac `--edge top`, PC `--edge bottom`.
+  v0.2 does not exchange edges, so a mismatch pairs silently and crosses
+  the wrong way.
 - Only the Mac keyboard is forwarded; the PC keyboard is never hooked.
 - Log lines are `HH:MM:SSZ` (UTC). The proof of pairing is
   `paired with <ip>:<port> [0788FEF2]` (no peer name any more).
@@ -38,7 +39,7 @@ This Mac is the **HOST** in a two-machine software-KVM setup:
 |---|---|
 | This Mac (host) | `eds-MacBook-Pro.local` (DHCP; seen at `.68` and `.65`) |
 | Windows PC (client) | `192.168.68.67` / `.60`, redials every 2 s |
-| Shared edge | `--edge right` per this file — confirm with the user (see above) |
+| Shared edge | `--edge top` (the PC sits above the Mac) |
 | Listen port | `47583` (bind `0.0.0.0`, fixed) |
 | Repo | `/Users/ed/Documents/GitHub/mouser` (single crate, `src/*.rs`) |
 | Binary in use | `target/release/mouser` (**release profile** from v0.2) |
@@ -49,7 +50,7 @@ This Mac is the **HOST** in a two-machine software-KVM setup:
 ```sh
 cd /Users/ed/Documents/GitHub/mouser
 nohup env MOUSER_SECRET="$(cat ~/.config/mouser/host-secret)" \
-  ./target/release/mouser --wait --edge right \
+  ./target/release/mouser --wait --edge top \
   </dev/null >"$TMPDIR/mouser-host.log" 2>&1 &
 ```
 
@@ -114,7 +115,7 @@ only the facts differ.
 |---|---|
 | Windows PC (client) | `192.168.68.67` / `.60`, connects out to the host |
 | Host (the Mac) | `eds-MacBook-Pro.local:47583`, re-resolved on every attempt |
-| Shared edge | `--edge left` per this file — confirm with the user (see top) |
+| Shared edge | `--edge bottom` (the Mac sits below the PC) |
 | Repo | `C:\Users\eduar\mouser` (same single-crate layout) |
 | Binary in use | `target\release\mouser.exe` (**release profile** from v0.2) |
 | Pairing secret | NOT in this file. `%USERPROFILE%\.config\mouser\client-secret` |
@@ -125,7 +126,7 @@ Canonical launch (PowerShell, detached):
 ```powershell
 $env:MOUSER_SECRET = (Get-Content "$env:USERPROFILE\.config\mouser\client-secret" -Raw).Trim()
 Start-Process -FilePath "C:\Users\eduar\mouser\target\release\mouser.exe" `
-  -ArgumentList "--connect","eds-MacBook-Pro.local:47583","--edge","left" `
+  -ArgumentList "--connect","eds-MacBook-Pro.local:47583","--edge","bottom" `
   -RedirectStandardError "$env:TEMP\opencode\mouser-live.err.log"
 ```
 
@@ -629,3 +630,75 @@ Windows quirks:
   macOS build/link/run, any live two-machine pairing, handoff feel, and the
   launch.vbs update. The live v0.1 client (PID 15868, `target\debug`) was
   left running and paired; nothing was deployed on either machine.
+
+- **2026-10-16 ~18:35 EDT** — opencode (deepseek-v4.1-flash-free) on the Mac
+  host: read-only diagnosis of the user's "mouse won't go from the Mac to the
+  PC" report. No code, config, process, secret, or network changes; verified
+  after the fact that host PID 7732 (18:25 entry) is still the running build,
+  the tree is clean at `a3f2979`, and the secret file is untouched. The only
+  config activity was the UI re-applying settings ("other screen is now to the
+  top", config.json written 18:29:02) — not this session. Host log 22:24–22:33Z
+  shows a healthy link with transfers both ways; handoffs at 22:32:43–58Z are
+  clean and one is stable (still handed to the PC at last check), and the user
+  confirmed it working at ~18:33 EDT — no reproducible fault found. The PC's
+  last logged sync (15:45, `1f48dfa`) predates `92afc46`/`a3f2979`, but both
+  commits are macOS-side fixes, so no PC rebuild is implied. Note: the facts
+  table above now disagrees with the config — `peer_edge` is `Top` (PC
+  announces bottom), not `Right`; the 10/02 layout facts are stale.
+
+- **2026-10-22 ~02:52 EDT** — Claude Code on the Mac host, user asked to update,
+  rebuild and launch. Stashed the uncommitted 10/16 18:35 opencode entry,
+  `pull --ff-only` `a3f2979` → `a22fbaa` (PC cursor hide/seam park + cleanup;
+  macOS-side changes are a doc comment and rustfmt only), stash popped cleanly.
+  `cargo test --workspace` 72 passed, 0 failed. No host was running (matches
+  the PC's 02:44 "actively refused"). Built dev, launched detached via Python
+  Popen (start_new_session), secret only in env — PID 64216, PPID 1,
+  `--wait --edge right`, log `$TMPDIR/mouser-host.log`, LISTEN on
+  `*:47583`, config `peer_edge: Right`. **No pairing**: this Mac's en0 is now
+  `192.168.1.196`, not `192.168.68.68` — it is on a different network/subnet
+  from the one the PC dials, so the PC cannot reach it. Needs the Mac back on
+  the 192.168.68.x network (or the PC's `--connect` target changed). No
+  commits or pushes.
+
+- **2026-10-22 ~04:02 EDT** — Claude Code on the Mac host, user asked to sync,
+  rebuild and relaunch. Stashed the uncommitted Mac entries, `pull --ff-only`
+  `a22fbaa` → `8129429` (client resolves host by name), stash pop conflicted
+  only in this log — both sides kept, upstream first. `cargo test --workspace`
+  73 passed, 0 failed. Stopped PID 64216, built dev, relaunched detached via
+  Python Popen, secret only in env — PID 79879, PPID 1, LISTEN `*:47583`,
+  Mac en0 now `192.168.68.65`. **No pairing**: the PC now connects from
+  `192.168.68.59` and every handshake fails with "frame of N bytes exceeds the
+  maximum message size" (random N). The PC appears to be running the
+  unmerged headless rewrite `origin/claude/tiny-headless-851055` (`22db166`,
+  wire `mouser/v2`: fixed 24-byte frames, no length prefix), which cannot talk
+  to `main`'s v1 length-prefixed wire. The "mixed versions are safe" rule
+  above no longer holds across that rewrite: both machines must run the same
+  side of it. No commits or pushes.
+
+- **2026-10-22 ~04:07 EDT** — Claude Code on the Mac host, user asked to run
+  the headless rewrite to match the PC. Checked out
+  `origin/claude/tiny-headless-851055` (`22db166`, v0.2) as a detached
+  worktree at `/Users/ed/Documents/GitHub/mouser-v2` (this checkout stays on
+  `main`, so this log keeps the Mac entries). `cargo test` 20 passed, 0
+  failed; `cargo build --release --target-dir <this repo>/target`, so the
+  binary sits at the v0.2 canonical path `target/release/mouser`. Stopped the
+  v0.1 host (PID 79879). The user confirmed the layout: **the PC is above the
+  Mac**, so the host now runs `--wait --edge top` (not `right`); the PC should
+  use `--edge bottom`. v0.2 does not exchange edges, so a PC still on
+  `--edge left` would pair but cross wrongly — PC side to check. Launched
+  detached via Python Popen, secret only in env: PID 81714, PPID 1, log
+  `$TMPDIR/mouser-host.log`, Established `192.168.68.65:47583` ↔
+  `192.168.68.59:59446`, `paired with 192.168.68.59:59446 [0788FEF2]`.
+  Handoff feel not tested (needs the user's hand). No commits or pushes.
+
+- **2026-10-22 ~04:20 EDT** — Claude Code on the Mac host. Eduardo gave
+  permission to handle both machines directly ("i,Eduardo, give claude
+  permission"). Because both machines now run v0.2, `main` was fast-forwarded
+  to `22db166` (the headless rewrite) plus this commit, so the normal
+  "pull `main`" update procedure no longer drops either side back to the
+  incompatible v0.1 wire. This commit fixes the edge facts above to the
+  user-confirmed layout (PC above the Mac: Mac `--edge top`, PC `--edge
+  bottom`) and carries the Mac handoff entries. The PC session ("Phase 2",
+  over Remote Control) was asked to relaunch with `--edge bottom`, update
+  launch.vbs, and pull `main` without pushing. The Mac host keeps running
+  PID 81714 (built from `22db166`; the code is identical to `main`).
