@@ -147,34 +147,34 @@ only the facts differ.
 | Host (the Mac) | `eds-MacBook-Pro.local:47583`, re-resolved on every attempt |
 | Shared edge | `--edge bottom` (the Mac sits below the PC) |
 | Repo | `C:\Users\eduar\mouser` (same single-crate layout) |
-| Binary in use | `target\release\mouser.exe` (**release profile** from v0.2) |
-| Pairing secret | NOT in this file. `%USERPROFILE%\.config\mouser\client-secret` |
-| Live log | `%TEMP%\opencode\mouser-live.err.log` (stderr) |
+| Binary in use | `target\release\mouser.exe` (**v0.3**, release profile) |
+| Pairing secret | NOT in this file. `%USERPROFILE%\.config\mouser\secret` (copy of `client-secret`); a user-level `MOUSER_SECRET` env var (HKCU\Environment, set 10/16) also exists and wins |
+| Settings | `%USERPROFILE%\.config\mouser\config` (`connect`, `edge = bottom`, `enabled`, `allow_public`) |
+| Live log | `%USERPROFILE%\.config\mouser\mouser.log` (truncated at each start) |
+| Start at login | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` value `mouser` = the exe, no args |
 
-Canonical launch (PowerShell, detached):
+Canonical launch (PowerShell, detached). v0.3 reads everything from
+`config` and `secret`, so it takes no arguments:
 
 ```powershell
-$env:MOUSER_SECRET = (Get-Content "$env:USERPROFILE\.config\mouser\client-secret" -Raw).Trim()
-Start-Process -FilePath "C:\Users\eduar\mouser\target\release\mouser.exe" `
-  -ArgumentList "--connect","eds-MacBook-Pro.local:47583","--edge","bottom" `
-  -RedirectStandardError "$env:TEMP\opencode\mouser-live.err.log"
+Start-Process -FilePath "C:\Users\eduar\mouser\target\release\mouser.exe"
 ```
 
+The same exe also starts by itself at login (Run key). Flags still work and
+are written back to `config`.
+
 The release exe is a GUI-subsystem program: no console and no window appear;
-stderr goes to the redirected file. The first few attempts after launch may
+its log goes to `mouser.log`. The first few attempts after launch may
 log `No such host is known` while mDNS warms up (the network profile is
 Public); it pairs within ~10 s. Identical connect errors are logged once, not
 every retry. If the name never resolves (`Resolve-DnsName
 eds-MacBook-Pro.local`), fall back to a router DHCP reservation for the
 Mac's MAC `bc:d0:74:59:ac:87`.
 
-**Desktop shortcut:** `%USERPROFILE%\.config\mouser\launch.vbs` still starts
-`target\debug\mouser.exe` with `--name windows-pc --verbose`. v0.2 rejects
-both flags, so at the v0.2 rollout update launch.vbs to the release path and
-the flags of the canonical command above, or the shortcut starts nothing.
-
-The client does not auto-start at boot; if `Get-Process mouser` comes up
-empty after a reboot, relaunch with the command above.
+**Desktop shortcut retired (v0.3):** `launch.vbs` and `Desktop\Mouser.lnk`
+were moved to `%USERPROFILE%\.config\mouser\retired-v0.1\`; the tray icon
+and the Run key replace them. If `Get-Process mouser` comes up empty after a
+login, check the Run key, then relaunch with the command above.
 
 Update procedure (pull → build → restart, same order as the host):
 
@@ -184,7 +184,7 @@ Update procedure (pull → build → restart, same order as the host):
    then wait ~1 s — the running exe locks its file and the link step fails
    while it lives. A force-kill while the cursor is hidden leaves the system
    cursors blank until the next mouser launch, which restores them first.
-3. `cargo test` — expect **20 passed, 0 failed**.
+3. `cargo test` — expect **22 passed, 0 failed** (v0.3).
 4. `cargo build --release`. Agent shells must call cargo by full path —
    `& "$env:USERPROFILE\.cargo\bin\cargo.exe" build --release` — `cargo` is
    not on PATH.
@@ -196,7 +196,7 @@ Objective done-checks:
 ```powershell
 Get-Process mouser                                   # alive, Path ends target\release\mouser.exe
 Get-NetTCPConnection -RemotePort 47583               # State Established
-Get-Content "$env:TEMP\opencode\mouser-live.err.log" -Tail 5
+Get-Content "$env:USERPROFILE\.config\mouser\mouser.log" -Tail 5
 # expect: paired with 192.168.68.x:47583 [0788FEF2]
 ```
 
@@ -749,3 +749,25 @@ Windows quirks:
   one item. **launchd start fails the event tap until the user grants
   `target/release/mouser` Accessibility + Input Monitoring**; the running
   host was started from the shell instead. PC side handed to the PC session.
+
+- **2026-10-22 ~04:45 EDT**: Claude Code on the Windows PC (session
+  "Phase 2"). Eduardo approved the v0.3 rollout in this session. `main`
+  fast-forwarded to `5284ef7`. `cargo test` 22 passed, 0 failed; clippy
+  `--all-targets -D warnings` clean on Windows. Stopped the v0.2 client
+  (PID 22400, which ran from the rewrite worktree). Ran `cargo build
+  --release` into the canonical path (500,224 B) and copied `client-secret`
+  to `secret`. The first run, `--connect eds-MacBook-Pro.local:47583 --edge
+  bottom`, wrote `config` (`edge = bottom`, `enabled = true`) and the HKCU
+  Run value `mouser` = `"C:\Users\eduar\mouser\target\release\mouser.exe"`.
+  It paired at 08:41:50Z and logged a live crossing. Relaunched with **no
+  args** (what login does): PID 20032, `paired with 192.168.68.65:47583
+  [0788FEF2]` at 08:42:36Z (mDNS took ~30 s), Established from `:49567`.
+  Tray: the process owns the `tray_icon_app` window, so the icon is
+  registered; nobody clicked through the menu. A second copy exits at once
+  (code 0). Retired `launch.vbs` and `Desktop\Mouser.lnk` by moving both
+  to `%USERPROFILE%\.config\mouser\retired-v0.1\` (not deleted). A
+  user-level `MOUSER_SECRET` env var (set 10/16) still exists and takes
+  precedence over the `secret` file; it holds the same value today. Not
+  verified: a real logoff/login start, and the Windows menu items. An
+  untracked `src-tauri/` leftover (old build output, previously ignored)
+  sits in the PC checkout and was left alone.
