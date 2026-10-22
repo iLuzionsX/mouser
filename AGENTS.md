@@ -148,7 +148,7 @@ only the facts differ.
 | Shared edge | `--edge bottom` (the Mac sits below the PC) |
 | Repo | `C:\Users\eduar\mouser` (same single-crate layout) |
 | Binary in use | `target\release\mouser.exe` (**v0.3**, release profile) |
-| Pairing secret | NOT in this file. `%USERPROFILE%\.config\mouser\secret` (copy of `client-secret`); a user-level `MOUSER_SECRET` env var (HKCU\Environment, set 10/16) also exists and wins |
+| Pairing secret | NOT in this file. `%USERPROFILE%\.config\mouser\secret` (copy of `client-secret`). No `MOUSER_SECRET` env var: removed 10/22 so the secret is not copied into every process |
 | Settings | `%USERPROFILE%\.config\mouser\config` (`connect`, `edge = bottom`, `enabled`, `allow_public`) |
 | Live log | `%USERPROFILE%\.config\mouser\mouser.log` (truncated at each start) |
 | Start at login | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` value `mouser` = the exe, no args |
@@ -771,3 +771,12 @@ Windows quirks:
   verified: a real logoff/login start, and the Windows menu items. An
   untracked `src-tauri/` leftover (old build output, previously ignored)
   sits in the PC checkout and was left alone.
+
+- **2026-10-22 ~05:00 EDT**: Claude Code on the Windows PC. With the user's
+  OK, removed the user-level `MOUSER_SECRET` env var (HKCU\Environment, set
+  10/16): it copied the secret into every process the user starts, and it
+  overrode the `secret` file. No machine-level copy exists. mouser now reads
+  only `%USERPROFILE%\.config\mouser\secret`; the running PID 20032 had
+  already loaded it and stayed paired (Established to 192.168.68.65). Also
+  deleted the untracked `src-tauri/gen/schemas` leftover (4 files, 291 KB
+  of old Tauri output); `git status` is clean.
