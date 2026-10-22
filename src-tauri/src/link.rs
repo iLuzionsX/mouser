@@ -29,6 +29,9 @@ const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 /// Delay between reconnection attempts.
 const RETRY: Duration = Duration::from_secs(2);
 
+/// How long a farewell `Bye` may take before the link is dropped anyway.
+const BYE_TIMEOUT: Duration = Duration::from_millis(250);
+
 /// Spawn the link for the configured role.
 pub async fn run(state: Arc<AppState>) {
     let config = state.config();
@@ -83,8 +86,9 @@ async fn host_loop(state: Arc<AppState>, handle: AppHandle, config: Config) {
         let (stream, peer_addr) = match listener.accept().await {
             Ok(pair) => pair,
             Err(e) => {
-                handle.log(Level::Warn, format!("accept failed: {e}"));
-                break;
+                handle.log(Level::Warn, format!("accept failed: {e}; retrying"));
+                tokio::time::sleep(RETRY).await;
+                continue;
             }
         };
         let peer = peer_addr.to_string();
@@ -288,10 +292,14 @@ async fn session(
     let mut last_received = Instant::now();
     let keepalive = !state.config().disable_keepalive;
     let mut outcome = "peer closed the connection".to_string();
+    // Set when this side ends a healthy link, so the peer is told rather
+    // than left waiting out LINK_TIMEOUT.
+    let mut say_bye = false;
 
     loop {
         if !bridge.is_connected() || state.secret_input() != secret {
             outcome = "input queue failed or pairing secret changed".into();
+            say_bye = true;
             break;
         }
         tokio::select! {
@@ -338,6 +346,10 @@ async fn session(
                 }
             }
         }
+    }
+
+    if say_bye {
+        let _ = tokio::time::timeout(BYE_TIMEOUT, send(&mut channel, &Message::Bye)).await;
     }
 
     handle.link_down(&outcome);

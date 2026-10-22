@@ -19,32 +19,34 @@ use std::sync::{Mutex, OnceLock};
 
 use mouser_core::layout::Rect;
 use mouser_core::protocol::{Button, HidKey, InputEvent, Modifiers};
-use windows::Win32::Foundation::{LPARAM, LRESULT, POINT, WPARAM};
+use windows::Win32::Foundation::{GetLastError, LPARAM, LRESULT, POINT, WPARAM};
+use windows::Win32::Graphics::Gdi::{CreateBitmap, DeleteObject};
 use windows::Win32::System::Threading::GetCurrentThreadId;
 use windows::Win32::UI::Input::KeyboardAndMouse::{
-    INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBD_EVENT_FLAGS, KEYBDINPUT,
-    KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, MOUSE_EVENT_FLAGS, MOUSEEVENTF_ABSOLUTE,
-    MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN,
-    MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_MOVE, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP,
-    MOUSEEVENTF_VIRTUALDESK, MOUSEEVENTF_WHEEL, MOUSEINPUT, SendInput, VIRTUAL_KEY,
+    GetAsyncKeyState, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBD_EVENT_FLAGS, KEYBDINPUT,
+    KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, MAPVK_VK_TO_VSC, MOUSE_EVENT_FLAGS,
+    MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
+    MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_MOVE, MOUSEEVENTF_RIGHTDOWN,
+    MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_VIRTUALDESK, MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN,
+    MOUSEEVENTF_XUP, MOUSEINPUT, MapVirtualKeyW, SendInput, VIRTUAL_KEY, VK_CONTROL, VK_LWIN,
+    VK_MENU, VK_RWIN, VK_SHIFT,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
-    CallNextHookEx, DispatchMessageW, GetCursorPos, GetMessageW, GetSystemMetrics, KBDLLHOOKSTRUCT,
-    LLKHF_EXTENDED, LLKHF_INJECTED, LLMHF_INJECTED, MSG, MSLLHOOKSTRUCT, PostThreadMessageW,
-    SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN, SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN,
-    SetWindowsHookExW, TranslateMessage, UnhookWindowsHookEx, WH_KEYBOARD_LL, WH_MOUSE_LL,
-    WM_KEYDOWN, WM_KEYUP, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MBUTTONDOWN, WM_MBUTTONUP,
-    WM_MOUSEHWHEEL, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_QUIT, WM_RBUTTONDOWN, WM_RBUTTONUP,
-    WM_SYSKEYDOWN, WM_SYSKEYUP,
+    CallNextHookEx, CreateIconIndirect, DispatchMessageW, GetCursorPos, GetMessageW,
+    GetSystemMetrics, HCURSOR, ICONINFO, KBDLLHOOKSTRUCT, LLKHF_EXTENDED, LLKHF_INJECTED,
+    LLMHF_INJECTED, MSG, MSLLHOOKSTRUCT, OCR_APPSTARTING, OCR_CROSS, OCR_HAND, OCR_IBEAM, OCR_NO,
+    OCR_NORMAL, OCR_SIZEALL, OCR_SIZENESW, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZEWE, OCR_UP, OCR_WAIT,
+    PostThreadMessageW, SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN, SM_XVIRTUALSCREEN,
+    SM_YVIRTUALSCREEN, SPI_SETCURSORS, SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS, SetSystemCursor,
+    SetWindowsHookExW, SystemParametersInfoW, TranslateMessage, UnhookWindowsHookEx,
+    WH_KEYBOARD_LL, WH_MOUSE_LL, WM_KEYDOWN, WM_KEYUP, WM_LBUTTONDOWN, WM_LBUTTONUP,
+    WM_MBUTTONDOWN, WM_MBUTTONUP, WM_MOUSEHWHEEL, WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_QUIT,
+    WM_RBUTTONDOWN, WM_RBUTTONUP, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_XBUTTONDOWN, WM_XBUTTONUP,
 };
 
 use crate::events::CapturedEvent;
 use crate::keymap::{self, hid_from_scan};
 use crate::{InputBackend, InputError, ScreenInfo};
-
-/// `SendInput` treats a `dx`/`dy` of this as "no movement", which is how a
-/// button or wheel event is expressed without also moving the cursor.
-const NO_MOVE: i32 = -1;
 
 /// One notch of wheel travel in Windows' internal unit.
 const WHEEL_DELTA: i32 = 120;
@@ -55,8 +57,58 @@ const WHEEL_DELTA: i32 = 120;
 /// available, and must be non-zero to be distinguishable from "unset".
 const INJECT_TAG: usize = 0x6D6F_7573_6572;
 
+/// `mouseData` values naming the side buttons in X-button events.
+const XBUTTON1: u32 = 0x0001;
+const XBUTTON2: u32 = 0x0002;
+
+/// Every system cursor shape `hide_cursor` swaps for a blank one.
+const CURSOR_SHAPES: [windows::Win32::UI::WindowsAndMessaging::SYSTEM_CURSOR_ID; 13] = [
+    OCR_NORMAL,
+    OCR_IBEAM,
+    OCR_HAND,
+    OCR_WAIT,
+    OCR_CROSS,
+    OCR_SIZEALL,
+    OCR_SIZENWSE,
+    OCR_SIZENESW,
+    OCR_SIZEWE,
+    OCR_SIZENS,
+    OCR_UP,
+    OCR_NO,
+    OCR_APPSTARTING,
+];
+
+/// Reload the user's cursor scheme, undoing any `SetSystemCursor` swap.
+///
+/// The swap is global and outlives this process, so this runs on startup
+/// (a previous instance may have been killed while hidden), on panic, on
+/// drop and on every explicit show.
+fn restore_system_cursors() {
+    // SAFETY: SPI_SETCURSORS takes no buffer.
+    let _ = unsafe {
+        SystemParametersInfoW(
+            SPI_SETCURSORS,
+            0,
+            None,
+            SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS(0),
+        )
+    };
+}
+
+fn install_cursor_restore_panic_hook() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        let prev = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            restore_system_cursors();
+            prev(info);
+        }));
+    });
+}
+
 pub struct WindowsBackend {
     active: AtomicBool,
+    cursor_hidden: AtomicBool,
     hook_thread: Mutex<Option<HookThread>>,
 }
 
@@ -67,8 +119,11 @@ struct HookThread {
 
 impl WindowsBackend {
     pub fn new() -> Self {
+        install_cursor_restore_panic_hook();
+        restore_system_cursors();
         Self {
             active: AtomicBool::new(false),
+            cursor_hidden: AtomicBool::new(false),
             hook_thread: Mutex::new(None),
         }
     }
@@ -192,17 +247,55 @@ impl InputBackend for WindowsBackend {
         send(&[mouse_input(
             x,
             y,
+            0,
             MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK,
         )])
     }
 
-    // ShowCursor only affects windows owned by the calling thread. These hook
-    // threads own none, so leave the parked pointer visible without changing counts.
+    // ShowCursor only affects windows of the calling thread, so the hide swaps
+    // every system cursor shape for a blank 1x1 one instead. That swap is
+    // global; `restore_system_cursors` is the way back.
     fn hide_cursor(&self) -> Result<(), InputError> {
+        if self.cursor_hidden.swap(true, Ordering::SeqCst) {
+            return Ok(());
+        }
+        // All-ones AND mask over an all-zeros XOR mask leaves the screen as is.
+        let and_mask = [0xFFu8; 4];
+        let xor_mask = [0x00u8; 4];
+        // SAFETY: the mask buffers outlive the CreateBitmap calls, and
+        // SetSystemCursor takes ownership of each cursor it accepts.
+        unsafe {
+            let mask = CreateBitmap(1, 1, 1, 1, Some(and_mask.as_ptr().cast()));
+            let color = CreateBitmap(1, 1, 1, 1, Some(xor_mask.as_ptr().cast()));
+            let info = ICONINFO {
+                fIcon: false.into(),
+                xHotspot: 0,
+                yHotspot: 0,
+                hbmMask: mask,
+                hbmColor: color,
+            };
+            for shape in CURSOR_SHAPES {
+                if let Ok(blank) = CreateIconIndirect(&info) {
+                    let _ = SetSystemCursor(HCURSOR(blank.0), shape);
+                }
+            }
+            let _ = DeleteObject(mask.into());
+            let _ = DeleteObject(color.into());
+        }
         Ok(())
     }
+
     fn show_cursor(&self) -> Result<(), InputError> {
+        if self.cursor_hidden.swap(false, Ordering::SeqCst) {
+            restore_system_cursors();
+        }
         Ok(())
+    }
+}
+
+impl Drop for WindowsBackend {
+    fn drop(&mut self) {
+        let _ = self.show_cursor();
     }
 }
 
@@ -218,10 +311,20 @@ impl WindowsBackend {
     fn inject_scroll(&self, dx: i32, dy: i32) -> Result<(), InputError> {
         let mut records = Vec::with_capacity(2);
         if dy != 0 {
-            records.push(mouse_input(NO_MOVE, dy * WHEEL_DELTA, MOUSEEVENTF_WHEEL));
+            records.push(mouse_input(
+                0,
+                0,
+                (dy * WHEEL_DELTA) as u32,
+                MOUSEEVENTF_WHEEL,
+            ));
         }
         if dx != 0 {
-            records.push(mouse_input(NO_MOVE, dx * WHEEL_DELTA, MOUSEEVENTF_HWHEEL));
+            records.push(mouse_input(
+                0,
+                0,
+                (dx * WHEEL_DELTA) as u32,
+                MOUSEEVENTF_HWHEEL,
+            ));
         }
         if records.is_empty() {
             return Ok(());
@@ -230,19 +333,19 @@ impl WindowsBackend {
     }
 
     fn inject_button(&self, button: Button, pressed: bool) -> Result<(), InputError> {
-        let flag = match (button, pressed) {
-            (Button::Left, true) => MOUSEEVENTF_LEFTDOWN,
-            (Button::Left, false) => MOUSEEVENTF_LEFTUP,
-            (Button::Right, true) => MOUSEEVENTF_RIGHTDOWN,
-            (Button::Right, false) => MOUSEEVENTF_RIGHTUP,
-            (Button::Middle, true) => MOUSEEVENTF_MIDDLEDOWN,
-            (Button::Middle, false) => MOUSEEVENTF_MIDDLEUP,
-            // Back/forward need XBUTTON1/XBUTTON2 data, which `SendInput`
-            // cannot express. Silently skipped rather than sending a wrong
-            // button press.
-            (Button::Back, _) | (Button::Forward, _) => return Ok(()),
+        let (flag, data) = match (button, pressed) {
+            (Button::Left, true) => (MOUSEEVENTF_LEFTDOWN, 0),
+            (Button::Left, false) => (MOUSEEVENTF_LEFTUP, 0),
+            (Button::Right, true) => (MOUSEEVENTF_RIGHTDOWN, 0),
+            (Button::Right, false) => (MOUSEEVENTF_RIGHTUP, 0),
+            (Button::Middle, true) => (MOUSEEVENTF_MIDDLEDOWN, 0),
+            (Button::Middle, false) => (MOUSEEVENTF_MIDDLEUP, 0),
+            (Button::Back, true) => (MOUSEEVENTF_XDOWN, XBUTTON1),
+            (Button::Back, false) => (MOUSEEVENTF_XUP, XBUTTON1),
+            (Button::Forward, true) => (MOUSEEVENTF_XDOWN, XBUTTON2),
+            (Button::Forward, false) => (MOUSEEVENTF_XUP, XBUTTON2),
         };
-        send(&[mouse_input(NO_MOVE, 0, flag)])
+        send(&[mouse_input(0, 0, data, flag)])
     }
 
     fn inject_key(&self, key: HidKey, pressed: bool) -> Result<(), InputError> {
@@ -261,16 +364,14 @@ impl WindowsBackend {
     }
 }
 
-fn mouse_input(dx: i32, dy: i32, flags: MOUSE_EVENT_FLAGS) -> INPUT {
+fn mouse_input(dx: i32, dy: i32, mouse_data: u32, flags: MOUSE_EVENT_FLAGS) -> INPUT {
     INPUT {
         r#type: INPUT_MOUSE,
         Anonymous: INPUT_0 {
             mi: MOUSEINPUT {
                 dx,
                 dy,
-                // WHEEL/HWHEEL take their delta in mouseData; the other
-                // events ignore the field.
-                mouseData: dy as u32,
+                mouseData: mouse_data,
                 dwFlags: flags,
                 time: 0,
                 dwExtraInfo: INJECT_TAG,
@@ -280,12 +381,13 @@ fn mouse_input(dx: i32, dy: i32, flags: MOUSE_EVENT_FLAGS) -> INPUT {
 }
 
 fn keyboard_input(vk: VIRTUAL_KEY, flags: KEYBD_EVENT_FLAGS) -> INPUT {
+    let scan = unsafe { MapVirtualKeyW(vk.0 as u32, MAPVK_VK_TO_VSC) as u16 };
     INPUT {
         r#type: INPUT_KEYBOARD,
         Anonymous: INPUT_0 {
             ki: KEYBDINPUT {
                 wVk: vk,
-                wScan: 0,
+                wScan: scan,
                 dwFlags: flags,
                 time: 0,
                 dwExtraInfo: INJECT_TAG,
@@ -306,8 +408,10 @@ fn send(inputs: &[INPUT]) -> Result<(), InputError> {
     if sent as usize == inputs.len() {
         Ok(())
     } else {
+        // SAFETY: reads the calling thread's last-error value.
+        let err = unsafe { GetLastError() };
         Err(InputError::Inject(format!(
-            "SendInput delivered {sent} of {} records",
+            "SendInput delivered {sent} of {} records, error: {err:?}",
             inputs.len()
         )))
     }
@@ -367,7 +471,9 @@ fn hook_loop(sink: &Sender<CapturedEvent>, thread_id_tx: &Sender<u32>) -> Result
 /// Forward a captured event, if a hook thread is listening.
 fn forward(event: CapturedEvent) -> bool {
     let slot = sink_slot();
-    let guard = slot.lock().expect("sink slot is never poisoned");
+    let Ok(guard) = slot.lock() else {
+        return false;
+    };
     if let Some(sink) = guard.as_ref() {
         // A closed receiver simply means the app is shutting down.
         let suppress = crate::suppress_local(&event);
@@ -407,12 +513,16 @@ unsafe extern "system" fn mouse_hook(code: i32, wparam: WPARAM, lparam: LPARAM) 
 
         let event = match wparam.0 as u32 {
             WM_MOUSEMOVE => {
-                let mut guard = LAST_POS.lock().unwrap();
-                let (dx, dy) = match *guard {
-                    Some((px, py)) => (pt.0 - px, pt.1 - py),
-                    None => (0.0, 0.0),
+                let (dx, dy) = if let Ok(mut guard) = LAST_POS.lock() {
+                    let d = match *guard {
+                        Some((px, py)) => (pt.0 - px, pt.1 - py),
+                        None => (0.0, 0.0),
+                    };
+                    *guard = Some(pt);
+                    d
+                } else {
+                    (0.0, 0.0)
                 };
-                *guard = Some(pt);
                 Some(CapturedEvent::Move {
                     x: pt.0,
                     y: pt.1,
@@ -460,6 +570,19 @@ unsafe extern "system" fn mouse_hook(code: i32, wparam: WPARAM, lparam: LPARAM) 
                 Some(CapturedEvent::Button {
                     button: Button::Middle,
                     pressed: false,
+                })
+            }
+            msg @ (WM_XBUTTONDOWN | WM_XBUTTONUP) => {
+                update_last_pos(pt);
+                // The high word names which side button changed.
+                let button = match hook.mouseData >> 16 {
+                    XBUTTON1 => Button::Back,
+                    XBUTTON2 => Button::Forward,
+                    _ => return CallNextHookEx(None, code, wparam, lparam),
+                };
+                Some(CapturedEvent::Button {
+                    button,
+                    pressed: msg == WM_XBUTTONDOWN,
                 })
             }
             WM_MOUSEWHEEL => {
@@ -513,13 +636,26 @@ unsafe extern "system" fn keyboard_hook(code: i32, wparam: WPARAM, lparam: LPARA
             if forward(CapturedEvent::Key {
                 key,
                 pressed,
-                mods: Modifiers::default(),
+                mods: current_modifiers(),
             }) {
                 return LRESULT(1);
             }
         }
 
         CallNextHookEx(None, code, wparam, lparam)
+    }
+}
+
+/// Query the current state of modifier keys on Windows.
+fn current_modifiers() -> Modifiers {
+    unsafe {
+        Modifiers {
+            shift: (GetAsyncKeyState(VK_SHIFT.0 as i32) as u16 & 0x8000) != 0,
+            ctrl: (GetAsyncKeyState(VK_CONTROL.0 as i32) as u16 & 0x8000) != 0,
+            alt: (GetAsyncKeyState(VK_MENU.0 as i32) as u16 & 0x8000) != 0,
+            meta: (GetAsyncKeyState(VK_LWIN.0 as i32) as u16 & 0x8000) != 0
+                || (GetAsyncKeyState(VK_RWIN.0 as i32) as u16 & 0x8000) != 0,
+        }
     }
 }
 
@@ -559,8 +695,24 @@ mod tests {
         unsafe {
             let INPUT_0 { ki } = keyboard_input(VIRTUAL_KEY(0x41), KEYBD_EVENT_FLAGS(0)).Anonymous;
             assert_eq!(ki.dwExtraInfo, INJECT_TAG);
-            let INPUT_0 { mi } = mouse_input(0, 0, MOUSEEVENTF_MOVE).Anonymous;
+            assert_eq!(ki.wScan, 0x1E); // VirtualKey 'A' maps to scan code 0x1E
+            let INPUT_0 { mi } = mouse_input(0, 0, 0, MOUSEEVENTF_MOVE).Anonymous;
             assert_eq!(mi.dwExtraInfo, INJECT_TAG);
+        }
+    }
+
+    #[test]
+    fn mouse_button_records_are_correctly_formed() {
+        unsafe {
+            let INPUT_0 { mi: back } = mouse_input(0, 0, XBUTTON1, MOUSEEVENTF_XDOWN).Anonymous;
+            assert_eq!(back.mouseData, XBUTTON1);
+            assert_eq!(back.dwFlags, MOUSEEVENTF_XDOWN);
+            assert_eq!(back.dwExtraInfo, INJECT_TAG);
+
+            let INPUT_0 { mi: fwd } = mouse_input(0, 0, XBUTTON2, MOUSEEVENTF_XUP).Anonymous;
+            assert_eq!(fwd.mouseData, XBUTTON2);
+            assert_eq!(fwd.dwFlags, MOUSEEVENTF_XUP);
+            assert_eq!(fwd.dwExtraInfo, INJECT_TAG);
         }
     }
 

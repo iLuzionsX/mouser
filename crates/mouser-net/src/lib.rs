@@ -242,10 +242,10 @@ async fn read_frame(stream: &mut TcpStream, max: usize) -> Result<Vec<u8>, Trans
 }
 
 async fn write_frame(stream: &mut TcpStream, payload: &[u8]) -> Result<(), TransportError> {
-    stream
-        .write_all(&(payload.len() as u32).to_be_bytes())
-        .await?;
-    stream.write_all(payload).await?;
+    let mut frame = Vec::with_capacity(4 + payload.len());
+    frame.extend_from_slice(&(payload.len() as u32).to_be_bytes());
+    frame.extend_from_slice(payload);
+    stream.write_all(&frame).await?;
     stream.flush().await?;
     Ok(())
 }
@@ -363,8 +363,10 @@ impl Channel {
         self.read_buf.clear();
         self.read_total = None;
 
-        if payload.is_empty() {
-            return Ok(None);
+        if payload.len() < TAG_LEN {
+            return Err(TransportError::Malformed(
+                "frame smaller than Noise AEAD tag".into(),
+            ));
         }
         let len = self
             .transport

@@ -366,4 +366,193 @@ Windows quirks:
   Host relaunched detached via Python Popen (PID 7732, PPID 1, log at `$TMPDIR/mouser-host.log`).
   Verified listening on `0.0.0.0:47583`, paired and ESTABLISHED with `windows-pc` at
   `192.168.68.60:49348 [0788FEF2]`.
+- **2026-10-16 ~16:45 EDT** — Antigravity on the Windows PC: implemented global
+  cursor hiding on Windows and parked the forwarded pointer along the seam edge.
+  (1) implemented `hide_cursor` in `windows.rs` using `SetSystemCursor` with a
+  transparent cursor across standard system cursor IDs and `show_cursor` with
+  `SystemParametersInfoW(SPI_SETCURSORS, ...)` plus a `Drop` guard on
+  `WindowsBackend`, making the local cursor disappear entirely while controlling
+  the peer;
+  (2) replaced screen-center warping with `recenter_seam` (`EDGE_ANCHOR = 8.0`,
+  `EDGE_MAX_DRIFT = 16.0`), parking the cursor directly along the seam edge
+  instead of in the middle of the screen, while giving sufficient headroom
+  on the seam and perpendicular boundaries so hardware motion deltas remain
+  uninterrupted in all directions.
+  Workspace tests: 73 passed, 0 failed. Dev binary rebuilt and relaunched
+  (PID 22812, paired to Mac at 192.168.68.68:47583 [0788FEF2], Established).
+
+- **2026-10-16 ~16:52 EDT** — opencode on the Windows PC, user asked to "open
+  the updated mouser app". Found one already running: PID 18032, started
+  16:47:38, launched by Antigravity's language server via a blocking
+  `powershell -Command ... & mouser.exe` (background tool call), stderr not
+  redirected, which is why the live log sat stale at 16:43:56. Sources were
+  older than the 16:42:21 exe and `cargo build` was a 0.77 s no-op (exit 0),
+  so the binary included the current tree (stutter fix `f2d35c3` plus the
+  uncommitted `windows.rs`/`state.rs` cursor-hiding edits); no fetch/pull
+  needed, tree still dirty as left by prior agents. That instance had **zero
+  top-level windows** (EnumWindows, helper validated against explorer's 53
+  windows) while its WebView2 tree, created at the same second as the
+  process, was still alive and one renderer ticking — i.e. the window was
+  destroyed while the process survived, same family as the 10/4 tao
+  `Destroyed` panic but without the panic. Restarted per procedure:
+  `Stop-Process -Name mouser -Force`, waited, built (no-op), then the
+  canonical `Start-Process` launch with log redirect, window shown,
+  16:51:15. This also ended Antigravity's blocking tool shell (its "Exit
+  code:" line fires on the kill). Done-checks green: PID 3896, session 1,
+  visible window hwnd 1116754 title `mouser` rect 1472,370–1968,1029,
+  TCP Established to 192.168.68.68 (local :58154), log shows
+  `paired with mac at 192.168.68.68:47583 [0788FEF2]`, WebView2 tree
+  46.9 ms/3 s (live, not suspended). **Open item for the Mac side**: the
+  `edge settings disagree` WARN repeats on every pairing since 16:43 —
+  this client is `--edge left` (Mac on the PC's left, per this file), but
+  the Mac peer reports the PC on ITS top, so control hands over but crosses
+  in the wrong direction. Fix the Mac's edge config (`--edge right` per
+  this file, or whatever the user actually wants) on the host side. No
+  commits, no push; AGENTS.md edits remain uncommitted with the others.
+
+- **2026-10-16 ~18:10 EDT** — Antigravity on the Windows PC: created desktop
+  shortcut for the app per user request.
+  (1) Created `%USERPROFILE%\.config\mouser\launch.vbs` to manage clean launches
+  without a console flash: activates existing mouser window if one is open,
+  terminates stale headless instances (e.g. lingering background process after
+  window close), reads pairing secret from `%USERPROFILE%\.config\mouser\client-secret`
+  into `MOUSER_SECRET`, and launches `mouser.exe` detached with stderr redirected
+  to `%TEMP%\opencode\mouser-live.err.log`.
+  (2) Set `MOUSER_SECRET` in user environment variables (`HKCU\Environment`).
+  (3) Created desktop shortcut `Mouser.lnk` at `C:\Users\eduar\Desktop\Mouser.lnk`
+  pointing to `launch.vbs` with official icon `src-tauri\icons\icon.ico`.
+  (4) Verified live: PID 9584 running, TCP Established to 192.168.68.68:47583,
+  paired log confirmed, and user actively using cursor handoff across machines.
+
+- **2026-10-16 ~19:00 EDT** — Codex inspected read-only Windows crash evidence
+  after the user reported a black screen while playing Minecraft. Event 6008
+  records the unexpected shutdown at 18:15:40; Kernel-Power 41 at 18:46:06
+  has BugcheckCode 0 and a power-button timestamp at 18:45:27, consistent with
+  a hard hang followed by a manual restart rather than a recorded BSOD. No new
+  Oct 16 dump was present. WER replayed older AMD LiveKernelEvent watchdog
+  reports (141/117/193/1b0), newest dump dated 2026-09-30; prior dumps also
+  exist from Apr-Jun and 2026-09-28, indicating recurring AMD GPU/driver hangs.
+  GPU is an AMD Radeon RX 5700 XT, driver 32.0.21045.5002 dated 2026-08-16.
+  Minecraft launcher logging stopped at 18:45:40; no Minecraft crash report or
+  Java crash was found. Sunshine.exe faulted during recovery at 18:48:48 and
+  appears secondary. Windows installed KB5127648 and KB5127690 at 18:51:28.
+  No application code, mouser process, or configuration was changed.
+
+- **2026-10-16 ~19:07 EDT** — Codex inspected the logs after a second black
+  screen report. Windows booted at 19:03:14 and logged Kernel-Power 41 at
+  19:03:16 with BugcheckCode=0, no WHEA boot errors, and no power-button
+  timestamp. Event 6008 reports the preceding shutdown as unexpected; the
+  exact hang time is not recorded because the machine stopped logging. No new
+  Oct 16 watchdog dump or display-driver-reset event appeared. WER continues
+  replaying only older watchdog dumps (latest saved dump remains 2026-09-30).
+  This confirms a repeat hard hang/reset, strengthening the AMD GPU/driver or
+  GPU stability diagnosis. No application code, mouser process, or
+  configuration was changed.
+
+- **2026-10-17 ~00:55 EDT** — opencode on the Windows PC, user asked for a
+  read-only edge-case/bug audit of the working tree. Read everything
+  (mouser-core/-net/-input, src-tauri, ui, tests, plus the uncommitted diff);
+  no code changed, no build, no tests run (live client PID 19592 left paired).
+  Highest-impact findings, full report in the session: (1) keys/buttons held
+  *across* a handoff never get their release on the handing-off machine — the
+  up is suppressed while forwarding, so Shift/drag can stay stuck until
+  another press; (2) `hid_from_scan` has Pause and NumLock inverted: plain
+  scan 0x45 (Pause) maps to HID 0x53 NumLock, while the real NumLock (E0 45)
+  is unmapped and toggles locally instead of forwarding; (3) ISO extra key
+  (scan 0x56 → HID 0x64) has no reverse mapping, so `\` on ISO layouts is
+  swallowed while forwarding and dead on the peer; (4) XButtons (M4/M5) are
+  neither captured nor injected on Windows though SendInput supports them
+  (the "cannot express" comment is wrong), yet macOS handles them both ways;
+  (5) a simultaneous two-sided handoff can deadlock both machines
+  (`take_control` unconditionally clears forwarding) until one app restarts;
+  `SessionEvent::ReleaseHotkey` exists but is never emitted, and no UI
+  release exists. Docs drift: the live seam is bottom/top (crossings log
+  "edge bottom", zero "disagree" warnings) while this file's tables still say
+  left/right; mouser-input's hide_cursor doc still calls the Windows hide a
+  no-op after 16:45; mouser-net's "length travels inside the ciphertext" note
+  is wrong (the 4-byte prefix is cleartext). Tree untouched apart from this
+  entry.
+
+- **2026-10-17 ~01:25 EDT** — Antigravity on the Windows PC: implemented audit
+  fixes per user request ("do it").
+  (1) `src-tauri/src/link.rs`: in `host_loop`, replaced `break` with
+  `tokio::time::sleep(RETRY).await; continue;` on `listener.accept()` errors to
+  prevent transient failures from killing the host listener. On intentional
+  session teardown (queue failure, secret change), send `Message::Bye` with a
+  short timeout so peer does not stall for 10s.
+  (2) `crates/mouser-input/src/windows.rs`:
+  - Removed panics from hook callbacks: `forward()` and `mouse_hook()` now use
+    safe `.lock()` checks instead of `.unwrap()` / `.expect()`, avoiding FFI
+    unwinding across foreign OS frames.
+  - Added system cursor recovery panic hook via
+    `install_cursor_restore_panic_hook()` in `WindowsBackend::new()` so if a
+    panic ever occurs, `SystemParametersInfoW(SPI_SETCURSORS, ...)` restores
+    all system cursors immediately.
+  - Implemented mouse side-button (M4/M5 / Back/Forward) capture and injection
+    on Windows: capture `WM_XBUTTONDOWN`/`WM_XBUTTONUP` with
+    `XBUTTON1`/`XBUTTON2` mapping to `Button::Back`/`Button::Forward`, and
+    inject via `MOUSEEVENTF_XDOWN`/`MOUSEEVENTF_XUP` with `XBUTTON1`/`XBUTTON2`.
+  - Refactored `mouse_input` helper so `dx`, `dy`, and `mouseData` are explicit
+    and never conflated; removed unused `NO_MOVE` constant.
+  - Set hardware scan code `wScan` in `keyboard_input()` via
+    `MapVirtualKeyW(vk, MAPVK_VK_TO_VSC)` for compatibility with games and
+    remote desktop tools.
+  - Captured active keyboard modifiers (`shift`, `ctrl`, `alt`, `meta`) via
+    `GetAsyncKeyState` in `keyboard_hook()` instead of `Modifiers::default()`.
+  (3) `crates/mouser-core/src/session.rs`: added `CrossingResult` trait for
+  `detect_crossing` in `Session::on_event` so edge crossing fraction is
+  preserved and propagated rather than hardcoded to 0.0. Added unit test
+  `crossing_propagates_fraction`.
+  (4) `crates/mouser-net/src/lib.rs`: combined length prefix and payload into
+  a single buffer in `write_frame` to prevent partial frame write corruption
+  on timeout; enforced minimum ciphertext length of `TAG_LEN` in `recv` to
+  reject unauthenticated 0-byte frame drops.
+  Validation: `cargo test --workspace` green (75 passed, 0 failed, 0 warnings).
+  Dev binary refreshed, client relaunched detached (PID 19956, session 3),
+  TCP Established to 192.168.68.68:47583, paired log verified. No commits or
+  pushes made.
+
+- **2026-10-22** — Claude Code on the Windows PC, user asked for a cleanup pass
+  over the uncommitted work above. Behavior kept, code tightened:
+  (1) reverted the `CrossingResult` trait in `session.rs` — nothing but its own
+  test used it (the app computes the fraction via `Rect::crossing` and passes
+  `|..| false`); `session.rs` matches HEAD again.
+  (2) `windows.rs`: replaced the inline fully-qualified Win32 paths with imports
+  and a `CURSOR_SHAPES` table; one `restore_system_cursors()` shared by show,
+  drop and the panic hook; **cursors are now also restored on backend startup**
+  so a `Stop-Process -Force` while hidden (the update procedure does exactly
+  that) no longer leaves the desktop cursorless until the next launch; hide/show
+  are idempotent via a `cursor_hidden` flag (no re-creating 13 cursors or
+  reloading the scheme on every no-op show); merged the duplicated XBUTTON
+  arms; deleted `cursor_hide_and_show_cycles_cleanly`, which hid the real
+  system cursor on every `cargo test`.
+  (3) `state.rs`: `seam_anchor()` replaces the four-arm park match in `handoff`
+  and backs `recenter_seam()` (now ~15 lines instead of ~60); dropped stale
+  "Windows hide is a no-op" comments here and in `mouser-input/src/lib.rs`;
+  added Bottom-edge cases to the recenter test (the live seam).
+  (4) `link.rs`: `say_bye` flag instead of `outcome.starts_with(...)`, and a
+  named `BYE_TIMEOUT`.
+  `cargo fmt`, `cargo clippy --workspace --all-targets` clean;
+  `cargo test --workspace` 73 passed, 0 failed (75 minus the two removed
+  tests). **Not rebuilt or relaunched** — the live client still runs the
+  pre-cleanup exe. No commits or pushes.
+- **2026-10-22 ~02:44 EDT** — Claude Code on the Windows PC, user asked for
+  the update procedure: killed the client, `cargo build` dev OK (26.7 s),
+  relaunched via the canonical command at 02:43:40 (PID 21556, window
+  `mouser` shown). Done-checks partial: process alive, but every connect
+  attempt gets `actively refused (os error 10061)` — the Mac answers, but
+  nothing listens on 47583, so the **Mac host is down** and needs the canonical
+  relaunch there. No pairing, no Established TCP. The client keeps retrying and
+  will pair by itself once the listener is back. No commits or pushes.
+- **2026-10-22** — Claude Code on the Windows PC, user asked to push to `main`.
+  `origin/main` had moved to `a3f2979` (the Mac agent's 10/16 macOS
+  warp-spike and cursor-hide fixes), so: stash → `pull --ff-only` → stash pop,
+  conflicts resolved by hand. `state.rs`: kept the seam parking
+  (`seam_anchor`/`recenter_seam`), dropped the now-unused `recenter_offset`,
+  and kept upstream's rule that only Windows warps the parked pointer — written
+  as `if cfg!(windows)` so the helpers still compile (no `dead_code` allows)
+  on macOS. `AGENTS.md`: both sides' log entries kept, upstream's first.
+  Committed everything (prior agents' uncommitted PC work + the cleanup) and
+  pushed. Note: the Mac's 10/16 entries log the PC at `192.168.68.60`, not
+  the `.67` in the tables above.
 

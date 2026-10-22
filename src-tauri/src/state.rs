@@ -71,23 +71,42 @@ fn screen_of(backend: &Platform) -> Rect {
     backend.screen_info().bounds
 }
 
-/// Where to move the hidden local pointer so it stays clear of all screen
-/// edges, or `None` while it is comfortably within the central area.
-///
-/// Used while this machine owns the hardware and the visible cursor is on
-/// the peer. Warping the invisible pointer back toward the center gives the
-/// OS unlimited room to keep reporting motion in all directions without
-/// ever stalling against an edge.
-#[allow(dead_code)]
-fn recenter_offset(screen: &Rect, x: f64, y: f64) -> Option<(f64, f64)> {
-    let (cx, cy) = screen.center();
-    let margin_x = (screen.width * 0.25).max(100.0);
-    let margin_y = (screen.height * 0.25).max(100.0);
-    if (x - cx).abs() > margin_x || (y - cy).abs() > margin_y {
-        Some((cx, cy))
-    } else {
-        None
+/// Distance inland from the seam where the parked pointer sits.
+const EDGE_ANCHOR: f64 = 8.0;
+/// Maximum drift inland from the seam before snapping back.
+const EDGE_MAX_DRIFT: f64 = 16.0;
+
+/// The parking spot for the hidden pointer nearest `(x, y)`: `EDGE_ANCHOR`
+/// inland from the seam, and at least that far from either end of it.
+fn seam_anchor(screen: &Rect, edge: Edge, x: f64, y: f64) -> (f64, f64) {
+    let along_x = x.clamp(screen.left() + EDGE_ANCHOR, screen.right() - EDGE_ANCHOR);
+    let along_y = y.clamp(screen.top() + EDGE_ANCHOR, screen.bottom() - EDGE_ANCHOR);
+    match edge {
+        Edge::Left => (screen.left() + EDGE_ANCHOR, along_y),
+        Edge::Right => (screen.right() - EDGE_ANCHOR, along_y),
+        Edge::Top => (along_x, screen.top() + EDGE_ANCHOR),
+        Edge::Bottom => (along_x, screen.bottom() - EDGE_ANCHOR),
     }
+}
+
+/// Where to warp the hidden pointer once it pins against a screen edge or
+/// drifts out of the strip along the seam, or `None` while it has headroom
+/// in every direction.
+fn recenter_seam(screen: &Rect, edge: Edge, x: f64, y: f64) -> Option<(f64, f64)> {
+    let inland = match edge {
+        Edge::Left => x - screen.left(),
+        Edge::Right => screen.right() - x,
+        Edge::Top => y - screen.top(),
+        Edge::Bottom => screen.bottom() - y,
+    };
+    let (along, start, end) = if edge.is_vertical() {
+        (y, screen.top(), screen.bottom())
+    } else {
+        (x, screen.left(), screen.right())
+    };
+    let pinned =
+        inland <= 1.0 || inland >= EDGE_MAX_DRIFT || along <= start + 1.0 || along >= end - 1.0;
+    pinned.then(|| seam_anchor(screen, edge, x, y))
 }
 
 /// Whether an injected move carries the mirrored cursor back through the seam
@@ -128,7 +147,6 @@ fn mirrored_position(bounds: &Rect, edge: Edge, x: f64, y: f64) -> (f64, f64) {
 /// Without this the cursor ping-pongs across the seam: one event crosses,
 /// the mirrored move crosses straight back, and control never settles.
 const HANDOFF_DEBOUNCE: Duration = Duration::from_millis(250);
-
 
 /// How far back through the seam the mirrored cursor must travel before
 /// control is handed home.
@@ -443,10 +461,7 @@ impl AppState {
 
         // The visible cursor is now on the peer, so hide ours and keep
         // relaying. `remote_active` stays clear: that flag means the opposite,
-        // that this machine is the one being driven. On Windows the hide is a
-        // no-op — its display count only applies over windows of the
-        // calling thread — so the parked pointer stays visible at the seam,
-        // the usual software-KVM behavior.
+        // that this machine is the one being driven.
         let _ = guard.backend.hide_cursor();
         guard.status = "remote".into();
         log(
@@ -459,44 +474,38 @@ impl AppState {
         );
         self.send(guard, Message::TakeControl { edge, fraction });
 
-        #[cfg(windows)]
-        {
+        // macOS suppresses local motion while forwarding, so its pointer
+        // already stays put; only Windows has to park it by hand.
+        if cfg!(windows) {
             let screen = screen_of(&guard.backend);
-            let (cx, cy) = screen.center();
-            let _ = guard.backend.warp_cursor(cx, cy);
-            guard.last_cursor = (cx, cy);
+            let (x, y) = guard.last_cursor;
+            let park = seam_anchor(&screen, edge, x, y);
+            let _ = guard.backend.warp_cursor(park.0, park.1);
+            guard.last_cursor = park;
         }
     }
 
-    /// Keep the hidden local pointer away from the screen boundaries while
-    /// the peer owns it.
-    ///
-    /// The OS pins the cursor once it reaches a screen edge, and outward mouse
-    /// motion then no longer changes its position. Warping the pointer back
-    /// towards the center of the screen whenever it wanders outside the
-    /// central deadzone gives the mouse unlimited room to move in all
-    /// directions without ever stalling against an edge.
+    /// Keep the hidden local pointer parked along the seam edge with enough
+    /// headroom so outward and perpendicular motion never gets clamped.
+    /// Windows only, for the same reason as the park in `handoff`.
     fn recenter(&self, guard: &mut Inner, screen: &Rect) {
-        #[cfg(windows)]
-        {
-            let (x, y) = guard.last_cursor;
-            let Some((cx, cy)) = recenter_offset(screen, x, y) else {
-                return;
-            };
-            if let Err(e) = guard.backend.warp_cursor(cx, cy) {
-                log(
-                    guard,
-                    Level::Warn,
-                    format!("could not recenter the pointer: {e}"),
-                );
-                return;
-            }
-            guard.last_cursor = (cx, cy);
+        if !cfg!(windows) {
+            return;
         }
-        #[cfg(not(windows))]
-        {
-            let _ = (guard, screen);
+        let edge = guard.session.edge();
+        let (x, y) = guard.last_cursor;
+        let Some((ax, ay)) = recenter_seam(screen, edge, x, y) else {
+            return;
+        };
+        if let Err(e) = guard.backend.warp_cursor(ax, ay) {
+            log(
+                guard,
+                Level::Warn,
+                format!("could not recenter the pointer: {e}"),
+            );
+            return;
         }
+        guard.last_cursor = (ax, ay);
     }
 
     /// Queue a message, dropping it if the peer is not keeping up.
@@ -829,10 +838,22 @@ impl AppHandle {
         let edge = guard.session.edge();
         let (rx, ry) = guard.last_cursor;
         let return_pos = match edge {
-            Edge::Left => (bounds.left() + 2.0, ry.clamp(bounds.top(), bounds.bottom() - 1.0)),
-            Edge::Right => (bounds.right() - 3.0, ry.clamp(bounds.top(), bounds.bottom() - 1.0)),
-            Edge::Top => (rx.clamp(bounds.left(), bounds.right() - 1.0), bounds.top() + 2.0),
-            Edge::Bottom => (rx.clamp(bounds.left(), bounds.right() - 1.0), bounds.bottom() - 3.0),
+            Edge::Left => (
+                bounds.left() + 2.0,
+                ry.clamp(bounds.top(), bounds.bottom() - 1.0),
+            ),
+            Edge::Right => (
+                bounds.right() - 3.0,
+                ry.clamp(bounds.top(), bounds.bottom() - 1.0),
+            ),
+            Edge::Top => (
+                rx.clamp(bounds.left(), bounds.right() - 1.0),
+                bounds.top() + 2.0,
+            ),
+            Edge::Bottom => (
+                rx.clamp(bounds.left(), bounds.right() - 1.0),
+                bounds.bottom() - 3.0,
+            ),
         };
         let _ = guard.backend.warp_cursor(return_pos.0, return_pos.1);
         guard.last_cursor = return_pos;
@@ -936,18 +957,44 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn pointer_is_recentered_when_wandering_from_center() {
+    fn pointer_is_recentered_and_parked_at_seam() {
         let screen = Rect::new(0.0, 0.0, 1000.0, 800.0);
-        let center = (500.0, 400.0);
-        // Near center: leave it alone.
-        assert_eq!(recenter_offset(&screen, 500.0, 400.0), None);
-        assert_eq!(recenter_offset(&screen, 550.0, 450.0), None);
+        // Near anchor: leave it alone.
+        assert_eq!(recenter_seam(&screen, Edge::Left, 8.0, 400.0), None);
+        assert_eq!(recenter_seam(&screen, Edge::Left, 4.0, 400.0), None);
+        assert_eq!(recenter_seam(&screen, Edge::Left, 12.0, 400.0), None);
 
-        // Wandering beyond margin (25% = 250px on X, 200px on Y): pull back to center.
-        assert_eq!(recenter_offset(&screen, 100.0, 400.0), Some(center));
-        assert_eq!(recenter_offset(&screen, 900.0, 400.0), Some(center));
-        assert_eq!(recenter_offset(&screen, 500.0, 100.0), Some(center));
-        assert_eq!(recenter_offset(&screen, 500.0, 700.0), Some(center));
+        // Clamping against left edge: pull to anchor.
+        assert_eq!(
+            recenter_seam(&screen, Edge::Left, 0.5, 400.0),
+            Some((8.0, 400.0))
+        );
+        // Drifting inland away from seam: pull back to anchor.
+        assert_eq!(
+            recenter_seam(&screen, Edge::Left, 20.0, 400.0),
+            Some((8.0, 400.0))
+        );
+
+        // Hitting top/bottom perpendicular boundaries: pull inward along Y, keep X.
+        assert_eq!(
+            recenter_seam(&screen, Edge::Left, 8.0, 0.5),
+            Some((8.0, 8.0))
+        );
+        assert_eq!(
+            recenter_seam(&screen, Edge::Left, 8.0, 799.5),
+            Some((8.0, 792.0))
+        );
+
+        // The same rules mirrored onto a horizontal seam.
+        assert_eq!(recenter_seam(&screen, Edge::Bottom, 500.0, 792.0), None);
+        assert_eq!(
+            recenter_seam(&screen, Edge::Bottom, 500.0, 799.5),
+            Some((500.0, 792.0))
+        );
+        assert_eq!(
+            recenter_seam(&screen, Edge::Bottom, 0.5, 792.0),
+            Some((8.0, 792.0))
+        );
     }
 
     #[test]
@@ -983,7 +1030,7 @@ pub(crate) mod tests {
         // Subsequent pushes in any direction must continue relaying without being dropped
         for i in 1..=5 {
             tx.send(CapturedEvent::Move {
-                x: 500.0 - (i as f64 * 20.0),
+                x: 8.0 - (i as f64),
                 y: 400.0,
                 dx: -20.0,
                 dy: 0.0,

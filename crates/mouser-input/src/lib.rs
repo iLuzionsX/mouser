@@ -118,10 +118,9 @@ pub trait InputBackend: Send + Sync {
     ///
     /// Used by the machine that just handed off: its pointer is parked at the
     /// shared seam and the cursor being driven is the peer's. Backends keep
-    /// this idempotent and paired with [`InputBackend::show_cursor`]; on
-    /// Windows it is a no-op — the display count there only applies
-    /// over windows of the calling thread — so the parked pointer stays
-    /// visible at the seam, the usual software-KVM behavior.
+    /// this idempotent and paired with [`InputBackend::show_cursor`]. On
+    /// Windows the hide swaps the system cursors for a blank one, which is
+    /// global, so the backend also restores them on startup, panic and drop.
     fn hide_cursor(&self) -> Result<(), InputError>;
 
     /// Undo [`InputBackend::hide_cursor`], on every path that ends a session
