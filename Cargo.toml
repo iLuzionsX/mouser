@@ -37,6 +37,28 @@ windows-sys = { version = "0.61", features = [
 core-foundation = "0.10"
 # `highsierra` gates `CGEvent::new_scroll_event`.
 core-graphics = { version = "0.25", features = ["highsierra"] }
+# Already pulled in by tray-icon; used for the menu's on/off switch row.
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSCell",
+    "NSColor",
+    "NSControl",
+    "NSFont",
+    "NSMenu",
+    "NSMenuItem",
+    "NSParagraphStyle",
+    "NSResponder",
+    "NSSwitch",
+    "NSText",
+    "NSTextField",
+    "NSView",
+] }
+objc2-foundation = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSGeometry",
+    "NSString",
+] }
 
 [profile.release]
 opt-level = "z"

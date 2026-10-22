@@ -1096,6 +1096,9 @@ version = "0.3.0"
 dependencies = [
  "core-foundation",
  "core-graphics",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
  "sha2",
  "snow",
  "tao",

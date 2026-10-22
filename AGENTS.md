@@ -780,3 +780,29 @@ Windows quirks:
   already loaded it and stayed paired (Established to 192.168.68.65). Also
   deleted the untracked `src-tauri/gen/schemas` leftover (4 files, 291 KB
   of old Tauri output); `git status` is clean.
+
+- **2026-10-22 ~04:55 EDT**: Claude Code on the Mac host, branch
+  `claude/mac-tray-polish-9f9583`, merged to `main` on user request. Polished the
+  tray in `src/tray.rs`. (1) New icon: a computer-mouse glyph drawn from
+  distance fields in code (antialiased, 30x36 px = 18 pt at 2x on macOS,
+  36x36 on Windows with a dark rim), outlined while unpaired, filled with
+  the wheel cut out when paired. Code over an embedded PNG because a PNG
+  needs a decoder and the shapes are a few lines of math. (2) Fixed an old
+  bug: `set_icon` drops the template flag on macOS, so the icon drew black
+  after the first status update; now `set_icon_with_as_template`.
+  (3) macOS menu: the first row is "mouser" with the status as subtitle and
+  an `NSSwitch` on the right (Tailscale style), set as the custom view of
+  the "Connection on" check item. The switch fires muda's own
+  `fireMenuItemAction:`, so the menu event path is unchanged. Windows keeps
+  the status line + check item. New direct deps `objc2`, `objc2-app-kit`,
+  `objc2-foundation` (macOS only, already in the lock via tray-icon).
+  `cargo test` 22 passed; clippy `-D warnings` clean on macOS and
+  x86_64-pc-windows-gnu (type-checked only). Release binary 876 KB.
+  Verified on the Mac with screenshots: icon white like its neighbours,
+  outline -> filled on pairing; flipping the switch off closed the port and
+  wrote `enabled = false`, flipping it on re-paired in ~1 s. Not verified:
+  a light menu bar (system appearance was left alone) and the Windows icon
+  on a real taskbar. The live host was put back on the main checkout's
+  binary, then rebuilt from `main` after the merge and relaunched.
+  The PC needs no update for this (same wire; Windows tray change is the
+  icon only), but pulling `main` there picks up the new icon.
