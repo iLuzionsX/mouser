@@ -556,3 +556,17 @@ Windows quirks:
   pushed. Note: the Mac's 10/16 entries log the PC at `192.168.68.60`, not
   the `.67` in the tables above.
 
+- **2026-10-17** — Claude Code (worktree branch `claude/fix-stuck-keys-ci-config-e3ea96`),
+  three audit fixes, code only, PR against `main`: (1) `suppress_local` never
+  swallows key/button releases while forwarding, so a key or drag held across
+  the edge no longer sticks on the local machine; (2) `cargo fmt --all` as its
+  own commit (CI's format step was red since `f2d35c3`, so Windows tests had
+  not run since); (3) `Config` drops `deny_unknown_fields`, and `main` no
+  longer saves defaults over a config file that exists but fails to
+  read/parse (it warns instead; a missing file is still created); new
+  `ConfigError::SecretTooShort`. Note: the canonical host command passes
+  `--edge right`, which still overrides and re-saves the edge on every
+  launch; that is CLI precedence, not this bug. fmt check, clippy
+  `-D warnings` and `cargo test --workspace` (73 passed on macOS) are green.
+  Running host NOT restarted or rebuilt, user config untouched, Windows not
+  run.

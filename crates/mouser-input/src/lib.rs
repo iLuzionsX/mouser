@@ -53,6 +53,14 @@ fn suppress_local(event: &CapturedEvent) -> bool {
     if !FORWARDING.load(std::sync::atomic::Ordering::Relaxed) {
         return false;
     }
+    // A key or button held while crossing went down locally, so its release
+    // must reach the local OS too or it stays stuck (Cmd, a window drag).
+    if matches!(
+        event,
+        CapturedEvent::Key { pressed: false, .. } | CapturedEvent::Button { pressed: false, .. }
+    ) {
+        return false;
+    }
     // Windows derives relative mouse motion from absolute cursor movement,
     // so motion must stay local for the hook to keep receiving updates.
     // On macOS, motion deltas come directly from hardware and suppressing
@@ -151,7 +159,10 @@ pub type EventStream = Receiver<CapturedEvent>;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mouser_core::protocol::{HidKey, InputEvent, Modifiers};
+    use mouser_core::protocol::{Button, HidKey, InputEvent, Modifiers};
+
+    // FORWARDING is process-global; tests that flip it must not interleave.
+    static FORWARDING_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
     #[test]
     fn backend_constructs() {
@@ -222,6 +233,7 @@ mod tests {
             dx: 1.0,
             dy: 1.0,
         };
+        let _guard = FORWARDING_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         set_forwarding(true);
         #[cfg(windows)]
         assert!(!suppress_local(&motion));
@@ -229,5 +241,23 @@ mod tests {
         assert!(suppress_local(&motion));
         set_forwarding(false);
         assert!(!suppress_local(&key));
+    }
+
+    #[test]
+    fn forwarding_never_swallows_releases() {
+        let key = |pressed| CapturedEvent::Key {
+            key: HidKey(0xE3),
+            pressed,
+            mods: Default::default(),
+        };
+        let _guard = FORWARDING_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        set_forwarding(true);
+        assert!(suppress_local(&key(true)));
+        assert!(!suppress_local(&key(false)));
+        assert!(!suppress_local(&CapturedEvent::Button {
+            button: Button::Left,
+            pressed: false,
+        }));
+        set_forwarding(false);
     }
 }
