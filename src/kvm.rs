@@ -147,10 +147,20 @@ fn mirrored(s: &Rect, edge: Edge, x: f64, y: f64) -> (f64, f64) {
     )
 }
 
+/// Whether local motion of `(dx, dy)` means the user picked up this
+/// machine's own mouse, so the keyboard should come back to this screen.
+fn grabs_focus(dx: f64, dy: f64) -> bool {
+    // A nudged desk or trackpad noise moves a pixel or two; a hand moves more.
+    dx.hypot(dy) >= 3.0
+}
+
 /// What the capture hooks need to decide synchronously, without the state
 /// machine's lock: whether input belongs to the peer right now.
 pub struct Claims {
     forwarding: AtomicBool,
+    /// Keys belong to the peer: while forwarding, and while the peer's own
+    /// mouse is in use on its own screen.
+    keys: AtomicBool,
     /// One bit per HID key (0..256) and mouse button (256..261) whose press
     /// went to the peer, so its release goes there too, and only then.
     pressed: [AtomicU64; 5],
@@ -160,7 +170,11 @@ pub static CLAIMS: Claims = Claims::new();
 
 impl Claims {
     pub const fn new() -> Claims {
-        Claims { forwarding: AtomicBool::new(false), pressed: [const { AtomicU64::new(0) }; 5] }
+        Claims {
+            forwarding: AtomicBool::new(false),
+            keys: AtomicBool::new(false),
+            pressed: [const { AtomicU64::new(0) }; 5],
+        }
     }
 
     pub fn forwarding(&self) -> bool {
@@ -171,16 +185,15 @@ impl Claims {
     /// which case the hook swallows it locally. A release follows its press,
     /// so a key held across a handoff is released where it was pressed.
     pub fn claim(&self, msg: Msg) -> bool {
-        let (bit, down) = match msg {
-            Msg::Key(k, down) => (usize::from(k), down),
-            Msg::Button(b, down) => (256 + usize::from(b), down),
+        let (bit, down, ours) = match msg {
+            Msg::Key(k, down) => (usize::from(k), down, self.keys.load(Relaxed)),
+            Msg::Button(b, down) => (256 + usize::from(b), down, self.forwarding()),
             _ => return self.forwarding(),
         };
         let (word, mask) = (&self.pressed[bit / 64], 1u64 << (bit % 64));
         if !down {
             return word.fetch_and(!mask, Relaxed) & mask != 0;
         }
-        let ours = self.forwarding();
         if ours {
             word.fetch_or(mask, Relaxed);
         }
@@ -225,6 +238,9 @@ pub struct Kvm<I: Io> {
     wins_ties: bool,
     connected: bool,
     mode: Mode,
+    /// The cursor is on the peer's screen, moved there by the peer's own
+    /// mouse, so the keyboard goes there too.
+    peer_focused: bool,
     cursor: (f64, f64),
     /// Releases for every key and button injected down, replayed whenever
     /// the peer stops driving.
@@ -241,6 +257,7 @@ impl<I: Io> Kvm<I> {
             wins_ties,
             connected: false,
             mode: Mode::Local,
+            peer_focused: false,
             cursor: (0.0, 0.0),
             held: Vec::new(),
             last_handoff: None,
@@ -249,16 +266,29 @@ impl<I: Io> Kvm<I> {
 
     fn set_mode(&mut self, mode: Mode) {
         self.mode = mode;
-        self.claims.forwarding.store(mode == Mode::Forwarding, Relaxed);
+        self.sync_claims();
+    }
+
+    fn set_peer_focused(&mut self, on: bool) {
+        self.peer_focused = on;
+        self.sync_claims();
+    }
+
+    fn sync_claims(&self) {
+        let forwarding = self.mode == Mode::Forwarding;
+        let focused = self.connected && self.mode == Mode::Local && self.peer_focused;
+        self.claims.forwarding.store(forwarding, Relaxed);
+        self.claims.keys.store(forwarding || focused, Relaxed);
     }
 
     /// The link came up or went down: either way, nothing stays held,
     /// hidden or forwarded.
     pub fn link(&mut self, up: bool) {
         self.release_held();
+        self.connected = up;
+        self.peer_focused = false;
         self.set_mode(Mode::Local);
         self.io.show();
-        self.connected = up;
     }
 
     /// The user moved the other screen. If we were driving the peer, hand
@@ -282,7 +312,8 @@ impl<I: Io> Kvm<I> {
     /// Handle captured input; returns what to send to the peer.
     pub fn local(&mut self, ev: Captured) -> Option<Msg> {
         let (x, y, dx, dy) = match ev {
-            Captured::Input(msg) => return (self.mode == Mode::Forwarding).then_some(msg),
+            // The hook already claimed it for the peer.
+            Captured::Input(msg) => return self.connected.then_some(msg),
             Captured::Move { x, y, dx, dy } => (x, y, dx, dy),
         };
         let forwarding = match self.mode {
@@ -312,9 +343,16 @@ impl<I: Io> Kvm<I> {
                 .then(|| Msg::Move(ex.round() as i16, ey.round() as i16));
         }
 
-        let at = s.crossing(self.edge, x, y, ex, ey)?;
+        // Picking up this machine's own mouse brings the keyboard back.
+        let focus = (self.connected && self.peer_focused && grabs_focus(ex, ey)).then(|| {
+            self.set_peer_focused(false);
+            Msg::Focus
+        });
+        let Some(at) = s.crossing(self.edge, x, y, ex, ey) else {
+            return focus;
+        };
         if !self.connected || !self.debounce() {
-            return None;
+            return focus;
         }
         self.set_mode(Mode::Forwarding);
         self.io.hide();
@@ -331,7 +369,11 @@ impl<I: Io> Kvm<I> {
     pub fn peer(&mut self, msg: Msg) -> Option<Msg> {
         match (msg, self.mode) {
             (Msg::Move(dx, dy), Mode::Remote(entry)) => return self.remote_move(entry, dx, dy),
-            (Msg::Button(..) | Msg::Key(..) | Msg::Scroll(..), Mode::Remote(_)) => {
+            // Keys also arrive while the peer's keyboard follows our own mouse.
+            (Msg::Button(..) | Msg::Key(..) | Msg::Scroll(..), Mode::Remote(_))
+            | (Msg::Key(..), Mode::Local)
+                if self.connected =>
+            {
                 let up = match msg {
                     Msg::Button(b, _) => Some(Msg::Button(b, false)),
                     Msg::Key(k, _) => Some(Msg::Key(k, false)),
@@ -347,6 +389,7 @@ impl<I: Io> Kvm<I> {
             }
             (Msg::Take(edge, at), _) => self.take(edge, at),
             (Msg::Release, _) => self.released(),
+            (Msg::Focus, _) => self.set_peer_focused(true),
             _ => {}
         }
         None
@@ -359,6 +402,8 @@ impl<I: Io> Kvm<I> {
         self.cursor = mirrored(&s, entry, nx, ny);
         if returns_home(&s, entry, nx, ny, dx, dy) {
             self.release_held();
+            // The peer's mouse carried the cursor home; its keyboard follows.
+            self.peer_focused = true;
             self.set_mode(Mode::Local);
             log!("-> local control: cursor pushed back over the {entry:?} edge");
             return Some(Msg::Release);
@@ -382,6 +427,7 @@ impl<I: Io> Kvm<I> {
         let t = f64::from(at) / 65535.0;
         let (x, y) = (s.left + (s.right - s.left) * t, s.top + (s.bottom - s.top) * t);
         self.cursor = landing(&s, entry, x, y);
+        self.peer_focused = false;
         self.set_mode(Mode::Remote(entry));
         self.io.warp(self.cursor.0, self.cursor.1);
         log!("<- peer took control through the {entry:?} edge");
@@ -394,6 +440,7 @@ impl<I: Io> Kvm<I> {
         if self.mode == Mode::Local {
             return;
         }
+        self.peer_focused = false;
         self.set_mode(Mode::Local);
         self.io.show();
         let s = self.io.screen();
@@ -502,6 +549,36 @@ mod tests {
         assert_eq!(k.io.injected.last(), Some(&Msg::Button(0, false)));
         assert_eq!(k.io.injected.len(), 4);
         assert_eq!(k.peer(Msg::Move(5, 0)), None, "late motion is ignored");
+    }
+
+    #[test]
+    fn keyboard_follows_the_peer_mouse_home() {
+        // The PC sits above the Mac; its mouse visits the Mac and goes back.
+        let mut k = kvm(Edge::Top, true);
+        k.peer(Msg::Take(Edge::Bottom, 30000));
+        assert!(!k.claims.claim(Msg::Key(4, true)), "the cursor is here");
+        k.claims.claim(Msg::Key(4, false));
+        k.peer(Msg::Move(0, -5));
+        assert_eq!(k.peer(Msg::Move(0, -5)), Some(Msg::Release));
+        assert!(k.claims.claim(Msg::Key(4, true)), "the keyboard went home with it");
+        // Our own mouse takes the keyboard back and tells the peer.
+        assert_eq!(k.local(mv(500.0, 500.0, 40.0, 0.0)), Some(Msg::Focus));
+        assert!(!k.claims.claim(Msg::Key(5, true)));
+        assert!(k.claims.claim(Msg::Key(4, false)), "the release follows its press");
+        assert_eq!(k.local(mv(540.0, 500.0, 40.0, 0.0)), None, "said once");
+        // The peer's mouse moving on its own screen sends the keyboard back.
+        k.peer(Msg::Focus);
+        assert!(k.claims.claim(Msg::Key(6, true)));
+        k.link(false);
+        assert!(!k.claims.claim(Msg::Key(7, true)), "no peer, no forwarding");
+    }
+
+    #[test]
+    fn keys_arrive_while_our_own_mouse_has_the_cursor() {
+        let mut k = kvm(Edge::Bottom, false);
+        k.peer(Msg::Key(4, true));
+        k.link(false);
+        assert_eq!(k.io.injected, [Msg::Key(4, true), Msg::Key(4, false)]);
     }
 
     #[test]

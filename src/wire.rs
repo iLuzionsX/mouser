@@ -18,8 +18,9 @@ use snow::StatelessTransportState;
 use crate::kvm::Edge;
 
 const PARAMS: &str = "Noise_NNpsk0_25519_ChaChaPoly_SHA256";
-/// Binds keys to this wire format; v1 was the old length-prefixed postcard one.
-const PROLOGUE: &[u8] = b"mouser/v2";
+/// Binds keys to this wire format; v1 was the old length-prefixed postcard one,
+/// v2 had no `Focus`.
+const PROLOGUE: &[u8] = b"mouser/v3";
 const TAG: usize = 16;
 pub const FRAME: usize = 8;
 const CIPHER: usize = FRAME + TAG;
@@ -41,6 +42,9 @@ pub enum Msg {
     Take(Edge, u16),
     Release,
     Bye,
+    /// The sender's own mouse is in use on its own screen, so the keyboard
+    /// belongs there.
+    Focus,
 }
 
 impl Msg {
@@ -55,6 +59,7 @@ impl Msg {
             Msg::Take(edge, at) => (5, edge as u16, at),
             Msg::Release => (6, 0, 0),
             Msg::Bye => (7, 0, 0),
+            Msg::Focus => (8, 0, 0),
         };
         b[0] = tag;
         b[1..3].copy_from_slice(&x.to_le_bytes());
@@ -75,6 +80,7 @@ impl Msg {
             5 => Msg::Take(*Edge::ALL.get(x as usize)?, y),
             6 => Msg::Release,
             7 => Msg::Bye,
+            8 => Msg::Focus,
             _ => return None,
         })
     }
@@ -261,6 +267,7 @@ mod tests {
             Msg::Take(Edge::Left, 0),
             Msg::Release,
             Msg::Bye,
+            Msg::Focus,
         ] {
             assert_eq!(Msg::decode(msg.encode()), Some(msg), "{msg:?}");
         }
@@ -269,7 +276,7 @@ mod tests {
     #[test]
     fn malformed_frames_are_rejected() {
         for bad in [
-            [8, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0],
             [2, 5, 0, 1, 0, 0, 0, 0],
             [4, 4, 0, 2, 0, 0, 0, 0],
             [5, 4, 0, 0, 0, 0, 0, 0],

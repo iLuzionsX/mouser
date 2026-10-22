@@ -31,6 +31,14 @@ procedures below describe v0.2.
 - Log lines are `HH:MM:SSZ` (UTC). The proof of pairing is
   `paired with <ip>:<port> [0788FEF2]` (no peer name any more).
 
+## v0.4 — keyboard follows the cursor (2026-10-22)
+
+**New wire (prologue `mouser/v3`): v0.4 does not pair with v0.2/v0.3.**
+Update both machines together. The Mac keyboard now types wherever the
+cursor is, whichever mouse put it there. Moving one machine's own mouse
+sends `Focus` and takes the keyboard to that screen. `cargo test` expects
+**24 passed** on both machines.
+
 ## v0.3 — tray icon, settings file, start at login (2026-10-22)
 
 Same wire as v0.2 (a v0.2 peer still pairs), so mixed v0.2/v0.3 is safe.
@@ -838,3 +846,30 @@ Windows quirks:
   `192.168.68.62`, `paired with 192.168.68.59:52004 [0788FEF2]` at 18:31:48Z, and
   a live push off the Top edge followed by a return. No code changes; the
   PC's scheduled-task commit `5143d56` is Windows-only, so no Mac rebuild.
+- **2026-10-22 ~14:20 EDT**: Claude Code on the Windows PC. After the user
+  reported "still not working": the PC's start-at-login now works. Booted
+  14:14:18, the `\mouser` task launched the exe at 14:14:25 and it stayed
+  up. Pairing fails on the Mac side: `eds-MacBook-Pro.local` now resolves
+  to `192.168.68.62` (also seen at `.65`/`.68`), but nothing answers on
+  TCP 47583 there, so the Mac's mouser is not listening. The most likely
+  cause is the known launchd case: started at login without Accessibility
+  and Input Monitoring for `target/release/mouser`, capture fails and the
+  listener never opens (the tray shows "Needs Accessibility and Input
+  Monitoring permission"). Not checked from the Mac; no Mac session was
+  online. No PC changes, nothing committed.
+
+- **2026-10-22 ~15:10 EDT**: Claude Code on the Windows PC, coordinating
+  with the Mac session "Hello". The user reported that the Mac keyboard does
+  not type on the PC while the PC mouse works on both screens. Cause (a design
+  gap, not permissions; the Mac log was clean): the Mac forwarded keys only in
+  `Forwarding` mode, meaning the Mac's own mouse had crossed. With the PC mouse
+  steering, both sides sat in `Local` and the Mac kept its keys. The user chose
+  "keyboard follows the cursor", which became **v0.4**: new `Msg::Focus`
+  (tag 8, prologue `mouser/v3`), `Claims.keys`, and `Kvm.peer_focused`.
+  When the PC mouse carries the cursor home from the Mac, Mac keys go to the
+  PC. Moving the Mac's own mouse (>= 3 px, `grabs_focus`) sends `Focus` and
+  takes them back, and the PC moving its mouse after that sends `Focus` the
+  other way. The PC injects keys in `Local` mode, and held keys are released
+  on link loss. `cargo test` 24 passed, 0 failed; clippy `-D warnings` clean
+  on Windows and type-checked for aarch64-apple-darwin. **Wire change: v0.3
+  and v0.4 do not pair**, so both machines update together.
