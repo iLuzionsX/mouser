@@ -48,7 +48,8 @@ Same wire as v0.2 (a v0.2 peer still pairs), so mixed v0.2/v0.3 is safe.
 - **Log:** `~/.config/mouser/mouser.log`, truncated at each start (stderr
   still gets the same lines).
 - **Start at login:** Mac LaunchAgent `~/Library/LaunchAgents/dev.mouser.mouser.plist`;
-  PC `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` value `mouser`.
+  PC scheduled task `\mouser` (logon trigger, this user; the old HKCU `Run`
+  value was never launched by Explorer and is migrated away at startup).
   Both run the built exe with no args. The very first run (no config file
   yet) turns it on; the menu toggles it.
 - **One copy only:** a second instance sees `127.0.0.1:47584` taken and exits.
@@ -151,7 +152,7 @@ only the facts differ.
 | Pairing secret | NOT in this file. `%USERPROFILE%\.config\mouser\secret` (copy of `client-secret`). No `MOUSER_SECRET` env var: removed 10/22 so the secret is not copied into every process |
 | Settings | `%USERPROFILE%\.config\mouser\config` (`connect`, `edge = bottom`, `enabled`, `allow_public`) |
 | Live log | `%USERPROFILE%\.config\mouser\mouser.log` (truncated at each start) |
-| Start at login | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` value `mouser` = the exe, no args |
+| Start at login | Scheduled task `\mouser`, logon trigger for this user, runs the exe with no args (`Get-ScheduledTaskInfo mouser` shows its last run) |
 
 Canonical launch (PowerShell, detached). v0.3 reads everything from
 `config` and `secret`, so it takes no arguments:
@@ -160,8 +161,9 @@ Canonical launch (PowerShell, detached). v0.3 reads everything from
 Start-Process -FilePath "C:\Users\eduar\mouser\target\release\mouser.exe"
 ```
 
-The same exe also starts by itself at login (Run key). Flags still work and
-are written back to `config`.
+The same exe also starts by itself at login (scheduled task `\mouser`;
+`schtasks /Run /TN mouser` starts it the same way by hand). Flags still
+work and are written back to `config`.
 
 The release exe is a GUI-subsystem program: no console and no window appear;
 its log goes to `mouser.log`. The first few attempts after launch may
@@ -173,8 +175,9 @@ Mac's MAC `bc:d0:74:59:ac:87`.
 
 **Desktop shortcut retired (v0.3):** `launch.vbs` and `Desktop\Mouser.lnk`
 were moved to `%USERPROFILE%\.config\mouser\retired-v0.1\`; the tray icon
-and the Run key replace them. If `Get-Process mouser` comes up empty after a
-login, check the Run key, then relaunch with the command above.
+and the logon task replace them. If `Get-Process mouser` comes up empty after
+a login, check `Get-ScheduledTaskInfo mouser`, then relaunch with the
+command above.
 
 Update procedure (pull → build → restart, same order as the host):
 
@@ -806,3 +809,21 @@ Windows quirks:
   binary, then rebuilt from `main` after the merge and relaunched.
   The PC needs no update for this (same wire; Windows tray change is the
   icon only), but pulling `main` there picks up the new icon.
+
+- **2026-10-22 ~14:10 EDT**: Claude Code on the Windows PC. The user reported
+  mouser did not start at login. The HKCU `Run` value was correct and enabled
+  (StartupApproved `02`), but Shell-Core/Operational events 9707 show Explorer
+  never launched it in any of the last 10 logons (nor the `Claude` value in
+  the same key), while LGHUB and Codex from that key ran every time. The
+  mouser log was untouched since 05:08, so it never started; no cause found
+  on the Windows side. With the user's OK, Windows start-at-login is now a
+  scheduled task `\mouser` (logon trigger for this user, interactive, no time
+  limit, runs on battery), made via `schtasks /Create /XML` with
+  `CREATE_NO_WINDOW`. At startup the exe deletes an old `Run` value and
+  creates the task in its place (logs "start at login moved to a scheduled
+  task"). The tray toggle drives the task. macOS is unchanged. `cargo test`
+  22 passed; clippy `-D warnings` clean on Windows. Release rebuilt and
+  launched: the `Run` value is gone and the task exists. `schtasks /Run /TN
+  mouser` started PID 16892. Not verified: a real sign-out/sign-in, and
+  pairing (the Mac was not answering at 18:08Z: timeouts and `No such host`).
+  Committed and pushed on user request, on top of `5cfd4f7` (Mac tray icon).

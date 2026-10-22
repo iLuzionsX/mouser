@@ -136,6 +136,12 @@ fn main() {
     if first_run && let Err(e) = autostart::set(true) {
         log!("could not set up start at login: {e}");
     }
+    #[cfg(windows)]
+    match autostart::upgrade() {
+        Ok(true) => log!("start at login moved to a scheduled task"),
+        Ok(false) => {}
+        Err(e) => log!("could not move start at login to a scheduled task: {e}"),
+    }
     ENABLED.store(cfg.enabled, Relaxed);
 
     let (tx, rx) = channel();
