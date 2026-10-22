@@ -261,6 +261,18 @@ impl<I: Io> Kvm<I> {
         self.connected = up;
     }
 
+    /// The user moved the other screen. If we were driving the peer, hand
+    /// control back first so neither side is left stuck.
+    pub fn set_edge(&mut self, edge: Edge) -> Option<Msg> {
+        self.edge = edge;
+        if self.mode != Mode::Forwarding {
+            return None;
+        }
+        self.set_mode(Mode::Local);
+        self.io.show();
+        Some(Msg::Release)
+    }
+
     fn release_held(&mut self) {
         for up in std::mem::take(&mut self.held) {
             self.io.inject(up);
@@ -455,6 +467,15 @@ mod tests {
         assert_eq!(k.local(mv(1919.0, 540.0, 7.0, -2.0)), Some(Msg::Move(7, -2)));
         assert_eq!(k.io.warps.last(), Some(&(1912.0, 540.0)));
         assert_eq!(k.local(Captured::Input(Msg::Key(4, true))), Some(Msg::Key(4, true)));
+    }
+
+    #[test]
+    fn moving_the_screen_mid_handoff_hands_control_back() {
+        let mut k = kvm(Edge::Right, true);
+        assert_eq!(k.set_edge(Edge::Top), None);
+        assert!(k.local(mv(960.0, 0.0, 0.0, -5.0)).is_some());
+        assert_eq!(k.set_edge(Edge::Bottom), Some(Msg::Release));
+        assert!(!k.io.hidden && !k.claims.forwarding());
     }
 
     #[test]

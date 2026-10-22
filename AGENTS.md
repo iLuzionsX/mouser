@@ -31,6 +31,33 @@ procedures below describe v0.2.
 - Log lines are `HH:MM:SSZ` (UTC). The proof of pairing is
   `paired with <ip>:<port> [0788FEF2]` (no peer name any more).
 
+## v0.3 — tray icon, settings file, start at login (2026-10-22)
+
+Same wire as v0.2 (a v0.2 peer still pairs), so mixed v0.2/v0.3 is safe.
+
+- A **menu bar icon** (Mac) / **notification-area icon** (PC): status line,
+  "Connection on" toggle, "Other screen is" Left/Right/Above/Below,
+  "Start at login", "Quit mouser". Two stacked screens, filled when paired.
+- **Settings live in `~/.config/mouser/config`** (`%USERPROFILE%\.config\mouser\config`):
+  `connect`, `edge`, `enabled`, `allow_public`. Flags still work and are
+  **written back** to that file, so after one run with flags, `mouser` with
+  no arguments does the same. The tray rewrites the file on every change —
+  the tray, not this doc, is now the source of truth for the edge.
+- **Secret:** `MOUSER_SECRET`, else the file `~/.config/mouser/secret`
+  (Mac: copy of `host-secret`; PC: copy of `client-secret`). Never in args.
+- **Log:** `~/.config/mouser/mouser.log`, truncated at each start (stderr
+  still gets the same lines).
+- **Start at login:** Mac LaunchAgent `~/Library/LaunchAgents/dev.mouser.mouser.plist`;
+  PC `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` value `mouser`.
+  Both run the built exe with no args. The very first run (no config file
+  yet) turns it on; the menu toggles it.
+- **One copy only:** a second instance sees `127.0.0.1:47584` taken and exits.
+- **Mac permission at login:** started by launchd, the binary itself needs
+  Accessibility + Input Monitoring (from a terminal it borrows the parent
+  app's). Without them the tray shows "Needs Accessibility and Input
+  Monitoring permission". A rebuild changes the ad-hoc signature, so the
+  grant may need redoing after each update (remove and re-add the entry).
+
 ## This machine's role
 
 This Mac is the **HOST** in a two-machine software-KVM setup:
@@ -43,16 +70,19 @@ This Mac is the **HOST** in a two-machine software-KVM setup:
 | Listen port | `47583` (bind `0.0.0.0`, fixed) |
 | Repo | `/Users/ed/Documents/GitHub/mouser` (single crate, `src/*.rs`) |
 | Binary in use | `target/release/mouser` (**release profile** from v0.2) |
-| Pairing secret | NOT in this file. `cat ~/.config/mouser/host-secret` (file exists, mode 600) |
+| Pairing secret | NOT in this file. `~/.config/mouser/secret` (copy of `host-secret`, mode 600) |
 
 ## How the host runs (canonical form)
 
 ```sh
 cd /Users/ed/Documents/GitHub/mouser
-nohup env MOUSER_SECRET="$(cat ~/.config/mouser/host-secret)" \
-  ./target/release/mouser --wait --edge top \
-  </dev/null >"$TMPDIR/mouser-host.log" 2>&1 &
+nohup ./target/release/mouser </dev/null >/dev/null 2>&1 &
 ```
+
+(v0.3: settings from `~/.config/mouser/config`, secret from
+`~/.config/mouser/secret`, log in `~/.config/mouser/mouser.log`. At login
+launchd starts it by itself: `launchctl bootstrap gui/$(id -u)
+~/Library/LaunchAgents/dev.mouser.mouser.plist` does the same by hand.)
 
 - Detached (nohup, PPID 1). If the agent's tool shell kills nohup children,
   launch the same command via Python `Popen(..., start_new_session=True)`
@@ -82,7 +112,7 @@ nohup env MOUSER_SECRET="$(cat ~/.config/mouser/host-secret)" \
 ```sh
 lsof -nP -iTCP:47583 -sTCP:LISTEN          # mouser PID listening
 lsof -nP -iTCP:47583 | grep ESTABLISHED    # line to the PC
-tail "$TMPDIR/mouser-host.log"            # "paired with 192.168.68.x:... [0788FEF2]"
+tail ~/.config/mouser/mouser.log          # "paired with 192.168.68.x:... [0788FEF2]"
 ```
 
 The "paired with" log line is the real proof; a LISTEN socket alone is not.
@@ -702,3 +732,20 @@ Windows quirks:
   over Remote Control) was asked to relaunch with `--edge bottom`, update
   launch.vbs, and pull `main` without pushing. The Mac host keeps running
   PID 81714 (built from `22db166`; the code is identical to `main`).
+
+- **2026-10-22 ~04:35 EDT** — Claude Code on the Mac host, user asked for
+  start-at-login plus a menu bar / taskbar icon with on/off and screen
+  position settings. Built **v0.3** (see the section near the top): new
+  `src/config.rs`, `src/autostart.rs`, `src/tray.rs` (tray-icon + tao; tao
+  owns the main thread, the state machine moved to a worker thread),
+  `Kvm::set_edge` (hands control back if it was forwarding). Wire unchanged.
+  `cargo test` 22 passed; clippy `-D warnings` clean on macOS and
+  x86_64-pc-windows-gnu (type-checked only). Release binary 860 KB. Mac:
+  copied `host-secret` to `secret`, ran once with `--wait --edge top` (wrote
+  config + LaunchAgent), then relaunched with **no args**: paired with the
+  PC (still v0.2) at `192.168.68.59`. Menu verified through accessibility:
+  status "Connected to 192.168.68.59", toggling off closes the port and
+  toggling on re-pairs in ~9 s, edge picker rewrites `config` and checks
+  one item. **launchd start fails the event tap until the user grants
+  `target/release/mouser` Accessibility + Input Monitoring**; the running
+  host was started from the shell instead. PC side handed to the PC session.
